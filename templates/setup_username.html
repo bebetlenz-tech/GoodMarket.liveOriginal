@@ -1,0 +1,466 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Set Your Username - GoodHub Market</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .setup-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: slideUp 0.5s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .setup-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .setup-icon {
+            font-size: 4rem;
+            margin-bottom: 15px;
+        }
+
+        .setup-title {
+            font-size: 2rem;
+            color: #333;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .setup-subtitle {
+            color: #666;
+            font-size: 1rem;
+            line-height: 1.5;
+        }
+
+        .wallet-info {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .wallet-label {
+            font-size: 0.85rem;
+            opacity: 0.9;
+            margin-bottom: 5px;
+        }
+
+        .wallet-address {
+            font-family: monospace;
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-label {
+            display: block;
+            color: #333;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 0.95rem;
+        }
+
+        .username-input-wrapper {
+            position: relative;
+        }
+
+        .username-input {
+            width: 100%;
+            padding: 15px 45px 15px 15px;
+            border: 2px solid #ddd;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .username-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .username-input.valid {
+            border-color: #10b981;
+        }
+
+        .username-input.invalid {
+            border-color: #ef4444;
+        }
+
+        .validation-icon {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1.2rem;
+            display: none;
+        }
+
+        .validation-icon.show {
+            display: block;
+        }
+
+        .validation-icon.valid {
+            color: #10b981;
+        }
+
+        .validation-icon.invalid {
+            color: #ef4444;
+        }
+
+        .validation-message {
+            margin-top: 8px;
+            font-size: 0.85rem;
+            display: none;
+        }
+
+        .validation-message.show {
+            display: block;
+        }
+
+        .validation-message.error {
+            color: #ef4444;
+        }
+
+        .validation-message.success {
+            color: #10b981;
+        }
+
+        .validation-message.info {
+            color: #666;
+        }
+
+        .username-requirements {
+            background: #f3f4f6;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .requirement-title {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+        }
+
+        .requirement-list {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .requirement-item {
+            padding: 5px 0;
+            color: #666;
+            font-size: 0.85rem;
+        }
+
+        .requirement-item i {
+            margin-right: 8px;
+            color: #667eea;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .submit-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .btn-spinner {
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top: 3px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            display: none;
+        }
+
+        .submit-btn.processing .btn-spinner {
+            display: block;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error-alert {
+            background: #fee2e2;
+            color: #991b1b;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: none;
+            border-left: 4px solid #ef4444;
+        }
+
+        .error-alert.show {
+            display: block;
+        }
+
+        @media (max-width: 600px) {
+            .setup-container {
+                padding: 30px 20px;
+            }
+
+            .setup-title {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="setup-container">
+        <div class="setup-header">
+            <div class="setup-icon">👤</div>
+            <h1 class="setup-title">Choose Your Username</h1>
+            <p class="setup-subtitle">Set up your unique username to personalize your GoodHub Market experience</p>
+        </div>
+
+        <div class="wallet-info">
+            <div class="wallet-label">Connected Wallet</div>
+            <div class="wallet-address" id="walletAddress">Loading...</div>
+        </div>
+
+        <div class="error-alert" id="errorAlert"></div>
+
+        <form id="usernameForm">
+            <div class="form-group">
+                <label class="form-label" for="username">
+                    <i class="fas fa-user"></i> Your Username
+                </label>
+                <div class="username-input-wrapper">
+                    <input 
+                        type="text" 
+                        id="username" 
+                        class="username-input" 
+                        placeholder="Enter your username"
+                        autocomplete="off"
+                        minlength="3"
+                        maxlength="50"
+                        required
+                    >
+                    <i class="validation-icon fas fa-check-circle" id="validIcon"></i>
+                    <i class="validation-icon fas fa-times-circle" id="invalidIcon"></i>
+                </div>
+                <div class="validation-message" id="validationMessage"></div>
+            </div>
+
+            <div class="username-requirements">
+                <div class="requirement-title">Username Requirements:</div>
+                <ul class="requirement-list">
+                    <li class="requirement-item"><i class="fas fa-circle"></i> 3-50 characters long</li>
+                    <li class="requirement-item"><i class="fas fa-circle"></i> Letters, numbers, and underscores only</li>
+                    <li class="requirement-item"><i class="fas fa-circle"></i> Must be unique</li>
+                </ul>
+            </div>
+
+            <button type="submit" class="submit-btn" id="submitBtn">
+                <span class="btn-spinner"></span>
+                <span class="btn-text">Continue to Dashboard</span>
+            </button>
+        </form>
+    </div>
+
+    <script>
+        const walletAddress = "{{ wallet_address }}";
+        const usernameInput = document.getElementById('username');
+        const validIcon = document.getElementById('validIcon');
+        const invalidIcon = document.getElementById('invalidIcon');
+        const validationMessage = document.getElementById('validationMessage');
+        const submitBtn = document.getElementById('submitBtn');
+        const errorAlert = document.getElementById('errorAlert');
+        const usernameForm = document.getElementById('usernameForm');
+
+        // Display wallet address
+        document.getElementById('walletAddress').textContent = 
+            walletAddress.slice(0, 6) + '...' + walletAddress.slice(-6);
+
+        let checkTimeout;
+
+        // Validate username format
+        function isValidFormat(username) {
+            return /^[a-zA-Z0-9_]{3,50}$/.test(username);
+        }
+
+        // Check username availability
+        async function checkUsername(username) {
+            if (!isValidFormat(username)) {
+                return { valid: false, message: 'Username must be 3-50 characters (letters, numbers, underscore only)' };
+            }
+
+            try {
+                const response = await fetch('/api/check-username', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username })
+                });
+
+                const data = await response.json();
+                return data;
+            } catch (error) {
+                console.error('Error checking username:', error);
+                return { valid: false, message: 'Error checking username availability' };
+            }
+        }
+
+        // Handle username input
+        usernameInput.addEventListener('input', async (e) => {
+            const username = e.target.value.trim();
+
+            // Clear previous timeout
+            clearTimeout(checkTimeout);
+
+            // Reset UI
+            usernameInput.classList.remove('valid', 'invalid');
+            validIcon.classList.remove('show', 'valid');
+            invalidIcon.classList.remove('show', 'invalid');
+            validationMessage.classList.remove('show', 'error', 'success', 'info');
+            submitBtn.disabled = true;
+
+            if (username.length === 0) {
+                return;
+            }
+
+            // Show checking message
+            validationMessage.textContent = 'Checking availability...';
+            validationMessage.classList.add('show', 'info');
+
+            // Debounce username check
+            checkTimeout = setTimeout(async () => {
+                const result = await checkUsername(username);
+
+                if (result.valid) {
+                    usernameInput.classList.add('valid');
+                    validIcon.classList.add('show', 'valid');
+                    validationMessage.textContent = '✓ Username is available!';
+                    validationMessage.classList.remove('info');
+                    validationMessage.classList.add('success');
+                    submitBtn.disabled = false;
+                } else {
+                    usernameInput.classList.add('invalid');
+                    invalidIcon.classList.add('show', 'invalid');
+                    validationMessage.textContent = result.message || 'Username is not available';
+                    validationMessage.classList.remove('info');
+                    validationMessage.classList.add('error');
+                    submitBtn.disabled = true;
+                }
+            }, 500);
+        });
+
+        // Handle form submission
+        usernameForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const username = usernameInput.value.trim();
+            
+            if (!username) {
+                showError('Please enter a username');
+                return;
+            }
+
+            // Show processing state
+            submitBtn.classList.add('processing');
+            submitBtn.disabled = true;
+            errorAlert.classList.remove('show');
+
+            try {
+                const response = await fetch('/api/set-username', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        wallet_address: walletAddress,
+                        username: username 
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Redirect to the URL specified by the API (Community Stories or Dashboard)
+                    const redirectUrl = data.redirect_url || '/dashboard';
+                    window.location.href = redirectUrl;
+                } else {
+                    showError(data.error || 'Failed to set username');
+                    submitBtn.classList.remove('processing');
+                    submitBtn.disabled = false;
+                }
+            } catch (error) {
+                console.error('Error setting username:', error);
+                showError('Network error. Please try again.');
+                submitBtn.classList.remove('processing');
+                submitBtn.disabled = false;
+            }
+        });
+
+        function showError(message) {
+            errorAlert.textContent = message;
+            errorAlert.classList.add('show');
+        }
+    </script>
+</body>
+</html>
