@@ -1,0 +1,311 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minigames - GoodDollar</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+            min-height: 100vh;
+            color: #f1f5f9;
+        }
+
+        .navbar {
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(99, 102, 241, 0.2);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .nav-brand {
+            font-size: 1.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #6366f1, #a855f7, #ec4899);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .back-btn {
+            background: linear-gradient(135deg, #6366f1, #a855f7);
+            color: white;
+            text-decoration: none;
+            padding: 0.5rem 1.5rem;
+            border-radius: 10px;
+            font-weight: 600;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            background: linear-gradient(135deg, #6366f1, #a855f7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 1rem;
+        }
+
+        .games-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .game-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            border-radius: 20px;
+            padding: 2rem;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .game-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(99, 102, 241, 0.3);
+        }
+
+        .game-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+
+        .game-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .game-desc {
+            color: rgba(241, 245, 249, 0.7);
+            margin-bottom: 1rem;
+        }
+
+        .game-reward {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 10px;
+            display: inline-block;
+            margin-bottom: 1rem;
+        }
+
+        .play-btn {
+            background: linear-gradient(135deg, #6366f1, #a855f7);
+            color: white;
+            border: none;
+            padding: 0.75rem 2rem;
+            border-radius: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        .play-btn:disabled {
+            background: rgba(100, 116, 139, 0.5);
+            cursor: not-allowed;
+        }
+
+        .game-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, #1e293b, #334155);
+            padding: 2rem;
+            border-radius: 24px;
+            max-width: 800px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .close-modal {
+            background: rgba(239, 68, 68, 0.2);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            float: right;
+        }
+
+        #gameCanvas {
+            background: #1e293b;
+            border: 2px solid #6366f1;
+            border-radius: 12px;
+            display: block;
+            margin: 1rem auto;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(15, 23, 42, 0.95);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+            z-index: 10000;
+            display: none;
+        }
+
+        .withdrawal-section {
+            background: linear-gradient(135deg, rgba(251, 191, 36, 0.1), rgba(245, 158, 11, 0.1));
+            border: 2px solid rgba(251, 191, 36, 0.3);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .progress-bar {
+            background: rgba(255, 255, 255, 0.1);
+            height: 12px;
+            border-radius: 6px;
+            overflow: hidden;
+            margin-bottom: 1rem;
+        }
+
+        .progress-fill {
+            background: linear-gradient(90deg, #fbbf24, #f59e0b);
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-brand">🎮 Minigames</div>
+        <a href="/dashboard" class="back-btn">← Back to Dashboard</a>
+    </nav>
+
+    <div class="container">
+        <div class="header">
+            <h1>🎮 Play & Earn G$</h1>
+            <p>Play fun games and earn GoodDollar rewards!</p>
+            
+            <!-- Community Initiative Disclaimer -->
+            <div style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(168, 85, 247, 0.1)); border: 2px solid rgba(99, 102, 241, 0.3); border-radius: 16px; padding: 1.5rem; margin-top: 1.5rem; text-align: left; max-width: 800px; margin-left: auto; margin-right: auto;">
+                <div style="display: flex; align-items: center; margin-bottom: 1rem;">
+                    <span style="font-size: 2rem; margin-right: 1rem;">ℹ️</span>
+                    <div>
+                        <h3 style="margin: 0; color: #6366f1; font-size: 1.2rem;">Community Initiative</h3>
+                        <p style="margin: 0.5rem 0 0 0; color: rgba(255,255,255,0.7); font-size: 0.9rem;">Built by the GoodDollar Independent Moderator Team</p>
+                    </div>
+                </div>
+                <div style="background: rgba(0,0,0,0.2); padding: 1rem; border-radius: 12px; font-size: 0.9rem; line-height: 1.6;">
+                    <p style="margin: 0; color: rgba(255,255,255,0.9);">
+                        <strong style="color: #fbbf24;">⚠️ Please Note:</strong> This minigames feature is <strong>just for fun</strong> and entertainment purposes. 
+                        It was created by the <strong>GIMT (GoodDollar Independent Moderator Team)</strong> as a community-driven initiative.
+                    </p>
+                    <p style="margin: 0.75rem 0 0 0; color: rgba(255,255,255,0.8);">
+                        This is <strong>NOT an official GoodDollar product</strong> and is not endorsed or managed by the GoodDollar Foundation. 
+                        It's a community project built by moderators to enhance your GoodDollar experience.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Balance & Withdrawal Section -->
+        <div class="withdrawal-section">
+            <h2 style="font-size: 1.5rem; margin-bottom: 1.5rem; color: #fbbf24;">💰 Your Balance</h2>
+            
+            <div style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(16, 185, 129, 0.1)); padding: 1.5rem; border-radius: 12px; margin-bottom: 1.5rem; border: 2px solid rgba(99, 102, 241, 0.3);">
+                <div style="font-size: 0.9rem; color: rgba(255,255,255,0.7); margin-bottom: 0.5rem;">💰 Available Balance</div>
+                <div id="availableBalanceDisplay" style="font-size: 2.5rem; font-weight: 800; color: #10b981;">
+                    <div style="font-size: 2.5rem; font-weight: 800; color: #ef4444;">0.00 G$</div>
+                    <div style="font-size: 0.9rem; color: #fbbf24; margin-top: 0.5rem;">⬇️ Deposit 100-500 G$ to start playing!</div>
+                </div>
+            </div>
+
+            <div style="background: rgba(251, 191, 36, 0.1); padding: 1rem; border-radius: 12px; margin-bottom: 1.5rem; text-align: left;">
+                <div style="font-size: 0.9rem; color: #fbbf24; font-weight: 600; margin-bottom: 0.5rem;">📋 How it works:</div>
+                <div style="font-size: 0.85rem; color: rgba(255,255,255,0.7); line-height: 1.6;">
+                    1. Deposit 100-500 G$ to play<br>
+                    2. Bet 50-250 G$ per game (max 20 games/day)<br>
+                    3. Cash out before 5x max crash!<br>
+                    4. Reach 10,000 G$ winnings to withdraw
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                <button id="depositBtn" onclick="window.openDepositModal()" style="padding: 1rem 1.5rem; background: linear-gradient(135deg, #6366f1, #a855f7); color: white; border: none; border-radius: 12px; font-size: 1rem; font-weight: 700; cursor: pointer; transition: all 0.3s ease;">
+                    💳 Deposit
+                </button>
+                <button id="mainWithdrawBtn" onclick="window.withdrawFromMain()" disabled style="padding: 1rem 1.5rem; background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; border-radius: 12px; font-size: 1rem; font-weight: 700; cursor: not-allowed; opacity: 0.5; transition: all 0.3s ease;">
+                    💸 Withdraw
+                </button>
+                <button onclick="window.openGameLogsModal()" style="padding: 1rem 1.5rem; background: linear-gradient(135deg, #f59e0b, #d97706); color: white; border: none; border-radius: 12px; font-size: 1rem; font-weight: 700; cursor: pointer; transition: all 0.3s ease;">
+                    📊 Game Logs
+                </button>
+            </div>
+        </div>
+
+        <div class="games-grid">
+            <!-- Crash Game -->
+            <div class="game-card" style="grid-column: 1 / -1; max-width: 600px; margin: 0 auto;">
+                <div class="game-icon">🚀</div>
+                <div class="game-title">Live Crash Game</div>
+                <div class="game-desc">Bet 50-250 G$ and cash out before 5x max crash!</div>
+                <div class="game-reward" style="background: linear-gradient(135deg, #ef4444, #dc2626);">⚡ Max 5x | 20 plays/day</div>
+                <div id="limit-crash_game" style="color: #fbbf24; margin-bottom: 0.5rem;">Loading...</div>
+                <button class="play-btn" id="play-crash_game" onclick="window.openGame('crash_game')">🚀 Play Crash Game</button>
+                <div style="margin-top: 1rem; padding: 1rem; background: rgba(99, 102, 241, 0.1); border-radius: 12px; font-size: 0.9rem; text-align: left;">
+                    <strong style="color: #fbbf24;">Rules:</strong><br>
+                    • Bet: 50-250 G$ per game<br>
+                    • Maximum crash: 5.00x<br>
+                    • Daily limit: 20 games<br>
+                    • Cash out before crash to win!<br>
+                    • Minimum withdrawal: 10,000 G$
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Game Modal -->
+    <div id="gameModal" class="game-modal">
+        <div class="modal-content">
+            <button class="close-modal" onclick="window.closeGameModal()">✕ Close</button>
+            <div id="gameContent"></div>
+        </div>
+    </div>
+
+    <div id="notification" class="notification"></div>
+
+    <script src="/static/minigames.js"></script>
+</body>
+</html>
