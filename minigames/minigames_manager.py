@@ -41,6 +41,12 @@ class MinigamesManager:
                 'base_reward': 10,
                 'min_multiplier': 1.20,
                 'max_multiplier': 5.00  # Maximum 5x crash multiplier
+            },
+            'coin_flip': {
+                'max_plays_per_day': 20,  # Maximum 20 plays per day
+                'min_bet': 50.0,  # Minimum bet 50 G$
+                'max_bet': 250.0,  # Maximum bet 250 G$
+                'win_multiplier': 2.0  # 2x payout on win
             }
         }
 
@@ -232,8 +238,8 @@ class MinigamesManager:
                     'error': f"Daily limit reached (20 plays). Come back tomorrow!"
                 }
 
-            # For crash_game, validate and deduct bet amount
-            if game_type == 'crash_game':
+            # For crash_game and coin_flip, validate and deduct bet amount
+            if game_type == 'crash_game' or game_type == 'coin_flip':
                 balance_info = self.get_deposit_balance(wallet_address)
                 available_balance = balance_info.get('available_balance', 0)
                 
@@ -299,7 +305,7 @@ class MinigamesManager:
                 'wallet_address': wallet_address,
                 'game_type': game_type,
                 'status': 'in_progress',
-                'bet_amount': bet_amount if game_type == 'crash_game' else 0,
+                'bet_amount': bet_amount if (game_type == 'crash_game' or game_type == 'coin_flip') else 0,
                 'started_at': datetime.now().isoformat()
             }
 
@@ -335,8 +341,8 @@ class MinigamesManager:
             wallet_address = session_info['wallet_address']
             game_type = session_info['game_type']
 
-            # For crash_game, calculate winnings based on bet amount
-            if game_type == 'crash_game':
+            # For crash_game and coin_flip, calculate winnings based on bet amount
+            if game_type == 'crash_game' or game_type == 'coin_flip':
                 bet_amount = session_info.get('bet_amount', 0)
                 winnings = float(score)  # This is the total winnings (bet × multiplier) from frontend
                 
