@@ -214,6 +214,13 @@
     </nav>
 
     <div class="container">
+        {% if maintenance_mode %}
+        <div style="background: linear-gradient(135deg, rgba(251, 191, 36, 0.1), rgba(245, 158, 11, 0.1)); border: 2px solid rgba(251, 191, 36, 0.5); border-radius: 20px; padding: 3rem; margin-bottom: 2rem; text-align: center;">
+            <div style="font-size: 4rem; margin-bottom: 1rem;">🔧</div>
+            <h2 style="font-size: 2rem; color: #fbbf24; margin-bottom: 1rem;">Maintenance Mode</h2>
+            <p style="font-size: 1.2rem; color: rgba(255,255,255,0.9); line-height: 1.6;">{{ maintenance_message }}</p>
+        </div>
+        {% else %}
         <div class="header">
             <h1>🎮 Play & Earn G$</h1>
             <p>Play fun games and earn GoodDollar rewards!</p>
@@ -324,6 +331,7 @@
                 </div>
             </div>
         </div>
+        {% endif %}
     </div>
 
     <!-- Game Modal -->
