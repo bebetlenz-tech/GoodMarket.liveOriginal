@@ -558,21 +558,28 @@ function startCrashGame(betAmount) {
                 1. Click "Play Crash Game" to start<br>
                 2. Place your bet (50-250 G$ per game)<br>
                 3. Watch the multiplier rise from 1.00x<br>
-                4. Click "Cash Out" BEFORE it crashes to win!<br>
+                4. <strong style="color: #10b981;">IMPORTANT: Click "💰 Cash Out" button BEFORE the game crashes!</strong><br>
                 5. Your winnings = Bet × Multiplier<br>
-                6. If you don't cash out in time, you lose your bet<br>
+                6. If the game crashes before you cash out, you lose your bet<br>
                 <br>
-                <strong style="color: #fbbf24;">⚖️ Game Rules:</strong><br>
+                <strong style="color: #ef4444;">⚠️ Critical Rules:</strong><br>
+                • <strong>You MUST click "Cash Out" to win!</strong> The game will not automatically cash out for you<br>
+                • The multiplier can crash at any moment between 1.20x and 5.00x<br>
+                • Once it crashes (shows "💥 CRASHED!"), you cannot cash out anymore<br>
+                • Cash out early for guaranteed smaller wins, or risk it for bigger multipliers<br>
+                <br>
+                <strong style="color: #fbbf24;">⚖️ Game Limits:</strong><br>
                 • Bet: 50-250 G$ per game<br>
                 • Maximum crash: 5.00x<br>
                 • Daily limit: 20 games<br>
-                • Minimum withdrawal: 100 G$<br>
-                • Maximum withdrawal: 10,000 G$<br>
+                • Minimum withdrawal: 10,000 G$<br>
                 <br>
                 <strong style="color: #10b981;">ℹ️ Important Notice:</strong><br>
                 <span style="color: rgba(255,255,255,0.8); font-size: 0.85rem;">
-                This minigame is <strong>just for fun</strong> and was built by the <strong>GIMT (GoodDollar Independent Moderator Team)</strong>. 
-                This is <strong>not an official GoodDollar product</strong> - it's a community initiative created by the moderator team to enhance the GoodDollar ecosystem experience.
+                This minigame is <strong>just for fun</strong> and entertainment purposes. 
+                It was created by the <strong>GIMT (GoodDollar Independent Moderator Team)</strong> as a community-driven initiative.
+                This is <strong>NOT an official GoodDollar product</strong> and is not endorsed or managed by the GoodDollar Foundation. 
+                It's a community project built by moderators to enhance the GoodDollar ecosystem experience.
                 </span>
             </div>
         </div>
