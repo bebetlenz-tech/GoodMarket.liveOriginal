@@ -450,7 +450,13 @@
                 <li class="menu-item">
                     <a class="menu-link" onclick="showSection('maintenance')">
                         <span class="menu-icon">🔧</span>
-                        <span>Maintenance Mode</span>
+                        <span>Learn & Earn Maintenance</span>
+                    </a>
+                </li>
+                <li class="menu-item">
+                    <a class="menu-link" onclick="showSection('minigames-maintenance')">
+                        <span class="menu-icon">🎮</span>
+                        <span>Minigames Maintenance</span>
                     </a>
                 </li>
                 <li class="menu-item">
@@ -645,10 +651,10 @@
                 </div>
             </section>
 
-            <!-- Maintenance Mode Section -->
+            <!-- Learn & Earn Maintenance Mode Section -->
             <section id="maintenance-section" class="section">
                 <div class="page-header">
-                    <h1 class="page-title">🔧 Maintenance Mode</h1>
+                    <h1 class="page-title">🔧 Learn & Earn Maintenance</h1>
                     <p style="color: rgba(241, 245, 249, 0.7);">Control Learn & Earn feature availability</p>
                 </div>
 
@@ -695,6 +701,63 @@
                             </div>
 
                             <button class="btn btn-primary" onclick="updateMaintenanceMode()" style="width: 100%; padding: 1rem; font-size: 1.1rem;">
+                                💾 Update Maintenance Mode
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Minigames Maintenance Mode Section -->
+            <section id="minigames-maintenance-section" class="section">
+                <div class="page-header">
+                    <h1 class="page-title">🎮 Minigames Maintenance</h1>
+                    <p style="color: rgba(241, 245, 249, 0.7);">Control Minigames feature availability</p>
+                </div>
+
+                <div class="content-box">
+                    <h2>Minigames Maintenance</h2>
+
+                    <div id="minigames-maintenance-status" style="margin-bottom: 2rem;">
+                        <div class="loading">
+                            <div class="spinner"></div>
+                            <p>Loading maintenance status...</p>
+                        </div>
+                    </div>
+
+                    <div id="minigames-maintenance-controls" style="display: none;">
+                        <div style="margin-bottom: 2rem; padding: 1.5rem; background: rgba(255, 255, 255, 0.05); border-radius: 12px;">
+                            <h3 style="margin-bottom: 1rem; color: #f1f5f9;">Current Status</h3>
+                            <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+                                <span style="font-size: 1.1rem; font-weight: 600;">Minigames:</span>
+                                <span id="minigames-current-status-badge" style="padding: 0.5rem 1rem; border-radius: 8px; font-weight: 600;"></span>
+                            </div>
+                            <div id="minigames-current-message-display" style="margin-top: 1rem; padding: 1rem; background: rgba(255, 255, 255, 0.03); border-radius: 8px; display: none;">
+                                <strong>Current Message:</strong>
+                                <p id="minigames-current-message-text" style="margin-top: 0.5rem; color: rgba(241, 245, 249, 0.8);"></p>
+                            </div>
+                        </div>
+
+                        <div style="padding: 1.5rem; background: rgba(255, 255, 255, 0.05); border-radius: 12px;">
+                            <h3 style="margin-bottom: 1rem; color: #f1f5f9;">Update Maintenance Mode</h3>
+
+                            <div style="margin-bottom: 1.5rem;">
+                                <label style="display: block; margin-bottom: 0.5rem; color: rgba(241, 245, 249, 0.9); font-weight: 600;">Status</label>
+                                <select id="minigames-maintenance-mode" style="width: 100%; padding: 0.75rem; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: #f1f5f9; font-size: 1rem;">
+                                    <option value="false">✅ Active (Users can play minigames)</option>
+                                    <option value="true">🔧 Maintenance (Feature disabled)</option>
+                                </select>
+                            </div>
+
+                            <div style="margin-bottom: 1.5rem;">
+                                <label style="display: block; margin-bottom: 0.5rem; color: rgba(241, 245, 249, 0.9); font-weight: 600;">Custom Message</label>
+                                <textarea id="minigames-maintenance-message" rows="3" style="width: 100%; padding: 0.75rem; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: #f1f5f9; font-size: 1rem; resize: vertical;" placeholder="Enter custom message to show when maintenance is active..."></textarea>
+                                <small style="color: rgba(241, 245, 249, 0.6); display: block; margin-top: 0.5rem;">
+                                    This message will be shown to users when Minigames is under maintenance.
+                                </small>
+                            </div>
+
+                            <button class="btn btn-primary" onclick="updateMinigamesMaintenance()" style="width: 100%; padding: 1rem; font-size: 1.1rem;">
                                 💾 Update Maintenance Mode
                             </button>
                         </div>
@@ -1220,6 +1283,9 @@ CORRECT: C
                 case 'maintenance':
                     loadMaintenanceStatus();
                     break;
+                case 'minigames-maintenance':
+                    loadMinigamesMaintenance();
+                    break;
                 case 'quiz-settings':
                     loadQuizSettings();
                     break;
@@ -1385,6 +1451,86 @@ CORRECT: C
             } catch (error) {
                 console.error('Error updating maintenance mode:', error);
                 alert('❌ Error updating maintenance mode: ' + error.message);
+            }
+        }
+
+        async function loadMinigamesMaintenance() {
+            try {
+                const response = await fetch('/api/admin/maintenance/minigames');
+                const data = await response.json();
+
+                const statusDiv = document.getElementById('minigames-maintenance-status');
+                const controlsDiv = document.getElementById('minigames-maintenance-controls');
+
+                if (data.success) {
+                    const isMaintenance = data.is_maintenance;
+                    const message = data.message || '';
+
+                    // Update status badge
+                    const badge = document.getElementById('minigames-current-status-badge');
+                    if (isMaintenance) {
+                        badge.textContent = '🔧 Maintenance Mode';
+                        badge.style.background = 'linear-gradient(135deg, #f59e0b, #d97706)';
+                        badge.style.color = 'white';
+                    } else {
+                        badge.textContent = '✅ Active';
+                        badge.style.background = 'linear-gradient(135deg, #10b981, #059669)';
+                        badge.style.color = 'white';
+                    }
+
+                    // Show current message if exists
+                    if (message) {
+                        document.getElementById('minigames-current-message-display').style.display = 'block';
+                        document.getElementById('minigames-current-message-text').textContent = message;
+                    } else {
+                        document.getElementById('minigames-current-message-display').style.display = 'none';
+                    }
+
+                    // Set form values
+                    document.getElementById('minigames-maintenance-mode').value = isMaintenance.toString();
+                    document.getElementById('minigames-maintenance-message').value = message;
+
+                    statusDiv.style.display = 'none';
+                    controlsDiv.style.display = 'block';
+                } else {
+                    statusDiv.innerHTML = '<p style="color: #ef4444;">Error loading maintenance status</p>';
+                }
+            } catch (error) {
+                console.error('Error loading minigames maintenance status:', error);
+                document.getElementById('minigames-maintenance-status').innerHTML = '<p style="color: #ef4444;">Error loading maintenance status</p>';
+            }
+        }
+
+        async function updateMinigamesMaintenance() {
+            try {
+                const isMaintenance = document.getElementById('minigames-maintenance-mode').value === 'true';
+                const message = document.getElementById('minigames-maintenance-message').value.trim();
+
+                if (isMaintenance && !message) {
+                    alert('⚠️ Please enter a custom message for maintenance mode');
+                    return;
+                }
+
+                const response = await fetch('/api/admin/maintenance/minigames', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        is_maintenance: isMaintenance,
+                        message: message
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    alert(`✅ Minigames maintenance mode ${isMaintenance ? 'enabled' : 'disabled'} successfully!`);
+                    await loadMinigamesMaintenance();
+                } else {
+                    alert('❌ Error: ' + data.error);
+                }
+            } catch (error) {
+                console.error('Error updating minigames maintenance mode:', error);
+                alert('❌ Error updating minigames maintenance mode: ' + error.message);
             }
         }
 
