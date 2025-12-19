@@ -2,13 +2,11 @@ import logging
 import asyncio
 from flask import Blueprint, request, jsonify, render_template, session, redirect
 from .minigames_manager import minigames_manager
+from maintenance_service import maintenance_service
 
 logger = logging.getLogger(__name__)
 
 minigames_bp = Blueprint('minigames', __name__, url_prefix='/minigames')
-
-# 🔧 MAINTENANCE MODE - Set to True to disable minigames
-MINIGAMES_MAINTENANCE = False
 
 @minigames_bp.route('/')
 def minigames_home():
@@ -19,13 +17,21 @@ def minigames_home():
     if not wallet or not verified:
         return redirect('/')
 
-    return render_template('minigames.html', wallet=wallet)
+    # Check maintenance mode from database
+    maintenance_status = maintenance_service.get_maintenance_status('minigames')
+    if maintenance_status.get('is_maintenance', False):
+        maintenance_message = maintenance_status.get('message', 'Minigames are temporarily under maintenance. Please check back later.')
+        return render_template('minigames.html', wallet=wallet, maintenance_mode=True, maintenance_message=maintenance_message)
+
+    return render_template('minigames.html', wallet=wallet, maintenance_mode=False)
 
 @minigames_bp.route('/api/check-limit/<game_type>')
 def check_game_limit(game_type):
     """Check if user can play a game"""
-    if MINIGAMES_MAINTENANCE:
-        return jsonify({'error': 'Minigames are temporarily under maintenance'}), 503
+    # Check maintenance mode from database
+    maintenance_status = maintenance_service.get_maintenance_status('minigames')
+    if maintenance_status.get('is_maintenance', False):
+        return jsonify({'error': maintenance_status.get('message', 'Minigames are temporarily under maintenance')}), 503
 
     try:
         wallet = session.get('wallet')
@@ -46,8 +52,10 @@ def check_game_limit(game_type):
 @minigames_bp.route('/api/start-game', methods=['POST'])
 def start_game():
     """Start a new minigame session"""
-    if MINIGAMES_MAINTENANCE:
-        return jsonify({'error': 'Minigames are temporarily under maintenance'}), 503
+    # Check maintenance mode from database
+    maintenance_status = maintenance_service.get_maintenance_status('minigames')
+    if maintenance_status.get('is_maintenance', False):
+        return jsonify({'error': maintenance_status.get('message', 'Minigames are temporarily under maintenance')}), 503
 
     try:
         wallet_address = session.get('wallet_address')
