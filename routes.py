@@ -1773,6 +1773,49 @@ def set_learn_earn_maintenance():
         logger.error(f"❌ Error setting maintenance status: {e}")
         return jsonify({"success": False, "error": str(e)}), 500
 
+@routes.route("/api/admin/maintenance/minigames", methods=["GET"])
+@admin_required
+def get_minigames_maintenance():
+    """Get Minigames maintenance status"""
+    try:
+        from maintenance_service import maintenance_service
+
+        status = maintenance_service.get_maintenance_status('minigames')
+        return jsonify(status)
+    except Exception as e:
+        logger.error(f"❌ Error getting minigames maintenance status: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@routes.route("/api/admin/maintenance/minigames", methods=["POST"])
+@admin_required
+def set_minigames_maintenance():
+    """Set Minigames maintenance status"""
+    try:
+        from maintenance_service import maintenance_service
+
+        data = request.json
+        is_maintenance = data.get('is_maintenance', False)
+        message = data.get('message', '')
+        admin_wallet = session.get('wallet')
+
+        if is_maintenance and not message:
+            return jsonify({
+                "success": False,
+                "error": "Custom message is required when enabling maintenance mode"
+            }), 400
+
+        result = maintenance_service.set_maintenance_status(
+            'minigames',
+            is_maintenance,
+            message,
+            admin_wallet
+        )
+
+        return jsonify(result)
+    except Exception as e:
+        logger.error(f"❌ Error setting minigames maintenance status: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
 @routes.route("/api/admin/quiz-settings", methods=["GET"])
 @admin_required
 def get_quiz_settings():
