@@ -489,6 +489,12 @@
                         <span>News Management</span>
                     </a>
                 </li>
+                <li class="menu-item">
+                    <a class="menu-link" onclick="showSection('module-links')">
+                        <span class="menu-icon">🔗</span>
+                        <span>Module Links</span>
+                    </a>
+                </li>
             </ul>
         </aside>
 
@@ -1100,7 +1106,7 @@
                             <img id="newsImagePreviewImg" style="max-width: 100%; max-height: 300px; border-radius: 8px;">
                         </div>
 
-                        <button type="submit" class="btn btn-primary" style="width: 100%; padding: 1rem; font-size: 1.1rem; background: linear-gradient(135deg, #6366f1, #a855f7);">
+                        <button type="submit" class="btn btn-primary" style="width: 100%; padding: 1rem; font-size: 1.1rem;">
                             📰 Publish News Article
                         </button>
                     </form>
@@ -1239,6 +1245,54 @@ CORRECT: C
         </div>
     </div>
 
+    <!-- Module Links Section (NEW) -->
+    <section id="module-links-section" class="section">
+        <div class="page-header">
+            <h1 class="page-title">🔗 Module Links</h1>
+            <p style="color: rgba(241, 245, 249, 0.7);">Manage the module links for the Learn & Earn section.</p>
+        </div>
+
+        <div class="content-box">
+            <h2>Add New Module Link</h2>
+
+            <form id="addModuleLinkForm" style="margin-bottom: 1.5rem; padding: 1.5rem; background: rgba(255, 255, 255, 0.05); border-radius: 12px;">
+                <div style="margin-bottom: 1rem;">
+                    <label class="form-label">Link Title</label>
+                    <input type="text" id="moduleLinkTitle" placeholder="e.g., Introduction to Blockchain" class="form-control" required>
+                </div>
+
+                <div style="margin-bottom: 1rem;">
+                    <label class="form-label">URL</label>
+                    <input type="url" id="moduleLinkUrl" placeholder="https://example.com/module" class="form-control" required>
+                </div>
+
+                <div style="margin-bottom: 1rem;">
+                    <label class="form-label">Description (Optional)</label>
+                    <textarea id="moduleLinkDescription" rows="3" placeholder="Brief description of the module..." class="form-control"></textarea>
+                </div>
+
+                <div style="margin-bottom: 1.5rem;">
+                    <label class="form-label">Display Order (Lower numbers appear first)</label>
+                    <input type="number" id="moduleLinkOrder" min="1" value="1" class="form-control" required>
+                </div>
+
+                <button type="submit" class="btn btn-primary" style="width: 100%; padding: 1rem; font-size: 1.1rem;">
+                    ➕ Add Module Link
+                </button>
+            </form>
+        </div>
+
+        <div class="content-box">
+            <h2>Current Module Links</h2>
+            <div id="moduleLinksTable">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Loading module links...</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <script>
         // Section Navigation
         function showSection(sectionName) {
@@ -1273,6 +1327,7 @@ CORRECT: C
                 case 'community-stories':
                     loadCommunityStoriesNotifications();
                     loadCommunityStoriesHistory();
+                    loadRecentRequirementImages(); // Load recent images when section is activated
                     break;
                 case 'daily-tasks':
                     loadPendingDailyTasks();
@@ -1297,6 +1352,9 @@ CORRECT: C
                     break;
                 case 'broadcast-messages':
                     loadBroadcastMessages();
+                    break;
+                case 'module-links': // New case for module links section
+                    loadModuleLinks();
                     break;
             }
         }
@@ -1609,7 +1667,6 @@ CORRECT: C
                             <thead>
                                 <tr>
                                     <th>Wallet Address</th>
-                                    <th>Username</th>
                                     <th>UBI Verified</th>
                                     <th>Total Logins</th>
                                     <th>Last Login</th>
@@ -1620,7 +1677,6 @@ CORRECT: C
                                 ${data.users.map(user => `
                                     <tr>
                                         <td style="font-family: monospace;">${user.wallet_address.substring(0,10)}...${user.wallet_address.substring(user.wallet_address.length - 8)}</td>
-                                        <td>${user.username || 'Not set'}</td>
                                         <td>${user.ubi_verified ? '✅' : '❌'}</td>
                                         <td>${user.total_logins || 0}</td>
                                         <td>${user.last_login ? new Date(user.last_login).toLocaleDateString() : 'N/A'}</td>
@@ -2129,10 +2185,10 @@ CORRECT: C
                     }
 
                     // Extract answers A, B, C, D with strict boundaries
-                    const aMatch = block.match(/A:\s*(.+?)\s+B:/s);
-                    const bMatch = block.match(/B:\s*(.+?)\s+C:/s);
-                    const cMatch = block.match(/C:\s*(.+?)\s+D:/s);
-                    const dMatch = block.match(/D:\s*(.+?)\s+CORRECT:/s);
+                    const aMatch = block.match(/A:\s*(.+?)\s*B:/s);
+                    const bMatch = block.match(/B:\s*(.+?)\s*C:/s);
+                    const cMatch = block.match(/C:\s*(.+?)\s*D:/s);
+                    const dMatch = block.match(/D:\s*(.+?)\s*CORRECT:/s);
 
                     if (aMatch) question.answer_a = aMatch[1].trim();
                     if (bMatch) question.answer_b = bMatch[1].trim();
@@ -2851,7 +2907,7 @@ CORRECT: C
         function updateBroadcastPreview() {
             const title = document.getElementById('broadcast-title').value || 'Message Title';
             const message = document.getElementById('broadcast-message').value || 'Your message will appear here...';
-            
+
             document.getElementById('preview-title').textContent = title;
             document.getElementById('preview-message').textContent = message;
         }
@@ -3125,6 +3181,123 @@ CORRECT: C
                 console.error('Error loading recent requirement images:', error);
             }
         }
+
+        // Module Links Management Functions
+        async function loadModuleLinks() {
+            try {
+                const response = await fetch('/api/admin/module-links');
+                const data = await response.json();
+
+                const tableDiv = document.getElementById('moduleLinksTable');
+
+                if (data.success && data.links && data.links.length > 0) {
+                    const linksHtml = `
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Order</th>
+                                    <th>Title</th>
+                                    <th>URL</th>
+                                    <th>Description</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${data.links.map(link => `
+                                    <tr>
+                                        <td>${link.display_order}</td>
+                                        <td>${link.title}</td>
+                                        <td><a href="${link.url}" target="_blank" style="color: #6366f1;">${link.url.length > 50 ? link.url.substring(0, 50) + '...' : link.url}</a></td>
+                                        <td>${link.description || 'N/A'}</td>
+                                        <td>
+                                            <button class="btn btn-danger" onclick="deleteModuleLink(${link.id})" style="padding: 0.5rem 1rem;">
+                                                🗑️ Delete
+                                            </button>
+                                        </td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    `;
+                    tableDiv.innerHTML = linksHtml;
+                } else {
+                    tableDiv.innerHTML = '<p style="color: rgba(241, 245, 249, 0.7);">No module links found. Add one above.</p>';
+                }
+            } catch (error) {
+                console.error('Error loading module links:', error);
+                tableDiv.innerHTML = '<p style="color: #ef4444;">Error loading module links: ' + error.message + '</p>';
+            }
+        }
+
+        async function deleteModuleLink(linkId) {
+            if (!confirm('Are you sure you want to delete this module link?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/admin/module-links/${linkId}`, {
+                    method: 'DELETE'
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    alert('✅ Module link deleted successfully!');
+                    await loadModuleLinks();
+                } else {
+                    alert('❌ Error: ' + (data.error || 'Unknown error'));
+                }
+            } catch (error) {
+                console.error('Error deleting module link:', error);
+                alert('❌ Error deleting module link: ' + error.message);
+            }
+        }
+
+        // Initialize module links form handler
+        (function() {
+            const form = document.getElementById('addModuleLinkForm');
+            if (form) {
+                form.addEventListener('submit', async function(e) {
+                    e.preventDefault();
+
+                    const title = document.getElementById('moduleLinkTitle').value.trim();
+                    const url = document.getElementById('moduleLinkUrl').value.trim();
+                    const description = document.getElementById('moduleLinkDescription').value.trim();
+                    const displayOrder = parseInt(document.getElementById('moduleLinkOrder').value);
+
+                    if (!title || !url) {
+                        alert('⚠️ Please fill in title and URL');
+                        return;
+                    }
+
+                    try {
+                        const response = await fetch('/api/admin/module-links', {
+                            method: 'POST',
+                            headers: {'Content-Type': 'application/json'},
+                            body: JSON.stringify({
+                                title: title,
+                                url: url,
+                                description: description,
+                                display_order: displayOrder
+                            })
+                        });
+
+                        const data = await response.json();
+
+                        if (data.success) {
+                            alert('✅ Module link added successfully!');
+                            form.reset();
+                            await loadModuleLinks();
+                        } else {
+                            alert('❌ Error: ' + (data.error || 'Unknown error'));
+                        }
+                    } catch (error) {
+                        console.error('Error adding module link:', error);
+                        alert('❌ Error adding module link: ' + error.message);
+                    }
+                });
+            }
+        })();
     </script>
 </body>
 </html>
