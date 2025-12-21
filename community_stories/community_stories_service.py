@@ -101,7 +101,19 @@ class CommunityStoriesService:
 
 
     def check_user_cooldown(self, wallet_address: str) -> dict:
-        """Check if user is on cooldown for current month - cooldown ONLY activates after reward is received"""
+        """Check if user is on cooldown for current month - cooldown ONLY activates after reward is received - CACHED"""
+        # Use 60-second cache for cooldown
+        cache_key = f'cs_cooldown_{wallet_address}'
+        if hasattr(self, '_cache'):
+            if cache_key in self._cache:
+                cached_data, cached_time = self._cache[cache_key]
+                import time
+                if time.time() - cached_time < 60:  # 60 seconds
+                    logger.info(f"📦 Using cached Community Stories cooldown for {wallet_address[:8]}...")
+                    return cached_data
+        else:
+            self._cache = {}
+        
         if not self.enabled:
             return {'can_participate': False, 'error': 'Database not available'}
 
@@ -121,18 +133,36 @@ class CommunityStoriesService:
 
                 # Only block if they RECEIVED a reward this month
                 if last_reward_month == current_month:
-                    return {
+                    result = {
                         'can_participate': False,
                         'reason': 'already_rewarded_this_month',
                         'next_participation': self._get_next_month_window()
                     }
+                    
+                    # Cache blocked result
+                    import time
+                    self._cache[cache_key] = (result, time.time())
+                    
+                    return result
 
             # User can participate (no reward received this month)
-            return {'can_participate': True}
+            result = {'can_participate': True}
+            
+            # Cache allowed result
+            import time
+            self._cache[cache_key] = (result, time.time())
+            
+            return result
 
         except Exception as e:
             logger.error(f"❌ Error checking cooldown: {e}")
-            return {'can_participate': False, 'error': str(e)}
+            error_result = {'can_participate': False, 'error': str(e)}
+            
+            # Cache error too (prevent repeated failures)
+            import time
+            self._cache[cache_key] = (error_result, time.time())
+            
+            return error_result
 
     def _get_next_month_window(self) -> str:
         """Get next month's participation window"""
