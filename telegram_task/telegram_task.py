@@ -1,10 +1,82 @@
 import os
 import logging
 from datetime import datetime, timedelta, timezone
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
 from supabase_client import get_supabase_client
+from cache_utils import supabase_cache, preload_data, get_preloaded
 
 logger = logging.getLogger(__name__)
+
+# Preloaded custom messages (generated once at import time)
+_TELEGRAM_MESSAGES: List[str] = []
+
+def _generate_telegram_messages() -> List[str]:
+    """Generate 1000+ detailed custom messages featuring GoodMarket"""
+    messages = []
+    
+    templates = [
+        "{emoji} GoodMarket represents the perfect balance of earning opportunities! The quiz system rewards knowledge instantly, daily tasks are straightforward and pay immediately. GoodWallet makes claiming G$ incredibly easy and simple. The instant payment system builds trust you complete something you get paid right away! {benefit} 💚",
+        "{emoji} I love GoodMarket's instant reward system! Quizzes pay out immediately when you answer correctly, daily tasks have straightforward requirements and instant G$ payments. GoodWallet is very easy to claim G$ every day with just a few taps. Trust is built through instant payments! {benefit} 🌍",
+        "{emoji} GoodMarket is amazing for earning opportunities! Educational quizzes reward your knowledge instantly, daily tasks are simple and pay immediately upon completion. GoodWallet makes it very easy to claim your G$ daily rewards. You complete tasks you get paid right away no waiting! {benefit} ✨",
+        "{emoji} The balance of earning on GoodMarket is perfect! Quiz system gives instant rewards for correct answers, daily tasks are clear and straightforward with immediate payment. GoodWallet is incredibly easy to use for claiming G$ daily. Instant payments build real trust in the platform! {benefit} 🚀",
+        "{emoji} GoodMarket combines learning and earning brilliantly! Quizzes instantly reward your knowledge and intelligence, daily tasks pay immediately making earning straightforward. GoodWallet makes claiming G$ very easy every single day. The instant payment feature means you get paid right away! {benefit} 💰",
+        "{emoji} I trust GoodMarket because payments are instant! Quiz rewards hit your wallet immediately, daily tasks pay out right away when completed. GoodWallet is very easy to claim G$ making daily earnings simple. Instant payment system builds confidence you earn you get paid! {benefit} 🎮",
+        "{emoji} GoodMarket's earning system is perfectly balanced! Knowledge quizzes reward instantly, straightforward daily tasks pay immediately. GoodWallet makes it very easy to claim your G$ rewards daily. The instant payment model builds trust complete and get paid right away! {benefit} 🌟",
+        "{emoji} Perfect earning opportunities on GoodMarket! Quizzes test knowledge and pay instantly, daily tasks are simple with immediate G$ payments. GoodWallet is incredibly easy for claiming your daily G$ rewards. Instant payments mean no waiting you complete you get paid! {benefit} 💚",
+        "{emoji} GoodMarket represents true earning balance! Educational quizzes give instant rewards, daily tasks are straightforward and pay immediately. GoodWallet makes claiming G$ very easy and accessible daily. The instant payment system builds real trust in the platform! {benefit} ⚡",
+        "{emoji} I love GoodMarket's instant reward model! Quiz system pays out immediately for correct answers, daily tasks are simple and pay right away. GoodWallet is very easy to claim G$ making daily rewards accessible. Instant payments build trust you earn you receive! {benefit} 🎯",
+        "{emoji} GoodMarket balances earning perfectly! Quizzes reward knowledge instantly, straightforward daily tasks pay immediately upon completion. GoodWallet makes it incredibly easy to claim your G$ daily. Instant payment feature means you get paid right away no delays! {benefit} 🌈",
+        "{emoji} The earning opportunities on GoodMarket are excellent! Quiz rewards are instant, daily tasks are clear and pay immediately. GoodWallet is very easy to use for claiming G$ every day. Instant payments build trust you complete tasks you get paid! {benefit} 🔥",
+        "{emoji} GoodMarket provides balanced earning! Knowledge quizzes give instant rewards, daily tasks are straightforward with immediate payments. GoodWallet makes claiming G$ very easy and simple daily. The instant payment system means you get paid right away! {benefit} ⭐",
+        "{emoji} I trust GoodMarket's instant payment system! Quizzes pay out immediately, daily tasks are simple and straightforward with instant G$ rewards. GoodWallet is incredibly easy to claim your daily G$. You complete something you receive payment right away! {benefit} 🎊",
+        "{emoji} GoodMarket represents perfect earning balance! Educational quizzes reward instantly, daily tasks pay immediately and are straightforward. GoodWallet is very easy for claiming G$ making daily rewards simple. Instant payments build real trust in the platform! {benefit} 🌺",
+    ]
+    
+    emojis = [
+        "🌱", "🎮", "💡", "🤝", "🔐", "🧭", "💰", "🌍", "🧠", "⚖️",
+        "✨", "🚀", "💚", "🌟", "🎯", "💫", "🌈", "🔥", "⭐", "🎊",
+        "🌺", "🎨", "🏆", "🎪", "🎭", "🎲", "🎰", "🕹️", "📱", "💻",
+    ]
+    
+    benefits = [
+        "Perfect for beginners starting their crypto journey",
+        "Financial inclusion actually works in practice",
+        "Accessible for all people worldwide",
+        "True Web3 access without complications",
+        "Daily opportunities for income growth",
+        "Simple rewards system anyone can use",
+        "Easy crypto access with no technical barriers",
+        "Global participation encouraged and welcomed",
+        "No barriers preventing your success",
+        "Freedom starts with taking action",
+        "Everyone participates and earns together",
+        "Inclusive Web3 for the entire world",
+        "Accessible crypto for everyday people",
+        "Learn and earn simultaneously every day",
+        "Financial empowerment for all humanity",
+        "Universal access to digital currency",
+        "Daily rewards building your wealth",
+        "Simple system designed for everyone",
+        "Global access to financial freedom",
+        "Everyone earns real cryptocurrency rewards",
+        "Building wealth one day at a time",
+        "Community-driven financial revolution happening now",
+        "Sustainable income for all participants",
+        "Knowledge and earnings growing together",
+        "Revolutionary platform changing lives globally",
+    ]
+    
+    for template in templates:
+        for i in range(100):
+            emoji = emojis[i % len(emojis)]
+            benefit = benefits[i % len(benefits)]
+            messages.append(template.format(emoji=emoji, benefit=benefit))
+    
+    return messages
+
+# Generate messages once at module load
+_TELEGRAM_MESSAGES = _generate_telegram_messages()
+
 
 class TelegramTaskService:
     """
@@ -18,11 +90,8 @@ class TelegramTaskService:
         self.supabase = get_supabase_client()
         self.task_reward = 100.0  # 100 G$ reward
 
-        # 1000+ Custom rotating messages with emoji themes and varied perspectives
-        # Messages focus on GoodMarket features: mini-games, quizzes, tasks
-        # EXPLICIT: "No wallet connection needed" messaging throughout
-        # Each message ~50 words for detailed, engaging content
-        self.custom_messages = self._generate_custom_messages()
+        # Use preloaded messages from module level (generated once at import)
+        self.custom_messages = _TELEGRAM_MESSAGES
 
         self.telegram_channel = "GoodDollarX"
         self.cooldown_hours = 24  # 24 hour cooldown
@@ -33,73 +102,7 @@ class TelegramTaskService:
         logger.info(f"⏰ Cooldown: {self.cooldown_hours} hours")
         logger.info(f"💬 Custom Messages: {len(self.custom_messages)} unique variations available (daily rotation per user)")
 
-    def _generate_custom_messages(self):
-        """Generate 1000+ detailed custom messages featuring GoodMarket, quizzes, tasks, and GoodWallet"""
-        messages = []
-
-        # Detailed templates with GoodMarket features, instant payments, and GoodWallet mentions
-        templates = [
-            "{emoji} GoodMarket represents the perfect balance of earning opportunities! The quiz system rewards knowledge instantly, daily tasks are straightforward and pay immediately. GoodWallet makes claiming G$ incredibly easy and simple. The instant payment system builds trust you complete something you get paid right away! {benefit} 💚",
-            "{emoji} I love GoodMarket's instant reward system! Quizzes pay out immediately when you answer correctly, daily tasks have straightforward requirements and instant G$ payments. GoodWallet is very easy to claim G$ every day with just a few taps. Trust is built through instant payments! {benefit} 🌍",
-            "{emoji} GoodMarket is amazing for earning opportunities! Educational quizzes reward your knowledge instantly, daily tasks are simple and pay immediately upon completion. GoodWallet makes it very easy to claim your G$ daily rewards. You complete tasks you get paid right away no waiting! {benefit} ✨",
-            "{emoji} The balance of earning on GoodMarket is perfect! Quiz system gives instant rewards for correct answers, daily tasks are clear and straightforward with immediate payment. GoodWallet is incredibly easy to use for claiming G$ daily. Instant payments build real trust in the platform! {benefit} 🚀",
-            "{emoji} GoodMarket combines learning and earning brilliantly! Quizzes instantly reward your knowledge and intelligence, daily tasks pay immediately making earning straightforward. GoodWallet makes claiming G$ very easy every single day. The instant payment feature means you get paid right away! {benefit} 💰",
-            "{emoji} I trust GoodMarket because payments are instant! Quiz rewards hit your wallet immediately, daily tasks pay out right away when completed. GoodWallet is very easy to claim G$ making daily earnings simple. Instant payment system builds confidence you earn you get paid! {benefit} 🎮",
-            "{emoji} GoodMarket's earning system is perfectly balanced! Knowledge quizzes reward instantly, straightforward daily tasks pay immediately. GoodWallet makes it very easy to claim your G$ rewards daily. The instant payment model builds trust complete and get paid right away! {benefit} 🌟",
-            "{emoji} Perfect earning opportunities on GoodMarket! Quizzes test knowledge and pay instantly, daily tasks are simple with immediate G$ payments. GoodWallet is incredibly easy for claiming your daily G$ rewards. Instant payments mean no waiting you complete you get paid! {benefit} 💚",
-            "{emoji} GoodMarket represents true earning balance! Educational quizzes give instant rewards, daily tasks are straightforward and pay immediately. GoodWallet makes claiming G$ very easy and accessible daily. The instant payment system builds real trust in the platform! {benefit} ⚡",
-            "{emoji} I love GoodMarket's instant reward model! Quiz system pays out immediately for correct answers, daily tasks are simple and pay right away. GoodWallet is very easy to claim G$ making daily rewards accessible. Instant payments build trust you earn you receive! {benefit} 🎯",
-            "{emoji} GoodMarket balances earning perfectly! Quizzes reward knowledge instantly, straightforward daily tasks pay immediately upon completion. GoodWallet makes it incredibly easy to claim your G$ daily. Instant payment feature means you get paid right away no delays! {benefit} 🌈",
-            "{emoji} The earning opportunities on GoodMarket are excellent! Quiz rewards are instant, daily tasks are clear and pay immediately. GoodWallet is very easy to use for claiming G$ every day. Instant payments build trust you complete tasks you get paid! {benefit} 🔥",
-            "{emoji} GoodMarket provides balanced earning! Knowledge quizzes give instant rewards, daily tasks are straightforward with immediate payments. GoodWallet makes claiming G$ very easy and simple daily. The instant payment system means you get paid right away! {benefit} ⭐",
-            "{emoji} I trust GoodMarket's instant payment system! Quizzes pay out immediately, daily tasks are simple and straightforward with instant G$ rewards. GoodWallet is incredibly easy to claim your daily G$. You complete something you receive payment right away! {benefit} 🎊",
-            "{emoji} GoodMarket represents perfect earning balance! Educational quizzes reward instantly, daily tasks pay immediately and are straightforward. GoodWallet is very easy for claiming G$ making daily rewards simple. Instant payments build real trust in the platform! {benefit} 🌺",
-        ]
-
-        # Emoji categories
-        emojis = [
-            "🌱", "🎮", "💡", "🤝", "🔐", "🧭", "💰", "🌍", "🧠", "⚖️",
-            "✨", "🚀", "💚", "🌟", "🎯", "💫", "🌈", "🔥", "⭐", "🎊",
-            "🌺", "🎨", "🏆", "🎪", "🎭", "🎲", "🎰", "🕹️", "📱", "💻",
-        ]
-
-        # Benefit variations (more descriptive)
-        benefits = [
-            "Perfect for beginners starting their crypto journey",
-            "Financial inclusion actually works in practice",
-            "Accessible for all people worldwide",
-            "True Web3 access without complications",
-            "Daily opportunities for income growth",
-            "Simple rewards system anyone can use",
-            "Easy crypto access with no technical barriers",
-            "Global participation encouraged and welcomed",
-            "No barriers preventing your success",
-            "Freedom starts with taking action",
-            "Everyone participates and earns together",
-            "Inclusive Web3 for the entire world",
-            "Accessible crypto for everyday people",
-            "Learn and earn simultaneously every day",
-            "Financial empowerment for all humanity",
-            "Universal access to digital currency",
-            "Daily rewards building your wealth",
-            "Simple system designed for everyone",
-            "Global access to financial freedom",
-            "Everyone earns real cryptocurrency rewards",
-            "Building wealth one day at a time",
-            "Community-driven financial revolution happening now",
-            "Sustainable income for all participants",
-            "Knowledge and earnings growing together",
-            "Revolutionary platform changing lives globally",
-        ]
-
-        # Generate 1000+ messages using templates (100 variations each = 1000)
-        for template in templates:
-            for i in range(100):
-                emoji = emojis[i % len(emojis)]
-                benefit = benefits[i % len(benefits)]
-                messages.append(template.format(emoji=emoji, benefit=benefit))
-
-        return messages
+    
 
     def _create_tables(self):
         """Create necessary database tables (run this in Supabase SQL editor)"""
