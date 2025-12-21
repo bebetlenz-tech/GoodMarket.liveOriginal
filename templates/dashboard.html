@@ -14,7 +14,7 @@
     <link rel="apple-touch-icon" href="/static/icons/icon-192x192.png">
 
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700;800&display=swap');
 
         * {
             margin: 0;
@@ -40,39 +40,7 @@
             }
         }
 
-        /* Animated background particles */
-        .bg-particles {
-            position: fixed;
-            width: 100%;
-            height: 100%;
-            top: 0;
-            left: 0;
-            z-index: 0;
-            overflow: hidden;
-            pointer-events: none;
-        }
 
-        .particle {
-            position: absolute;
-            font-size: 1.5rem;
-            opacity: 0;
-            display: none;
-        }
-
-        .particle:nth-child(odd)::before {
-            content: '💰';
-        }
-
-        .particle:nth-child(even)::before {
-            content: '💎';
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translateY(0) translateX(0); opacity: 0; }
-            10% { opacity: 1; }
-            90% { opacity: 1; }
-            100% { transform: translateY(-100vh) translateX(50px); opacity: 0; }
-        }
 
         .navbar {
             background: linear-gradient(90deg, rgba(26, 11, 46, 0.9) 0%, rgba(45, 27, 61, 0.9) 50%, rgba(26, 11, 46, 0.9) 100%);
@@ -1100,39 +1068,6 @@
         <div class="particle" style="left: 90%; animation-delay: 1.5s;"></div>
     </div>
 
-    <!-- Edit Username Modal -->
-    <div id="editUsernameModal">
-        <div class="modal-content">
-            <h3>✏️ Edit Username</h3>
-            <div class="warning-box">
-                <small>
-                    ⚠️ <strong>Important:</strong> You can only edit your username <strong>ONE TIME</strong>. Choose carefully!
-                </small>
-            </div>
-            <div class="form-group">
-                <label>Current Username:</label>
-                <div style="background: rgba(0,0,0,0.3); padding: 0.875rem; border-radius: 12px; color: white; font-weight: 600;">
-                    {{ username }}
-                </div>
-            </div>
-            <div class="form-group">
-                <label>New Username:</label>
-                <input type="text" id="newUsernameInput" placeholder="Enter new username">
-                <small style="color: rgba(241, 245, 249, 0.7); display: block; margin-top: 0.5rem;">
-                    3-50 characters, letters, numbers, and underscores only
-                </small>
-            </div>
-            <div style="display: flex; gap: 1rem; flex-direction: column;">
-                <button onclick="submitUsernameEdit()" class="btn-primary">
-                    ✅ Update Username
-                </button>
-                <button onclick="closeEditUsernameModal()" class="btn-secondary">
-                    Cancel
-                </button>
-            </div>
-        </div>
-    </div>
-
     <nav class="navbar">
         <div class="nav-brand">🌟 GoodDollar Market by GIMT Team</div>
         <div class="nav-links">
@@ -1150,7 +1085,7 @@
 
     <div class="main-content">
         <div class="dashboard-header">
-            <h1 class="welcome-text">Hi, <span id="usernameDisplay">{{ username }}</span>! 👋</h1>
+            <h1 class="welcome-text">Hi, <span id="usernameDisplay">User</span>! 👋</h1>
             <div class="wallet-info">
                 <div class="wallet-icon">👛</div>
                 <div>
@@ -1196,17 +1131,6 @@
                 <button onclick="event.stopPropagation(); event.preventDefault(); showDailyTaskHistory(); return false;" class="btn-secondary" style="margin-top: 0.5rem; width: 100%; padding: 0.5rem; font-size: 0.9rem; position: relative; z-index: 100; pointer-events: auto; cursor: pointer;">
                     📋 View History
                 </button>
-            </div>
-
-            <div class="stat-card">
-                <div class="stat-header">
-                    <div>
-                        <div class="stat-title">Total Earned</div>
-                    </div>
-                    <div class="stat-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706);">🎁</div>
-                </div>
-                <div class="stat-value" id="totalEarned">0 G$</div>
-                <div class="stat-description">All Time Rewards</div>
             </div>
         </div>
 
@@ -1414,11 +1338,17 @@
 
 
     <script>
-        const wallet = "{{ wallet }}";
+        const walletAddress = "{{ wallet }}";
         let userCustomMessage = ""; // This will now hold the custom message
-        let canEditUsername = false;
         let selectedPlatform = null; // 'twitter' or 'telegram'
         let countdownInterval = null; // Interval for the countdown timer
+
+        // Cache for API responses
+        const apiCache = {
+            dailyTasks: { data: null, timestamp: 0 },
+            communityScreenshots: { data: null, timestamp: 0 }
+        };
+        const CACHE_DURATION = 60000; // 1 minute cache
 
         // Daily Task Modal Functions - Make it globally accessible
         window.showDailyTaskModal = function() {
@@ -1652,7 +1582,7 @@
                     claimBtn.textContent = 'Claimed ✓';
                 }
                 if (actionDescElement) {
-                    actionDescElement.innerHTML = `⏰ Next claim in <strong style="color: #6366f1;">${formattedTime}</strong>`;
+                    actionDescElement.textContent = `Next claim in ${formattedTime}`;
                 }
 
                 secondsRemaining--;
@@ -1663,7 +1593,7 @@
         }
 
         // Update balance display
-        async function updateBalance() {
+        async function loadGoodDollarBalance() {
             try {
                 const response = await fetch('/api/gooddollar-balance');
                 const data = await response.json();
@@ -1693,15 +1623,15 @@
 
                 // Fetch from all earning sources in parallel
                 const [learnEarnResponse, telegramTaskResponse, twitterTaskResponse] = await Promise.all([
-                    fetch('/learn-earn/quiz-history?limit=1000'),
-                    fetch('/api/daily-task/history?limit=1000'),
-                    fetch('/api/twitter-task/transaction-history?limit=1000')
+                    fetch('/learn-earn/quiz-history?limit=1000').catch(() => ({ ok: false, json: async () => ({success: false}) })),
+                    fetch('/api/daily-task/history?limit=1000').catch(() => ({ ok: false, json: async () => ({success: false}) })),
+                    fetch('/api/twitter-task/transaction-history?limit=1000').catch(() => ({ ok: false, json: async () => ({success: false}) }))
                 ]);
 
                 // Handle potential non-JSON responses or errors
-                const learnEarnData = learnEarnResponse.ok ? await learnEarnResponse.json() : { success: false, quiz_history: [] };
-                const telegramTaskData = telegramTaskResponse.ok ? await telegramTaskResponse.json() : { success: false, transactions: [] };
-                const twitterTaskData = twitterTaskResponse.ok ? await twitterTaskResponse.json() : { success: false, transactions: [] };
+                const learnEarnData = await learnEarnResponse.json();
+                const telegramTaskData = await telegramTaskResponse.json();
+                const twitterTaskData = await twitterTaskResponse.json();
 
                 console.log("Learn & Earn Data:", learnEarnData);
                 console.log("Telegram Task Data:", telegramTaskData);
@@ -1752,14 +1682,14 @@
             try {
                 // Load balance, daily task, and total earned in parallel for speed
                 const [balanceRes, dailyTaskRes, totalEarnedRes] = await Promise.all([
-                    fetch('/api/gooddollar-balance').catch(() => ({ ok: false })),
-                    fetch('/api/daily-task/status').catch(() => ({ ok: false })),
-                    fetch('/api/total-earned').catch(() => ({ ok: false })) // This might be redundant if updateTotalEarned is called separately
+                    fetch('/api/gooddollar-balance').catch(() => ({ ok: false, json: async () => ({}) })),
+                    fetch('/api/daily-task/status').catch(() => ({ ok: false, json: async () => ({}) })),
+                    fetch('/api/total-earned').catch(() => ({ ok: false, json: async () => ({}) }))
                 ]);
 
                 // Process balance
                 if (balanceRes.ok) {
-                    const balanceData = await balanceRes.json().catch(() => ({}));
+                    const balanceData = await balanceRes.json();
                     if (balanceData.balance_formatted) {
                         const balanceEl = document.getElementById('gdBalance');
                         if (balanceEl) balanceEl.textContent = balanceData.balance_formatted;
@@ -1770,14 +1700,13 @@
 
                 // Process daily task
                 if (dailyTaskRes.ok) {
-                    const dailyTaskData = await dailyTaskRes.json().catch(() => ({}));
+                    const dailyTaskData = await dailyTaskRes.json();
                     updateDailyTaskUI(dailyTaskData);
                 }
 
                 // Process total earned (if the specific /api/total-earned endpoint is used)
-                // If updateTotalEarned is comprehensive, this might be removed or adapted
                 if (totalEarnedRes.ok) {
-                    const totalEarnedData = await totalEarnedRes.json().catch(() => ({}));
+                    const totalEarnedData = await totalEarnedRes.json();
                     if (totalEarnedData.success && totalEarnedData.total_earned_formatted) {
                         const totalEl = document.getElementById('totalEarned');
                         if (totalEl) totalEl.textContent = totalEarnedData.total_earned_formatted;
@@ -1883,83 +1812,7 @@
 
 
 
-        async function checkUsernameEditStatus() {
-            try {
-                const response = await fetch('/api/can-edit-username');
-                const data = await response.json();
-
-                if (data.success && data.can_edit) {
-                    canEditUsername = true;
-                    const editBtn = document.getElementById('editUsernameBtn');
-                    if (editBtn) {
-                        editBtn.style.display = 'inline-block';
-                    }
-                }
-            } catch (error) {
-                console.error('Error checking username edit status:', error);
-            }
-        }
-
-        function showEditUsernameModal() {
-            document.getElementById('editUsernameModal').style.display = 'flex';
-            document.getElementById('newUsernameInput').value = '';
-        }
-
-        function closeEditUsernameModal() {
-            document.getElementById('editUsernameModal').style.display = 'none';
-            document.getElementById('newUsernameInput').value = '';
-        }
-
-        async function submitUsernameEdit() {
-            const newUsername = document.getElementById('newUsernameInput').value.trim();
-            const submitBtn = event.target;
-            const originalBtnText = submitBtn.textContent;
-
-            if (!newUsername) {
-                showNotification('⚠️ Please enter a new username', 'error');
-                return;
-            }
-
-            if (!/^[a-zA-Z0-9_]{3,50}$/.test(newUsername)) {
-                showNotification('❌ Username must be 3-50 characters (letters, numbers, underscore only)', 'error');
-                return;
-            }
-
-            try {
-                submitBtn.disabled = true;
-                submitBtn.textContent = 'Updating...';
-
-                const response = await fetch('/api/edit-username', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        username: newUsername
-                    })
-                });
-
-                const result = await response.json();
-
-                if (result.success) {
-                    showNotification('🎉 Username updated successfully! This was your one-time edit.', 'success');
-                    document.getElementById('usernameDisplay').textContent = newUsername;
-                    document.getElementById('editUsernameBtn').style.display = 'none';
-                    canEditUsername = false;
-                    closeEditUsernameModal();
-                } else {
-                    showNotification(`❌ ${result.error || 'Failed to update username'}`, 'error');
-                }
-            } catch (error) {
-                console.error('Username edit error:', error);
-                showNotification('❌ Error updating username. Please try again.', 'error');
-            } finally {
-                submitBtn.disabled = false;
-                submitBtn.textContent = originalBtnText;
-            }
-        }
-
-        // Register Service Worker for PWA
+        // Service Worker registration
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('/static/service-worker.js')
@@ -2150,7 +2003,7 @@
                     <div style="text-align: center; padding: 60px 20px; color: rgba(241, 245, 249, 0.5);">
                         <div style="font-size: 3rem; margin-bottom: 16px;">📭</div>
                         <div style="font-size: 1.2rem; font-weight: 600; margin-bottom: 8px;">No notifications</div>
-                        <div style="font-size: 0.9rem;">You're all caught up!</div>
+                        <div style="font-size: 0.9rem; margin-top: 0.5rem;">You're all caught up!</div>
                     </div>
                 `;
             } else {
@@ -2247,28 +2100,6 @@
                 console.error('Error checking notifications:', error);
             }
         }
-
-        // Initialize on page load
-        window.addEventListener('DOMContentLoaded', async () => {
-            console.log("🎯 Dashboard loaded - Telegram card ready");
-
-            // Update balance, total earned, and daily task status
-            await updateBalance();
-            await updateTotalEarned();
-            await checkDailyTaskStatus().then(updateDailyTaskUI); // Check status and then update UI
-
-            // Load transaction history
-            fetchAllTransactionHistory(); // Changed from loadTransactionHistory
-
-            // Check if user is admin
-            checkAdminAccess();
-            // Check if username can be edited
-            checkUsernameEditStatus();
-            // Check for notifications immediately on load
-            checkForNotifications();
-            // Set interval to check for new notifications periodically
-            setInterval(checkForNotifications, 30000);
-        });
 
         // Daily Task History Modal Functions
         window.showDailyTaskHistory = async function() {
@@ -2395,7 +2226,7 @@
             closeHistory: typeof window.closeDailyTaskHistoryModal
         });
 
-        // Check if user is admin and show admin link
+        // Check for admin access and show admin link
         async function checkAdminAccess() {
             try {
                 const response = await fetch('/api/admin/check');
@@ -2413,243 +2244,7 @@
             }
         }
 
-        // Fetch transaction history for all modules - NO DATE FILTERING
-        async function fetchAllTransactionHistory() {
-            try {
-                console.log('📊 Fetching complete transaction history (ALL HISTORICAL DATA)...');
-
-                // Fetch all transaction types in parallel - INCREASED LIMIT TO 5000
-                const [
-                    learnEarnRes,
-                    telegramTaskRes,
-                    forumRewardsRes,
-                    minigamesRes,
-                    tasksRes,
-                    p2pRes
-                ] = await Promise.all([
-                    fetch('/learn-earn/quiz-history?limit=5000'),
-                    fetch('/api/daily-task/history?limit=5000'), // Assuming this is the correct endpoint for Telegram tasks history
-                    fetch('/api/forum/rewards-history?limit=5000'),
-                    fetch('/minigames/api/transaction-history?limit=5000'),
-                    fetch('/api/tasks/transaction-history?limit=5000'),
-                    fetch('/api/p2p/transaction-history?limit=5000')
-                ]);
-
-                const [
-                    learnEarnData,
-                    telegramTaskData,
-                    forumRewardsData,
-                    minigamesData,
-                    tasksData,
-                    p2pData
-                ] = await Promise.all([
-                    learnEarnRes.ok ? learnEarnRes.json() : {success: false, quiz_history: []},
-                    telegramTaskRes.ok ? telegramTaskRes.json() : {success: false, transactions: []},
-                    forumRewardsRes.ok ? forumRewardsRes.json() : {success: false, rewards: []},
-                    minigamesRes.ok ? minigamesRes.json() : {success: false, transactions: []},
-                    tasksRes.ok ? tasksRes.json() : {success: false, tasks: []},
-                    p2pRes.ok ? p2pRes.json() : {success: false, trades: []}
-                ]);
-
-                console.log('📋 Learn & Earn transactions:', learnEarnData.total || 0);
-                console.log('📋 Telegram Task transactions:', telegramTaskData.total || 0);
-                console.log('📋 Forum Rewards transactions:', forumRewardsData.total || 0);
-                console.log('📋 Minigames transactions:', minigamesData.total || 0);
-                console.log('📋 Tasks transactions:', tasksData.total || 0);
-                console.log('📋 P2P transactions:', p2pData.total || 0);
-
-                // Combine all transactions
-                let allTransactions = [];
-
-                // Learn & Earn
-                if (learnEarnData.success && learnEarnData.quiz_history) {
-                    console.log(`✅ Adding ${learnEarnData.quiz_history.length} Learn & Earn transactions`);
-                    allTransactions = allTransactions.concat(
-                        learnEarnData.quiz_history.map(tx => ({
-                            ...tx,
-                            type: 'learn_earn',
-                            type_display: '📚 Learn & Earn',
-                            amount: tx.amount_g$ || tx.reward_amount,
-                            timestamp: tx.timestamp || tx.completed_at,
-                            color: '#f59e0b',
-                            tx_hash: tx.transaction_hash,
-                            score: tx.score,
-                            total_questions: tx.total_questions,
-                            explorer_url: tx.explorer_url || (tx.transaction_hash ? `https://celoscan.io/tx/${tx.transaction_hash}` : null)
-                        }))
-                    );
-                }
-
-                // Telegram Task (using /api/daily-task/history)
-                if (telegramTaskData.success && telegramTaskData.transactions) {
-                    console.log(`✅ Adding ${telegramTaskData.transactions.length} Telegram Task transactions`);
-                    allTransactions = allTransactions.concat(
-                        telegramTaskData.transactions.map(tx => ({
-                            ...tx,
-                            type: 'telegram_task',
-                            type_display: '📱 Telegram Task',
-                            amount: tx.reward_amount,
-                            timestamp: tx.created_at,
-                            color: '#3b82f6',
-                            tx_hash: tx.transaction_hash,
-                            explorer_url: tx.explorer_url || (tx.transaction_hash ? `https://celoscan.io/tx/${tx.transaction_hash}` : null)
-                        }))
-                    );
-                }
-
-                // Forum Rewards
-                if (forumRewardsData.success && forumRewardsData.rewards) {
-                    console.log(`✅ Adding ${forumRewardsData.rewards.length} Forum Rewards transactions`);
-                    allTransactions = allTransactions.concat(
-                        forumRewardsData.rewards.map(tx => ({
-                            ...tx,
-                            type: 'forum_rewards',
-                            type_display: '💬 Forum Rewards',
-                            amount: tx.reward_amount,
-                            timestamp: tx.created_at,
-                            color: '#8b5cf6',
-                            tx_hash: tx.transaction_hash,
-                            explorer_url: tx.explorer_url || (tx.transaction_hash ? `https://celoscan.io/tx/${tx.transaction_hash}` : null)
-                        }))
-                    );
-                }
-
-                // Minigames
-                if (minigamesData.success && minigamesData.transactions) {
-                    console.log(`✅ Adding ${minigamesData.transactions.length} Minigames transactions`);
-                    allTransactions = allTransactions.concat(
-                        minigamesData.transactions.map(tx => ({
-                            ...tx,
-                            type: 'minigames',
-                            type_display: '🎮 Minigames',
-                            amount: tx.reward_amount,
-                            timestamp: tx.created_at,
-                            color: '#ec4899',
-                            tx_hash: tx.transaction_hash,
-                            explorer_url: tx.explorer_url || (tx.transaction_hash ? `https://celoscan.io/tx/${tx.transaction_hash}` : null)
-                        }))
-                    );
-                }
-
-                // Tasks
-                if (tasksData.success && tasksData.tasks) {
-                    console.log(`✅ Adding ${tasksData.tasks.length} Tasks transactions`);
-                    allTransactions = allTransactions.concat(
-                        tasksData.tasks.map(tx => ({
-                            ...tx,
-                            type: 'tasks',
-                            type_display: '✅ Tasks',
-                            amount: tx.reward_amount,
-                            timestamp: tx.timestamp || tx.completed_at,
-                            color: '#14b8a6',
-                            tx_hash: tx.transaction_hash,
-                            explorer_url: tx.explorer_url || (tx.transaction_hash ? `https://celoscan.io/tx/${tx.transaction_hash}` : null)
-                        }))
-                    );
-                }
-
-                // P2P Trading
-                if (p2pData.success && p2pData.trades) {
-                    console.log(`✅ Adding ${p2pData.trades.length} P2P Trading transactions`);
-                    allTransactions = allTransactions.concat(
-                        p2pData.trades.map(tx => ({
-                            ...tx,
-                            type: 'p2p_trading',
-                            type_display: '🤝 P2P Trading',
-                            amount: tx.g_dollar_amount,
-                            timestamp: tx.created_at,
-                            color: '#f97316',
-                            tx_hash: tx.seller_deposit_tx || tx.release_tx_hash,
-                            explorer_url: tx.explorer_url || (tx.seller_deposit_tx ? `https://celoscan.io/tx/${tx.seller_deposit_tx}` : (tx.release_tx_hash ? `https://celoscan.io/tx/${tx.release_tx_hash}` : null))
-                        }))
-                    );
-                }
-
-                // Sort by timestamp (newest first)
-                allTransactions.sort((a, b) => {
-                    const dateA = new Date(a.timestamp);
-                    const dateB = new Date(b.timestamp);
-                    return dateB - dateA;
-                });
-
-                console.log(`✅ Total transactions loaded: ${allTransactions.length} (ALL HISTORICAL DATA)`);
-                console.log(`📅 Date range: ${allTransactions.length > 0 ? new Date(allTransactions[allTransactions.length-1].timestamp).toLocaleDateString() : 'N/A'} to ${allTransactions.length > 0 ? new Date(allTransactions[0].timestamp).toLocaleDateString() : 'N/A'}`);
-
-                // Display transactions
-                displayAllTransactions(allTransactions);
-
-            } catch (error) {
-                console.error('❌ Error fetching transaction history:', error);
-                showNotification(`Failed to load transaction history: ${error}`, 'error');
-            }
-        }
-
-        // This function should be called when the dashboard loads to display all transactions
-        function displayAllTransactions(transactions) {
-            const historyContainer = document.getElementById('allActivitiesContent'); // Use the history modal's container
-            if (!historyContainer) {
-                console.error('History container not found for displayAllTransactions');
-                return;
-            }
-
-            historyContainer.innerHTML = ''; // Clear previous content
-            document.getElementById('totalActivitiesCount').textContent = transactions.length;
-
-
-            if (!transactions || transactions.length === 0) {
-                historyContainer.innerHTML = `
-                    <div style="text-align: center; padding: 2rem; color: rgba(241, 245, 249, 0.6);">
-                        <div style="font-size: 3rem; margin-bottom: 1rem;">📜</div>
-                        <div>No transaction history found.</div>
-                    </div>
-                `;
-                return;
-            }
-
-            const transactionListHtml = transactions.map(tx => {
-                const date = new Date(tx.timestamp);
-                const dateStr = date.toLocaleDateString('en-US', {
-                    year: 'numeric', month: 'short', day: 'numeric',
-                    hour: '2-digit', minute: '2-digit', second: '2-digit'
-                });
-                const amount = parseFloat(tx.amount || 0).toFixed(2);
-                const txHashShort = tx.tx_hash ? tx.tx_hash.substring(0, 10) + '...' + tx.tx_hash.substring(tx.tx_hash.length - 8) : 'N/A';
-
-                // Extra details for specific types
-                let extraDetails = '';
-                if (tx.type === 'learn_earn') {
-                    extraDetails = `
-                        <div style="font-size: 0.8rem; color: rgba(241, 245, 249, 0.7);">
-                            Score: ${tx.score || 'N/A'} / ${tx.total_questions || 'N/A'}
-                        </div>
-                    `;
-                }
-
-                return `
-                    <div class="stat-card-history" style="background: rgba(255, 255, 255, 0.05); border: 1px solid ${tx.color || '#6366f1'}20; display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.5rem;">
-                        <div style="display: flex; align-items: center; gap: 1rem;">
-                            <div style="font-size: 1.5rem;">${tx.type_display.split(' ')[0]}</div>
-                            <div>
-                                <div style="font-size: 1.1rem; font-weight: bold; color: ${tx.color || '#3b82f6'};">${amount} G$</div>
-                                <div style="font-size: 0.85rem; color: rgba(241, 245, 249, 0.6); margin-top: 0.25rem;">${dateStr}</div>
-                                ${extraDetails}
-                            </div>
-                        </div>
-                        ${tx.explorer_url ? `
-                            <a href="${tx.explorer_url}" target="_blank" style="color: ${tx.color || '#3b82f6'}; text-decoration: none; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 5px;">
-                                <span>🔗 ${txHashShort}</span>
-                            </a>
-                        ` : '<div style="font-size: 0.85rem; color: rgba(241, 245, 249, 0.6);">Manual Entry</div>'}
-                    </div>
-                `;
-            }).join('');
-
-            historyContainer.innerHTML = `
-                <div style="display: flex; flex-direction: column; gap: 1rem;">
-                    ${transactionListHtml}
-                </div>
-            `;
-        }
+        // Transaction history has been removed - history modal still available through individual modules
 
 
         // History Modal Functions
@@ -2692,7 +2287,7 @@
                 }
 
                 // Display Telegram History (using daily task history as example)
-                if (telegram.success && telegram.transactions) { // telegram.transactions is used from daily task history
+                if (telegram.success && telegram.transactions) {
                     displayTelegramHistory(telegram.transactions);
                 } else {
                     document.getElementById('telegramContent').innerHTML = '<p style="text-align: center; color: rgba(255,255,255,0.5); padding: 2rem;">No Telegram Task history yet</p>';
@@ -2955,6 +2550,151 @@
                 </div>
             `;
         }
+    </script>
+
+    <script>
+        // Auto-refresh recent submissions every 2 minutes (reduced frequency)
+        setInterval(loadRecentDailyTasks, 120000);
+
+        // Auto-refresh community screenshots every 3 minutes (reduced frequency)
+        setInterval(loadCommunityScreenshots, 180000);
+
+        async function loadRecentDailyTasks() {
+            try {
+                // Check cache first
+                const now = Date.now();
+                if (apiCache.dailyTasks.data && (now - apiCache.dailyTasks.timestamp) < CACHE_DURATION) {
+                    console.log('📦 Using cached daily tasks data');
+                    displayRecentDailyTasks(apiCache.dailyTasks.data);
+                    return;
+                }
+
+                console.log('🔍 Loading recent daily tasks...');
+                const response = await fetch('/api/recent-daily-tasks');
+                const contentType = response.headers.get("content-type");
+                console.log('API Content-Type:', contentType);
+
+                const data = await response.json();
+                console.log('API Data:', data);
+
+                // Cache the response
+                apiCache.dailyTasks = { data, timestamp: now };
+                displayRecentDailyTasks(data);
+            } catch (error) {
+                console.error('❌ Error loading recent daily tasks:', error);
+            }
+        }
+
+        function displayRecentDailyTasks(data) {
+            try {
+                const recentSubmissionsContainer = document.getElementById('recentSubmissions');
+                if (!recentSubmissionsContainer) {
+                    console.error('❌ Recent submissions container not found!');
+                    return;
+                }
+
+                if (data.success && data.submissions && data.submissions.length > 0) {
+                    const submissionsHtml = data.submissions.map(sub => `
+                        <div class="stat-card" style="background: rgba(255, 255, 255, 0.05); border-color: rgba(251, 191, 36, 0.3);">
+                            <div class="stat-header">
+                                <div>
+                                    <div class="stat-title">Submission by ${sub.username || 'Anonymous'}</div>
+                                </div>
+                                <div class="stat-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706);">🖼️</div>
+                            </div>
+                            <div class="stat-value" style="font-size: 1rem;">
+                                <a href="${sub.screenshot_url}" target="_blank" style="color: #f1f5f9; text-decoration: none; display: block; background: rgba(0,0,0,0.3); padding: 0.75rem; border-radius: 8px;">View Screenshot</a>
+                            </div>
+                            <div class="stat-description">${new Date(sub.created_at).toLocaleString()}</div>
+                        </div>
+                    `).join('');
+                    recentSubmissionsContainer.innerHTML = submissionsHtml;
+                } else {
+                    recentSubmissionsContainer.innerHTML = `
+                        <div style="text-align: center; padding: 20px; color: rgba(241, 245, 249, 0.5);">
+                            No recent submissions yet
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('❌ Error displaying recent daily tasks:', error);
+            }
+        }
+
+
+        async function loadCommunityScreenshots() {
+            try {
+                // Check cache first
+                const now = Date.now();
+                if (apiCache.communityScreenshots.data && (now - apiCache.communityScreenshots.timestamp) < CACHE_DURATION) {
+                    console.log('📦 Using cached community screenshots data');
+                    displayCommunityScreenshots(apiCache.communityScreenshots.data);
+                    return;
+                }
+
+                console.log('📸 Loading community screenshots...');
+                const response = await fetch('/api/community-screenshots?limit=10');
+                const data = await response.json();
+                console.log('📸 Community Stories API Response:', data);
+
+                // Cache the response
+                apiCache.communityScreenshots = { data, timestamp: now };
+                displayCommunityScreenshots(data);
+            } catch (error) {
+                console.error('❌ Error loading community screenshots:', error);
+            }
+        }
+
+        function displayCommunityScreenshots(data) {
+            try {
+                const communityGrid = document.getElementById('communityGrid');
+                if (!communityGrid) {
+                    console.error('❌ Community grid not found!');
+                    return;
+                }
+
+                if (data.success && data.screenshots && data.screenshots.length > 0) {
+                    console.log('✅ Found', data.screenshots.length, 'screenshots');
+                    console.log('🔍 First screenshot:', data.screenshots[0]);
+                    const screenshotsHtml = data.screenshots.map(ss => `
+                        <div class="action-card" style="background: rgba(251, 191, 36, 0.1); border-color: rgba(251, 191, 36, 0.4); padding: 1rem; cursor: default;">
+                            <img src="${ss.url}" alt="Community Screenshot" style="width: 100%; height: 150px; object-fit: cover; border-radius: 8px; margin-bottom: 0.75rem;">
+                            <div class="action-title" style="font-size: 0.9rem;">Shared by ${ss.username || 'Anonymous'}</div>
+                            <div class="action-description" style="font-size: 0.75rem; color: rgba(251, 191, 36, 0.8);">${new Date(ss.created_at).toLocaleString()}</div>
+                        </div>
+                    `).join('');
+                    communityGrid.innerHTML = screenshotsHtml;
+                } else {
+                    communityGrid.innerHTML = `
+                        <div style="text-align: center; padding: 40px; color: rgba(241, 245, 249, 0.5); grid-column: 1 / -1;">
+                            No community stories yet
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('❌ Error displaying community screenshots:', error);
+            }
+        }
+
+        // Initial load - prioritize critical data
+        loadGoodDollarBalance();
+        checkDailyTaskStatus().then(updateDailyTaskUI);
+        updateTotalEarned();
+
+        // Delay non-critical data by 1 second to improve initial load
+        setTimeout(() => {
+            loadRecentDailyTasks();
+            loadCommunityScreenshots();
+        }, 1000);
+
+        // Check for admin access and notifications on load
+        checkAdminAccess();
+        checkForNotifications();
+        // Set interval to check for new notifications periodically
+        setInterval(checkForNotifications, 30000);
+
+        // Load all history data when the history modal is opened
+        // The actual loading is handled within openHistoryModal -> loadCompleteHistory
     </script>
 </body>
 </html>
