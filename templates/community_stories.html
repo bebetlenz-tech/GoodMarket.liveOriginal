@@ -183,7 +183,12 @@
         <div id="welcomeScreen" class="card">
             <h1>🌟 Welcome to Community Stories by GIMT Team! 🌟</h1>
 
-            <div class="info-box">
+            <!-- Custom Message from Admin Settings -->
+            <div id="customMessageBox" class="info-box" style="white-space: pre-line;">
+                <!-- Message will be loaded dynamically -->
+            </div>
+
+            <div class="info-box" style="display: none;" id="defaultInfoBox">
                 <h3>💰 Earn G$ by sharing our story:</h3>
                 <ul>
                     <li><strong>1,000 G$</strong> - Text post on Twitter/X</li>
@@ -191,7 +196,7 @@
                 </ul>
             </div>
 
-            <div class="info-box">
+            <div class="info-box" style="display: none;" id="defaultRequirementsBox">
                 <h3>📋 Requirements:</h3>
                 <ul>
                     <li>Must use hashtags: <strong>@gooddollarorg @GoodDollarTeam</strong></li>
@@ -743,8 +748,38 @@
             }
         }
 
+        // Function to load and display custom message
+        async function loadCustomMessage() {
+            try {
+                const response = await fetch('/community-stories/api/config');
+                const data = await response.json();
+
+                if (data.success && data.config.description) {
+                    const customMessageBox = document.getElementById('customMessageBox');
+                    customMessageBox.innerHTML = data.config.description;
+                    customMessageBox.style.display = 'block';
+                    
+                    console.log('✅ Custom message loaded from admin settings');
+                } else {
+                    // Show default boxes if no custom message
+                    document.getElementById('defaultInfoBox').style.display = 'block';
+                    document.getElementById('defaultRequirementsBox').style.display = 'block';
+                    document.getElementById('customMessageBox').style.display = 'none';
+                }
+            } catch (error) {
+                console.error('Error loading custom message:', error);
+                // Show default boxes on error
+                document.getElementById('defaultInfoBox').style.display = 'block';
+                document.getElementById('defaultRequirementsBox').style.display = 'block';
+                document.getElementById('customMessageBox').style.display = 'none';
+            }
+        }
+
         // Check status on load
         checkStatus();
+
+        // Load custom message from admin settings
+        loadCustomMessage();
 
         // Load requirement examples
         loadRequirementExamples();
