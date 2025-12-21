@@ -38,6 +38,10 @@ def check_game_limit(game_type):
         if not wallet or not session.get('verified'):
             return jsonify({'error': 'Not authenticated'}), 401
 
+        # Removed coin_flip game type check
+        if game_type == 'coin_flip':
+            return jsonify({'success': False, 'error': 'Coin flip game is not available'}), 404
+
         limit_check = minigames_manager.check_daily_limit(wallet, game_type)
 
         return jsonify({
@@ -68,6 +72,10 @@ def start_game():
 
         if not game_type:
             return jsonify({'success': False, 'error': 'Game type required'}), 400
+
+        # Removed coin_flip game type check
+        if game_type == 'coin_flip':
+            return jsonify({'success': False, 'error': 'Coin flip game is not available'}), 404
 
         # Validate bet amount for crash game
         if game_type == 'crash_game':
@@ -129,12 +137,18 @@ def get_balance():
         if not wallet or not session.get('verified'):
             return jsonify({'success': False, 'error': 'Not authenticated'}), 401
 
+        # Balance is already cached in minigames_manager for 2 minutes
         balance_info = minigames_manager.get_deposit_balance(wallet)
 
-        return jsonify({
+        response = jsonify({
             'success': True,
             'available_balance': balance_info.get('available_balance', 0)
         })
+
+        # Add cache headers to reduce client requests
+        response.headers['Cache-Control'] = 'private, max-age=60'
+
+        return response
 
     except Exception as e:
         logger.error(f"❌ Error getting balance: {e}")
@@ -263,13 +277,13 @@ def get_merchant_address():
 
         # Get merchant address from blockchain service
         merchant_address = minigames_blockchain.merchant_address
-        
+
         if not merchant_address:
             logger.error("❌ MERCHANT_ADDRESS not configured in blockchain service")
             return jsonify({'success': False, 'error': 'MERCHANT_ADDRESS not configured'}), 500
 
         logger.info(f"✅ Returning MERCHANT_ADDRESS: {merchant_address}")
-        
+
         return jsonify({
             'success': True,
             'merchant_address': merchant_address
@@ -311,7 +325,7 @@ def get_game_logs():
     """Get user's game play history with win/loss details, deposits, and withdrawals"""
     try:
         from flask import session
-        
+
         wallet = session.get('wallet')
         if not wallet or not session.get('verified'):
             return jsonify({'error': 'Not authenticated'}), 401
@@ -330,7 +344,7 @@ def get_game_logs():
             game_data = game_session.get('game_data', {})
             bet_amount = game_session.get('bet_amount', 0)
             winnings = game_session.get('g_dollar_earned', 0)
-            
+
             game_logs.append({
                 'session_id': game_session.get('session_id'),
                 'date': game_session.get('completed_at') or game_session.get('started_at'),
