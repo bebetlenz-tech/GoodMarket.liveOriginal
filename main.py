@@ -295,8 +295,7 @@ if init_learn_and_earn(app):
 else:
     logger.error("❌ Learn & Earn initialization failed")
 
-# Initialize Notification Service
-from notifications_service import notification_service
+# Notification service removed - all references cleaned up
 
 
 
@@ -417,33 +416,60 @@ def get_gooddollar_balance_api():
     """Get GoodDollar balance for current user"""
     wallet = session.get("wallet")
     if not wallet or not session.get("verified"):
-        return jsonify({"error": "Unauthorized"}), 401
+        return jsonify({"success": False, "error": "Unauthorized"}), 401
 
-    # Use blockchain.py get_gooddollar_balance function directly
-    from blockchain import get_gooddollar_balance as get_balance
-    result = get_balance(wallet)
-
-    return jsonify(result)
+    try:
+        # Use blockchain.py get_gooddollar_balance function directly
+        from blockchain import get_gooddollar_balance as get_balance
+        result = get_balance(wallet)
+        
+        if not result:
+            return jsonify({
+                "success": False,
+                "error": "Failed to fetch balance",
+                "balance_formatted": "Error loading"
+            }), 500
+            
+        return jsonify(result)
+    except Exception as e:
+        logger.error(f"❌ Balance API error: {e}")
+        return jsonify({
+            "success": False,
+            "error": str(e),
+            "balance_formatted": "Error loading"
+        }), 500
 
 @app.route("/api/balance/<wallet_address>", methods=["GET"])
 def get_balance_by_wallet(wallet_address):
     """Get GoodDollar balance for specific wallet (used by overview page)"""
     session_wallet = session.get("wallet")
     if not session_wallet or not session.get("verified"):
-        return jsonify({"error": "Unauthorized"}), 401
+        return jsonify({"success": False, "error": "Unauthorized"}), 401
 
     # Only allow getting balance for the authenticated user's wallet
     if wallet_address != session_wallet:
-        return jsonify({"error": "Unauthorized"}), 401
+        return jsonify({"success": False, "error": "Unauthorized"}), 401
 
     try:
         # Use blockchain.py get_gooddollar_balance function directly
         from blockchain import get_gooddollar_balance as get_balance
         result = get_balance(wallet_address)
+        
+        if not result:
+            return jsonify({
+                'success': False, 
+                'error': 'Failed to fetch balance',
+                'balance_formatted': 'Error loading'
+            }), 500
+            
         return jsonify(result)
     except Exception as e:
         logger.error(f"Balance API error: {e}")
-        return jsonify({'success': False, 'error': str(e)}), 500
+        return jsonify({
+            'success': False, 
+            'error': str(e),
+            'balance_formatted': 'Error loading'
+        }), 500
 
 # Contract info route removed - will be replaced with new smart contract integration
 
@@ -691,17 +717,12 @@ def verify_identity():
 
         logger.info(f"✅ Identity verification successful for {wallet_address}")
 
-        # Check if username is set
-        from supabase_client import supabase_logger
-        username = supabase_logger.get_username(wallet_address)
-        redirect_url = '/setup-username' if not username else '/overview'
-
         response_data = {
             'success': True,
             'message': 'Identity verification successful!',
             'wallet': wallet_address,
             'ubi_verified': True,
-            'redirect_to': redirect_url
+            'redirect_to': '/overview'
         }
 
         # Referral system removed
@@ -713,82 +734,7 @@ def verify_identity():
         return jsonify({'error': 'Verification failed'}), 500
 
 
-@app.route('/api/notifications', methods=['GET'])
-def get_notifications_api():
-    """Get all notifications for authenticated user"""
-    try:
-        wallet_address = session.get('wallet_address') or session.get('wallet')
-        verified = session.get('verified') or session.get('ubi_verified')
-
-        if not wallet_address or not verified:
-            return jsonify({'success': False, 'error': 'Not authenticated'}), 401
-
-        limit = int(request.args.get('limit', 50))
-
-        logger.info(f"🔔 Getting notifications for {wallet_address[:8]}... (limit: {limit})")
-
-        # Get all notifications
-        notifications_data = notification_service.get_all_notifications(wallet_address, limit)
-
-        # Get notification counts
-        counts = notification_service.get_notification_counts(wallet_address)
-
-        return jsonify({
-            'success': True,
-            'notifications': notifications_data['notifications'],
-            'unread_count': notifications_data['unread_count'],
-            'total_count': notifications_data['total_count'],
-            'counts': counts,
-            'wallet': wallet_address[:8] + "..."
-        })
-
-    except Exception as e:
-        logger.error(f"❌ Get notifications API error: {e}")
-        return jsonify({'success': False, 'error': 'Internal server error'}), 500
-
-@app.route('/api/notifications/mark-read', methods=['POST'])
-def mark_notifications_read_api():
-    """Mark notifications as read"""
-    try:
-        wallet_address = session.get('wallet_address') or session.get('wallet')
-        verified = session.get('verified') or session.get('ubi_verified')
-
-        if not wallet_address or not verified:
-            return jsonify({'success': False, 'error': 'Not authenticated'}), 401
-
-        data = request.get_json()
-        notification_ids = data.get('notification_ids', [])
-
-        logger.info(f"🔔 Marking {len(notification_ids)} notifications as read for {wallet_address[:8]}...")
-
-        result = notification_service.mark_notifications_read(wallet_address, notification_ids)
-
-        return jsonify(result)
-
-    except Exception as e:
-        logger.error(f"❌ Mark notifications read API error: {e}")
-        return jsonify({'success': False, 'error': 'Internal server error'}), 500
-
-@app.route('/api/notifications/counts', methods=['GET'])
-def get_notification_counts_api():
-    """Get notification counts by type"""
-    try:
-        wallet_address = session.get('wallet_address') or session.get('wallet')
-        verified = session.get('verified') or session.get('ubi_verified')
-
-        if not wallet_address or not verified:
-            return jsonify({'success': False, 'error': 'Not authenticated'}), 401
-
-        counts = notification_service.get_notification_counts(wallet_address)
-
-        return jsonify({
-            'success': True,
-            'counts': counts
-        })
-
-    except Exception as e:
-        logger.error(f"❌ Get notification counts API error: {e}")
-        return jsonify({'success': False, 'error': 'Internal server error'}), 500
+# Notification endpoints removed - notification service is disabled
 
 # Community Forum post creation removed
 
@@ -949,30 +895,7 @@ def debug_task_data(wallet_address):
 # Removed: def test_reloadly_apis(): ...
 
 
-@app.route('/get-username')
-def get_username_route():
-    """Endpoint to get username by wallet address"""
-    try:
-        wallet_address = request.args.get('wallet_address')
-        if not wallet_address:
-            return jsonify({'success': False, 'error': 'Wallet address is required'}), 400
-
-        # Ensure the request is authenticated and authorized
-        session_wallet = session.get('wallet')
-        if not session_wallet or not session.get('verified') or session_wallet != wallet_address:
-            return jsonify({'success': False, 'error': 'Unauthorized'}), 401
-
-        from supabase_client import supabase_logger
-        username = supabase_logger.get_username(wallet_address)
-
-        if username:
-            return jsonify({'success': True, 'username': username})
-        else:
-            return jsonify({'success': False, 'error': 'Username not found'}), 404
-
-    except Exception as e:
-        logger.error(f"❌ Error fetching username: {e}")
-        return jsonify({'success': False, 'error': 'Internal server error'}), 500
+# Username functionality removed
 
 
 if __name__ == "__main__":
