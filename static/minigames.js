@@ -103,9 +103,9 @@ async function checkGameLimits() {
     }
 }
 
-// Open Crash Game or Coin Flip
+// Open Crash Game
 window.openGame = async function(gameType) {
-    if (gameType !== 'crash_game' && gameType !== 'coin_flip') return;
+    if (gameType !== 'crash_game') return;
 
     // First, force reload user stats to get fresh balance
     await loadUserStats();
@@ -135,8 +135,6 @@ window.openGame = async function(gameType) {
         // Show bet amount selection modal
         if (gameType === 'crash_game') {
             showBetAmountModal(availableBalance);
-        } else if (gameType === 'coin_flip') {
-            showCoinFlipBetModal(availableBalance);
         }
 
     } catch (error) {
@@ -539,9 +537,7 @@ window.startMonitoringDeposit = function() {
         } catch (error) {
             console.error('❌ Immediate check error:', error);
         }
-    }, 1000);
-
-    showNotification('Monitoring started! You have 5 minutes. Send G$ to the address above.', 'info');
+    }, 1000);otification('Monitoring started! You have 5 minutes. Send G$ to the address above.', 'info');
 };
 
 // Crash Game Implementation
@@ -1112,288 +1108,7 @@ window.showHistoryTab = function(tab) {
     document.getElementById('tab-' + tab).style.background = 'linear-gradient(135deg, #6366f1, #a855f7)';
 };
 
-// ========== COIN FLIP GAME ==========
-
-window.showCoinFlipBetModal = async function(availableBalance) {
-    // Fetch fresh balance again to ensure it's up-to-date
-    const balanceResponse = await fetch('/minigames/api/balance');
-    const balanceData = await balanceResponse.json();
-    const freshBalance = balanceData.available_balance || 0;
-
-    const modal = document.getElementById('gameModal');
-    const content = document.getElementById('gameContent');
-
-    const minBet = 50;
-    const maxBet = Math.min(250, freshBalance);
-
-    content.innerHTML = `
-        <div style="padding: 2rem; max-width: 500px; width: 100%;">
-            <h2 style="font-size: 2rem; margin-bottom: 1.5rem; color: #6366f1;">🪙 Coin Flip - Choose Your Side</h2>
-
-            <div style="background: rgba(99, 102, 241, 0.1); padding: 1.5rem; border-radius: 12px; margin-bottom: 1.5rem;">
-                <div style="font-size: 0.9rem; color: rgba(255,255,255,0.7);">💰 Your Available Balance:</div>
-                <div style="font-size: 2rem; font-weight: 800; color: #10b981;">${freshBalance.toFixed(2)} G$</div>
-            </div>
-
-            <div style="margin-bottom: 1.5rem;">
-                <label style="display: block; font-size: 0.9rem; color: rgba(255,255,255,0.7); margin-bottom: 0.5rem;">Bet Amount (G$):</label>
-                <input type="number" id="coinFlipBetAmount" min="${minBet}" max="${maxBet}" step="10" value="${minBet}"
-                    style="width: 100%; padding: 1rem; font-size: 1.2rem; background: rgba(255,255,255,0.1); border: 2px solid #6366f1; border-radius: 12px; color: white; text-align: center;">
-            </div>
-
-            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem; margin-bottom: 1.5rem;">
-                <button onclick="document.getElementById('coinFlipBetAmount').value = 50" style="padding: 0.75rem; background: rgba(99, 102, 241, 0.2); color: #6366f1; border: 1px solid #6366f1; border-radius: 8px; cursor: pointer; font-weight: 600;">50 G$</button>
-                <button onclick="document.getElementById('coinFlipBetAmount').value = 100" style="padding: 0.75rem; background: rgba(99, 102, 241, 0.2); color: #6366f1; border: 1px solid #6366f1; border-radius: 8px; cursor: pointer; font-weight: 600;">100 G$</button>
-                <button onclick="document.getElementById('coinFlipBetAmount').value = 200" style="padding: 0.75rem; background: rgba(99, 102, 241, 0.2); color: #6366f1; border: 1px solid #6366f1; border-radius: 8px; cursor: pointer; font-weight: 600;">200 G$</button>
-                <button onclick="document.getElementById('coinFlipBetAmount').value = ${maxBet}" style="padding: 0.75rem; background: rgba(251, 191, 36, 0.2); color: #fbbf24; border: 1px solid #fbbf24; border-radius: 8px; cursor: pointer; font-weight: 600;">Max</button>
-            </div>
-
-            <div style="background: rgba(251, 191, 36, 0.1); padding: 1rem; border-radius: 12px; margin-bottom: 1.5rem;">
-                <div style="font-size: 0.9rem; color: #fbbf24; font-weight: 600; margin-bottom: 0.5rem;">Choose Your Side:</div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-                    <button id="chooseHeads" onclick="window.selectCoinSide('heads')" style="padding: 1.5rem; background: linear-gradient(135deg, #fbbf24, #f59e0b); color: white; border: 3px solid #fbbf24; border-radius: 12px; cursor: pointer; font-size: 1.2rem; font-weight: 700; transition: all 0.3s;">
-                        👑 HEADS
-                    </button>
-                    <button id="chooseTails" onclick="window.selectCoinSide('tails')" style="padding: 1.5rem; background: rgba(99, 102, 241, 0.2); color: #6366f1; border: 3px solid rgba(99, 102, 241, 0.3); border-radius: 12px; cursor: pointer; font-size: 1.2rem; font-weight: 700; transition: all 0.3s;">
-                        🔵 TAILS
-                    </button>
-                </div>
-            </div>
-
-            <button id="startCoinFlipBtn" onclick="window.startCoinFlipGame()" disabled style="width: 100%; padding: 1.2rem; background: rgba(99, 102, 241, 0.3); color: white; border: none; border-radius: 12px; font-size: 1.2rem; font-weight: 700; cursor: not-allowed; margin-bottom: 1rem; opacity: 0.5;">
-                🪙 Flip Coin
-            </button>
-
-            <button onclick="window.closeGameModal()" style="width: 100%; padding: 1rem; background: rgba(239, 68, 68, 0.2); color: #ef4444; border: 1px solid #ef4444; border-radius: 12px; font-size: 1rem; font-weight: 600; cursor: pointer;">
-                Cancel
-            </button>
-        </div>
-    `;
-
-    modal.style.display = 'flex';
-    window.selectedCoinSide = null;
-};
-
-window.selectCoinSide = function(side) {
-    window.selectedCoinSide = side;
-
-    const headsBtn = document.getElementById('chooseHeads');
-    const tailsBtn = document.getElementById('chooseTails');
-    const startBtn = document.getElementById('startCoinFlipBtn');
-
-    if (side === 'heads') {
-        headsBtn.style.background = 'linear-gradient(135deg, #fbbf24, #f59e0b)';
-        headsBtn.style.borderColor = '#fbbf24';
-        headsBtn.style.transform = 'scale(1.05)';
-
-        tailsBtn.style.background = 'rgba(99, 102, 241, 0.2)';
-        tailsBtn.style.borderColor = 'rgba(99, 102, 241, 0.3)';
-        tailsBtn.style.transform = 'scale(1)';
-    } else {
-        tailsBtn.style.background = 'linear-gradient(135deg, #6366f1, #a855f7)';
-        tailsBtn.style.borderColor = '#6366f1';
-        tailsBtn.style.transform = 'scale(1.05)';
-
-        headsBtn.style.background = 'rgba(251, 191, 36, 0.2)';
-        headsBtn.style.borderColor = 'rgba(251, 191, 36, 0.3)';
-        headsBtn.style.transform = 'scale(1)';
-    }
-
-    startBtn.disabled = false;
-    startBtn.style.cursor = 'pointer';
-    startBtn.style.opacity = '1';
-    startBtn.style.background = 'linear-gradient(135deg, #6366f1, #a855f7)';
-};
-
-window.startCoinFlipGame = async function() {
-    const betAmountInput = document.getElementById('coinFlipBetAmount');
-    const betAmount = parseFloat(betAmountInput.value);
-
-    if (!window.selectedCoinSide) {
-        showNotification('Please choose Heads or Tails!', 'error');
-        return;
-    }
-
-    if (!betAmount || betAmount < 50) {
-        showNotification('Minimum bet is 50 G$', 'error');
-        return;
-    }
-
-    if (betAmount > 250) {
-        showNotification('Maximum bet is 250 G$ per game', 'error');
-        return;
-    }
-
-    const balanceResponse = await fetch('/minigames/api/balance');
-    const balanceData = await balanceResponse.json();
-    const availableBalance = balanceData.available_balance || 0;
-
-    if (betAmount > availableBalance) {
-        showNotification(`Insufficient balance! You have ${availableBalance.toFixed(2)} G$`, 'error');
-        return;
-    }
-
-    // Start animation immediately for instant feel
-    playCoinFlipAnimation(betAmount, window.selectedCoinSide);
-
-    // Start game session in background
-    try {
-        const response = await fetch('/minigames/api/start-game', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                game_type: 'coin_flip',
-                bet_amount: betAmount
-            })
-        });
-
-        const data = await response.json();
-
-        if (data.success) {
-            currentSession = data.session_id;
-            window.currentBetAmount = betAmount;
-        } else {
-            showNotification(data.error || 'Failed to start game', 'error');
-            closeGameModal();
-        }
-    } catch (error) {
-        console.error('❌ Error starting coin flip:', error);
-        showNotification('Failed to start game', 'error');
-        closeGameModal();
-    }
-};
-
-function playCoinFlipAnimation(betAmount, playerChoice) {
-    const modal = document.getElementById('gameModal');
-    const content = document.getElementById('gameContent');
-
-    // Determine result (50/50 chance)
-    const result = Math.random() < 0.5 ? 'heads' : 'tails';
-    const won = result === playerChoice;
-    const winnings = won ? betAmount * 2 : 0;
-
-    content.innerHTML = `
-        <div style="padding: 2rem; max-width: 600px; width: 100%; text-align: center;">
-            <h2 style="font-size: 2rem; margin-bottom: 1.5rem; color: #6366f1;">🪙 Coin Flip</h2>
-
-            <div style="background: rgba(99, 102, 241, 0.1); padding: 1rem; border-radius: 12px; margin-bottom: 1.5rem;">
-                <div style="font-size: 0.9rem; color: rgba(255,255,255,0.7);">Your Choice:</div>
-                <div style="font-size: 1.5rem; font-weight: 800; color: ${playerChoice === 'heads' ? '#fbbf24' : '#6366f1'};">
-                    ${playerChoice === 'heads' ? '👑 HEADS' : '🔵 TAILS'}
-                </div>
-                <div style="font-size: 0.9rem; color: rgba(255,255,255,0.7); margin-top: 0.5rem;">Bet: ${betAmount.toFixed(2)} G$</div>
-            </div>
-
-            <div id="coinContainer" style="perspective: 1000px; margin: 2rem auto; width: 200px; height: 200px; position: relative;">
-                <div id="coin" style="width: 200px; height: 200px; position: relative; transform-style: preserve-3d; transition: transform 1.2s ease-out;">
-                    <div style="position: absolute; width: 100%; height: 100%; background: linear-gradient(135deg, #fbbf24, #f59e0b); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 4rem; backface-visibility: hidden; border: 5px solid #fff; box-shadow: 0 10px 30px rgba(0,0,0,0.3);">
-                        👑
-                    </div>
-                    <div style="position: absolute; width: 100%; height: 100%; background: linear-gradient(135deg, #6366f1, #a855f7); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 4rem; backface-visibility: hidden; transform: rotateY(180deg); border: 5px solid #fff; box-shadow: 0 10px 30px rgba(0,0,0,0.3);">
-                        🔵
-                    </div>
-                </div>
-            </div>
-
-            <div id="flipResult" style="font-size: 2rem; font-weight: 800; margin-top: 2rem; opacity: 0; transition: opacity 0.3s;">
-            </div>
-
-            <div id="winningsDisplay" style="margin-top: 1rem; opacity: 0; transition: opacity 0.3s;">
-            </div>
-        </div>
-    `;
-
-    // Start flip immediately
-    const coin = document.getElementById('coin');
-    const spins = 5 + Math.floor(Math.random() * 3); // Fewer spins for faster animation
-    const finalRotation = result === 'heads' ? 0 : 180;
-    coin.style.transform = `rotateY(${spins * 360 + finalRotation}deg)`;
-
-    // Show result faster
-    setTimeout(() => {
-        const resultDiv = document.getElementById('flipResult');
-        const winningsDiv = document.getElementById('winningsDisplay');
-
-        if (won) {
-            resultDiv.innerHTML = `<span style="color: #10b981;">🎉 YOU WIN! 🎉</span>`;
-            winningsDiv.innerHTML = `
-                <div style="background: rgba(16, 185, 129, 0.2); padding: 1.5rem; border-radius: 12px; border: 2px solid #10b981;">
-                    <div style="font-size: 0.9rem; color: rgba(255,255,255,0.7);">Total Winnings:</div>
-                    <div style="font-size: 2rem; font-weight: 800; color: #10b981;">${winnings.toFixed(2)} G$</div>
-                    <div style="font-size: 0.9rem; color: #10b981; margin-top: 0.5rem;">Profit: +${betAmount.toFixed(2)} G$</div>
-                </div>
-            `;
-        } else {
-            resultDiv.innerHTML = `<span style="color: #ef4444;">😢 YOU LOSE</span>`;
-            winningsDiv.innerHTML = `
-                <div style="background: rgba(239, 68, 68, 0.2); padding: 1.5rem; border-radius: 12px; border: 2px solid #ef4444;">
-                    <div style="font-size: 1.2rem; color: #ef4444;">Lost ${betAmount.toFixed(2)} G$</div>
-                    <div style="font-size: 0.9rem; color: rgba(255,255,255,0.6); margin-top: 0.5rem;">Better luck next time!</div>
-                </div>
-            `;
-        }
-
-        resultDiv.style.opacity = '1';
-        winningsDiv.style.opacity = '1';
-
-        // Finish game faster
-        setTimeout(() => {
-            finishCoinFlipGame(winnings, result, playerChoice, betAmount);
-        }, 1500);
-    }, 1200);
-}
-
-async function finishCoinFlipGame(winnings, result, playerChoice, betAmount) {
-    try {
-        const response = await fetch('/minigames/api/complete-game', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                session_id: currentSession,
-                score: winnings,
-                game_data: {
-                    result: result,
-                    player_choice: playerChoice,
-                    bet_amount: betAmount,
-                    won: winnings > 0,
-                    total_winnings: winnings
-                }
-            })
-        });
-
-        const data = await response.json();
-
-        // ALWAYS refresh balance regardless of success/failure
-        await loadUserStats();
-        await checkGameLimits();
-
-        if (data.success) {
-            // Show notification with updated balance info
-            const newBalance = data.available_balance || 0;
-            console.log(`💰 Coin flip complete - New balance: ${newBalance.toFixed(2)} G$`);
-            
-            if (winnings > 0) {
-                showNotification(`Won ${winnings.toFixed(2)} G$! New balance: ${newBalance.toFixed(2)} G$`, 'success');
-            } else {
-                showNotification(`Lost ${betAmount.toFixed(2)} G$. Balance: ${newBalance.toFixed(2)} G$`, 'info');
-            }
-
-            // Close modal after a delay
-            setTimeout(() => {
-                closeGameModal();
-            }, 2500);
-        } else {
-            showNotification(data.error || 'Game completion failed', 'error');
-        }
-    } catch (error) {
-        console.error('❌ Error completing coin flip:', error);
-        showNotification('Failed to complete game', 'error');
-        // Force reload balance on error
-        await loadUserStats();
-    }
-}
-
-// Game Logs Modal (keeping for backward compatibility)
+// Game Logs Modal
 window.openGameLogsModal_OLD = async function() {
     try {
         const response = await fetch('/minigames/api/game-logs');
