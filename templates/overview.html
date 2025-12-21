@@ -55,41 +55,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
 
-        /* Animated background particles */
-        .bg-particles {
-            position: fixed;
-            width: 100%;
-            height: 100%;
-            top: 0;
-            left: 0;
-            z-index: 0;
-            overflow: hidden;
-            pointer-events: none;
-        }
 
-        .particle {
-            display: none;
-        }
-
-        .particle::before {
-            content: '💰';
-        }
-
-        .particle:nth-child(2)::before {
-            content: '💎';
-        }
-
-        .particle:nth-child(3)::before {
-            content: '⭐';
-        }
-
-        .particle:nth-child(5)::before {
-            content: '✨';
-        }
-
-        .particle:nth-child(7)::before {
-            content: '🌟';
-        }
 
 
 
@@ -343,95 +309,6 @@ document.addEventListener('DOMContentLoaded', function() {
             color: white;
         }
 
-        /* 12-Hour Bonus Styles */
-
-        .cooldown-display {
-            background: linear-gradient(135deg, #fff3cd, #ffeaa7);
-            border: 1px solid #ffeaa7;
-            border-radius: 10px;
-            padding: 15px;
-            text-align: center;
-        }
-
-        .cooldown-info {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-        }
-
-
-        /* Success Animation Styles */
-        .success-animation {
-            position: relative;
-            text-align: center;
-            padding: 30px 20px;
-            background: linear-gradient(135deg, #d4edda, #c3e6cb);
-            border: 2px solid #28a745;
-            border-radius: 15px;
-            overflow: hidden;
-        }
-
-        .success-message h4 {
-            color: #155724;
-            margin-bottom: 10px;
-            font-weight: bold;
-        }
-
-        .success-message p {
-            color: #155724;
-            font-size: 1.1em;
-            margin: 0;
-        }
-
-        .emoji-shower {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            overflow: hidden;
-        }
-
-        .emoji {
-            position: absolute;
-            font-size: 2em;
-            animation: emojiFloat 3s ease-out forwards;
-            opacity: 0;
-            top: 100%;
-            left: 50%;
-            transform: translateX(-50%);
-        }
-
-        .emoji.animate {
-            opacity: 1;
-        }
-
-        @keyframes emojiFloat {
-            0% {
-                transform: translateX(-50%) translateY(0) rotate(0deg);
-                opacity: 0;
-            }
-            10% {
-                opacity: 1;
-            }
-            50% {
-                transform: translateX(-50%) translateY(-150px) rotate(180deg);
-                opacity: 1;
-            }
-            100% {
-                transform: translateX(-50%) translateY(-300px) rotate(360deg);
-                opacity: 0;
-            }
-        }
-
-        .emoji:nth-child(1) { animation-delay: 0.2s; }
-        .emoji:nth-child(2) { animation-delay: 0.4s; }
-        .emoji:nth-child(3) { animation-delay: 0.6s; }
-        .emoji:nth-child(4) { animation-delay: 0.8s; }
-        .emoji:nth-child(5) { animation-delay: 1.0s; }
-
         /* New Styles for Action Buttons */
         .action-btn {
             background: linear-gradient(135deg, #667eea, #764ba2, #4facfe, #00f2fe);
@@ -572,70 +449,6 @@ document.addEventListener('DOMContentLoaded', function() {
             transform: scale(1.1);
         }
 
-        /* Styles for notification badge */
-        .notification-badge {
-            background-color: #f87171; /* Red color */
-            color: white;
-            border-radius: 50%;
-            padding: 4px 8px;
-            font-size: 0.8rem;
-            font-weight: bold;
-            position: absolute;
-            top: -5px; /* Adjust position as needed */
-            right: -5px; /* Adjust position as needed */
-            min-width: 20px; /* Ensure minimum width */
-            text-align: center;
-            display: none; /* Hidden by default */
-        }
-
-        /* Styles for notification messages */
-        .notification-message {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background-color: #e6f7ff;
-            color: #005080;
-            border: 1px solid #91d5ff;
-            border-radius: 8px;
-            padding: 12px 20px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            z-index: 1000;
-            opacity: 0;
-            transform: translateY(-20px);
-            animation: fadeInOut 5s forwards;
-            display: none; /* Hidden by default */
-        }
-
-        .notification-message.info {
-            background-color: #e6f7ff;
-            border-color: #91d5ff;
-        }
-
-        .notification-message.success {
-            background-color: #f6ffed;
-            border-color: #b7eb8f;
-            color: #389e0d;
-        }
-
-        .notification-message.warning {
-            background-color: #fffbe6;
-            border-color: #ffe58f;
-            color: #d48806;
-        }
-
-        .notification-message.error {
-            background-color: #fff1f0;
-            border-color: #ffa39e;
-            color: #cf1322;
-        }
-
-        @keyframes fadeInOut {
-            0% { opacity: 0; transform: translateY(-20px); }
-            10% { opacity: 1; transform: translateY(0); }
-            90% { opacity: 1; transform: translateY(0); }
-            100% { opacity: 0; transform: translateY(-20px); }
-        }
-
         .feature-card {
             background: white;
             border: 1px solid #e5e7eb;
@@ -670,22 +483,9 @@ document.addEventListener('DOMContentLoaded', function() {
             font-size: 0.9rem;
             color: #6b7280;
         }
-        </style>
+    </style>
 </head>
 <body>
-    <!-- Animated Background Particles -->
-    <div class="bg-particles">
-        <div class="particle" style="left: 10%; animation-delay: 0s;"></div>
-        <div class="particle" style="left: 20%; animation-delay: 2s;"></div>
-        <div class="particle" style="left: 30%; animation-delay: 4s;"></div>
-        <div class="particle" style="left: 40%; animation-delay: 1s;"></div>
-        <div class="particle" style="left: 50%; animation-delay: 3s;"></div>
-        <div class="particle" style="left: 60%; animation-delay: 5s;"></div>
-        <div class="particle" style="left: 70%; animation-delay: 2.5s;"></div>
-        <div class="particle" style="left: 80%; animation-delay: 4.5s;"></div>
-        <div class="particle" style="left: 90%; animation-delay: 1.5s;"></div>
-    </div>
-
     <nav class="navbar">
         <div class="nav-container">
             <a href="/dashboard" class="logo">💰 GoodDollar</a>
@@ -1035,9 +835,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 <div class="stat-value">{{ data.platform_stats.user_activity.learn_earn_completions }}</div>
             </div>
             <div class="stat-row">
-                <div class="stat-label">12-Hour Bonus Claims</div>
-            </div>
-            <div class="stat-row">
                 <div class="stat-label">Feature Users</div>
                 <div class="stat-value">{{ data.gooddollar_info.platform_features.total_feature_users }}</div>
             </div>
@@ -1055,95 +852,18 @@ document.addEventListener('DOMContentLoaded', function() {
             window.location.reload();
         }
 
-        // Global error handler for unhandled promise rejections
-        window.addEventListener('unhandledrejection', function(event) {
-            console.error('❌ Unhandled Promise Rejection:', event.reason);
-            // Prevent the browser's default error handling
-            event.preventDefault();
-        });
-
-        // Track analytics - Define function or remove calls
-        function trackAnalyticsEvent(event) {
-            try {
-                fetch('/track-analytics', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        event: event,
-                        wallet: '{{ wallet }}'
-                    })
-                });
-            } catch (error) {
-                console.log('Analytics tracking failed:', error);
-            }
-        }
-
-        // Track page load
-        trackAnalyticsEvent('overview_loaded');
-
-        async function safeFetch(url) {
-            try {
-                const response = await fetch(url);
-                if (!response.ok) return { success: false, data: [] };
-                return await response.json();
-            } catch (e) {
-                return { success: false, data: [] };
-            }
-        }
-
-        async function fetchUserHistory() {
-            try {
-                const [learnEarnData, telegramData, p2pData, minigamesData] = await Promise.all([
-                    safeFetch('/learn-earn/quiz-history?limit=100'),
-                    safeFetch('/api/telegram-task/transaction-history?limit=50'),
-                    safeFetch('/api/p2p/history?limit=50'),
-                    safeFetch('/minigames/api/transaction-history?limit=50')
-                ]);
-
-                console.log('📊 User History Loaded:', { learnEarn: learnEarnData, telegram: telegramData, p2p: p2pData, minigames: minigamesData });
-
-                return { learnEarn: learnEarnData, telegram: telegramData, p2p: p2pData, minigames: minigamesData };
-            } catch (error) {
-                console.error('Error fetching user history:', error);
-                return null;
-            }
-        }
-
-        // Load history on page load
-        window.addEventListener('load', async function() {
-            const history = await fetchUserHistory();
-            if (history) {
-                console.log('✅ Complete user history loaded successfully');
-            }
-        });
-
         // Show loading message when navigating to dashboard
         function showDashboardLoading(event) {
             const btn = event.target;
             const originalText = btn.innerHTML;
-            
+
             // Show processing message
             btn.innerHTML = '<span style="display: flex; align-items: center; gap: 8px;"><div class="loading-spinner" style="width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; margin: 0;"></div> Loading Dashboard...</span>';
             btn.style.pointerEvents = 'none';
             btn.style.opacity = '0.8';
-            
+
             // Allow navigation to proceed
             return true;
-        }
-
-        // Placeholder for fetchUserBalance
-        function fetchUserBalance() {
-            console.log("Fetching user balance...");
-            // In a real application, this function would fetch the user's balance.
-            // For this example, we'll just log a message.
-        }
-
-        // Placeholder for trackAnalytics, assuming it's defined elsewhere or will be added
-        function trackAnalytics(event) {
-            console.log("Tracking analytics event:", event);
-            // In a real application, this function would send analytics data.
         }
 
         // Update balance display function
@@ -1172,86 +892,56 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
 
+        // Retry logic with exponential backoff
+        async function fetchWithRetry(url, maxRetries = 3) {
+            for (let i = 0; i < maxRetries; i++) {
+                try {
+                    const response = await fetch(url);
 
+                    if (!response.ok) {
+                        if (i === maxRetries - 1) throw new Error(`HTTP error! status: ${response.status}`);
+                        await new Promise(resolve => setTimeout(resolve, Math.pow(2, i) * 1000)); // Exponential backoff
+                        continue;
+                    }
 
-        // Placeholder for updateLearnEarnUI, assuming it's defined elsewhere or will be added
-        function updateLearnEarnUI(data) {
-            console.log('Updating Learn & Earn UI with:', data);
-            // In a real application, this function would update the UI based on the fetched data.
+                    const contentType = response.headers.get("content-type");
+                    if (!contentType || !contentType.includes("application/json")) {
+                        if (i === maxRetries - 1) throw new Error('Non-JSON response');
+                        await new Promise(resolve => setTimeout(resolve, Math.pow(2, i) * 1000));
+                        continue;
+                    }
+
+                    return await response.json();
+                } catch (error) {
+                    if (i === maxRetries - 1) throw error;
+                    await new Promise(resolve => setTimeout(resolve, Math.pow(2, i) * 1000));
+                }
+            }
         }
 
         // Fetch all necessary data on load
-        function loadAnalyticsData() {
-            const walletAddress = "{{ wallet }}"; // Assuming wallet is available in the template context
+        async function loadAnalyticsData() {
+            const walletAddress = "{{ wallet }}";
 
-            // Load Learn & Earn eligibility
-            fetch('/learn-earn/eligibility')
-                .then(response => response.json())
-                .then(data => {
-                    console.log('Learn & Earn Eligibility Raw Response:', JSON.stringify(data, null, 2));
-                    console.log('Learn & Earn Eligibility Parsed Data:', data);
+            // Load wallet balance only (Learn & Earn eligibility not needed on overview page)
+            if (walletAddress && walletAddress !== 'None' && walletAddress !== '') {
+                try {
+                    const data = await fetchWithRetry(`/api/balance/${encodeURIComponent(walletAddress)}`);
 
-                    updateLearnEarnUI(data);
-                })
-                .catch(error => {
-                    console.error('❌ Learn & Earn API Error:', error);
-                    // Assuming there's an element with id 'learn-earn-status' to display errors
-                    const learnEarnStatusElement = document.getElementById('learn-earn-status');
-                    if (learnEarnStatusElement) {
-                        learnEarnStatusElement.innerHTML = '<span class="text-danger">⚠️ Error loading data</span>';
-                    }
-                });
-
-            // Load wallet balance
-            fetch(`/api/balance/${encodeURIComponent(walletAddress)}`)
-                .then(response => response.json())
-                .then(data => {
                     console.log('Balance API Raw Response:', JSON.stringify(data, null, 2));
                     console.log('Balance API Parsed Data:', data);
 
+                    if (!data || typeof data !== 'object') {
+                        console.error('❌ Invalid balance data structure:', data);
+                        updateBalanceDisplay({ success: false, balance_formatted: 'Error loading' });
+                        return;
+                    }
+
                     updateBalanceDisplay(data);
-                })
-                .catch(error => {
-                    console.error('❌ Balance API Error:', error);
-                    // Assuming there's an element with id 'balance-display' to display errors
-                    const balanceDisplayElement = document.getElementById('balance-display');
-                    if (balanceDisplayElement) {
-                        balanceDisplayElement.innerHTML = '<span class="text-danger">⚠️ Error loading balance</span>';
-                    }
-                });
-        }
-
-        // Helper function to show notification messages
-        function showNotification(message, type = 'info') {
-            const notificationContainer = document.createElement('div');
-            notificationContainer.className = `notification-message ${type}`;
-            notificationContainer.textContent = message;
-            document.body.appendChild(notificationContainer);
-
-            // Remove the notification after a delay
-            setTimeout(() => {
-                notificationContainer.remove();
-            }, 5000); // 5 seconds duration
-        }
-
-        // Check admin status on page load
-        async function checkAdminStatus() {
-            try {
-                const response = await fetch('/api/admin/check');
-                const data = await response.json();
-
-                if (data.success && data.is_admin) {
-                    console.log('✅ Admin access detected for:', data.wallet);
-                    const adminLink = document.getElementById('adminLink');
-                    if (adminLink) {
-                        adminLink.style.display = 'inline-block';
-                        console.log('✅ Admin link now visible');
-                    }
-                } else {
-                    console.log('ℹ️ User is not an admin');
+                } catch (error) {
+                    console.error('❌ Balance API Error after retries:', error.message || error);
+                    updateBalanceDisplay({ success: false, balance_formatted: 'Connection error - please refresh' });
                 }
-            } catch (error) {
-                console.error('❌ Admin check failed:', error);
             }
         }
 
@@ -1259,7 +949,6 @@ document.addEventListener('DOMContentLoaded', function() {
         document.addEventListener('DOMContentLoaded', function() {
             const wallet = '{{ wallet if wallet else "" }}';
             if (wallet && wallet !== 'None' && wallet !== '') {
-                checkAdminStatus();
                 loadAnalyticsData();
             }
 
@@ -1276,6 +965,13 @@ document.addEventListener('DOMContentLoaded', function() {
             setTimeout(() => {
                 loadParticipants();
             }, 500);
+
+            // Refresh analytics data every 60 seconds
+            setInterval(function() {
+                if (wallet && wallet !== 'None' && wallet !== '') {
+                    loadAnalyticsData();
+                }
+            }, 60000);
         });
 
         // Load Learn & Earn participants for selected date
