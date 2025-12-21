@@ -37,12 +37,13 @@ class AnalyticsService:
 
         self.verification_attempts[wallet_address]["last_attempt"] = self._get_timestamp()
 
-        # Log to Supabase using new structure
-        self.supabase_logger.log_verification_attempt(
-            wallet_address,
-            success,
-            {"attempts": self.verification_attempts[wallet_address]["attempts"], "disbursement_method": "direct_private_key"}
-        )
+        # Log to Supabase using new structure (with null check)
+        if self.supabase_logger:
+            self.supabase_logger.log_verification_attempt(
+                wallet_address,
+                success,
+                {"attempts": self.verification_attempts[wallet_address]["attempts"], "disbursement_method": "direct_private_key"}
+            )
 
     def track_user_session(self, wallet_address: str):
         """Track active user sessions"""
@@ -58,8 +59,9 @@ class AnalyticsService:
         self.user_sessions[wallet_address] = session_data
         self.dashboard_metrics["active_sessions"] += 1
 
-        # Log to Supabase using new structure
-        self.supabase_logger.log_login(wallet_address, session_data)
+        # Log to Supabase using new structure (with null check)
+        if self.supabase_logger:
+            self.supabase_logger.log_login(wallet_address, session_data)
 
     def track_page_view(self, wallet_address: str, page: str):
         """Track page views for user engagement"""
@@ -77,8 +79,9 @@ class AnalyticsService:
 
             self.user_sessions[wallet_address]["pages_visited"].append(page_data)
 
-            # Log to Supabase
-            self.supabase_logger.log_page_view(wallet_address, page, page_data)
+            # Log to Supabase (with null check)
+            if self.supabase_logger:
+                self.supabase_logger.log_page_view(wallet_address, page, page_data)
 
     def get_user_analytics(self, wallet_address: str):
         """Get analytics data for a specific user"""
@@ -252,7 +255,7 @@ class AnalyticsService:
         cached = self._get_cached(cache_key, ttl_seconds=30)
         if cached:
             return cached
-            
+
         if wallet_address:
             # Get user stats from Supabase
             supabase_user_stats = self.supabase_logger.get_user_stats(wallet_address)
@@ -336,6 +339,7 @@ class AnalyticsService:
                     "Learn & Earn Rewards": "0.0 G$",
                     "Telegram Task Rewards": "0.0 G$",
                     "Twitter Task Rewards": "0.0 G$",
+                    "Community Stories Rewards": "0.0 G$",
                     "Minigames Withdrawals": "0.0 G$",
                     "Forum Rewards Disbursed": "0.0 G$",
                     "Task Completion Rewards": "0.0 G$",
@@ -347,15 +351,54 @@ class AnalyticsService:
                     "learn_earn_total": 0,
                     "telegram_task_total": 0,
                     "twitter_task_total": 0,
+                    "community_stories_total": 0,
                     "minigames_total": 0,
                     "forum_rewards_total": 0,
                     "task_completion_total": 0,
                     "p2p_trading_volume": 0,
-                    "breakdown": {},
+                    "breakdown": {
+                        "learn_earn": 0,
+                        "telegram_task": 0,
+                        "twitter_task": 0,
+                        "community_stories": 0,
+                        "minigames_withdrawals": 0,
+                        "forum_disbursed": 0,
+                        "task_completion": 0,
+                        "p2p_volume": 0
+                    },
                     "breakdown_formatted": fallback_breakdown,
-                    "weekly_breakdown": {},
-                    "weekly_breakdown_formatted": {},
-                    "weekly_date_range": None
+                    "weekly_breakdown": {
+                        "learn_earn": 0,
+                        "telegram_task": 0,
+                        "twitter_task": 0,
+                        "community_stories": 0
+                    },
+                    "weekly_breakdown_formatted": {
+                        "learn_earn": "0.0 G$",
+                        "telegram_task": "0.0 G$",
+                        "twitter_task": "0.0 G$",
+                        "community_stories": "0.0 G$"
+                    },
+                    "weekly_date_range": {
+                        "start_date": "N/A",
+                        "end_date": "N/A"
+                    },
+                    "monthly_breakdown": {
+                        "learn_earn": 0,
+                        "telegram_task": 0,
+                        "twitter_task": 0,
+                        "community_stories": 0
+                    },
+                    "monthly_breakdown_formatted": {
+                        "learn_earn": "0.0 G$",
+                        "telegram_task": "0.0 G$",
+                        "twitter_task": "0.0 G$",
+                        "community_stories": "0.0 G$"
+                    },
+                    "monthly_date_range": {
+                        "start_date": "N/A",
+                        "end_date": "N/A"
+                    }
                 }
 
             # Calculate date range for disbursements
@@ -440,7 +483,8 @@ class AnalyticsService:
                             except (ValueError, TypeError):
                                 logger.warning(f"⚠️ Invalid amount in task_completion_log: {amount}")
             except Exception as e:
-                logger.warning(f"⚠️ Task completion table not available: {e}")
+                # Table doesn't exist yet - this is expected if it hasn't been created
+                logger.info(f"ℹ️ Task completion table not available yet (table will be created when first task is completed)")
 
             breakdown['task_completion'] = task_completion_total
             total_disbursements += task_completion_total
@@ -770,7 +814,7 @@ class AnalyticsService:
                 "Task Completion Rewards": f"{task_completion_total:,.1f} G$",
                 "P2P Trading Volume": f"{p2p_volume:,.1f} G$"
             }
-            
+
             logger.info(f"📊 Breakdown formatted includes Community Stories: {community_stories_total:,.1f} G$")
 
             weekly_breakdown = {
@@ -862,10 +906,9 @@ class AnalyticsService:
             import traceback
             logger.error(f"📊 Full error traceback: {traceback.format_exc()}")
 
-            # Provide fallback data with proper structure
+            # Provide fallback data with proper structure - MUST include Task Completion
             fallback_breakdown = {
                 "Learn & Earn Rewards": "0.0 G$",
-                "24-Hour Bonus Claims": "0.0 G$",
                 "Telegram Task Rewards": "0.0 G$",
                 "Twitter Task Rewards": "0.0 G$",
                 "Community Stories Rewards": "0.0 G$",
@@ -875,7 +918,8 @@ class AnalyticsService:
                 "P2P Trading Volume": "0.0 G$"
             }
             logger.error(f"📊 Using fallback breakdown: {fallback_breakdown}")
-            return {
+            
+            fallback_result = {
                 "total_g_disbursed": 0,
                 "total_g_disbursed_formatted": "0.0 G$",
                 "learn_earn_total": 0,
@@ -886,15 +930,53 @@ class AnalyticsService:
                 "forum_rewards_total": 0,
                 "task_completion_total": 0,
                 "p2p_trading_volume": 0,
-                "breakdown": {},
+                "breakdown": {
+                    "learn_earn": 0,
+                    "telegram_task": 0,
+                    "twitter_task": 0,
+                    "community_stories": 0,
+                    "minigames_withdrawals": 0,
+                    "forum_disbursed": 0,
+                    "task_completion": 0,
+                    "p2p_volume": 0
+                },
                 "breakdown_formatted": fallback_breakdown,
-                "weekly_breakdown": {},
-                "weekly_breakdown_formatted": {"learn_earn": "0.0 G$", "telegram_task": "0.0 G$", "twitter_task": "0.0 G$", "community_stories": "0.0 G$"},
-                "weekly_date_range": None,
-                "monthly_breakdown": {},
-                "monthly_breakdown_formatted": {"learn_earn": "0.0 G$", "telegram_task": "0.0 G$", "twitter_task": "0.0 G$", "community_stories": "0.0 G$"},
-                "monthly_date_range": None
+                "weekly_breakdown": {
+                    "learn_earn": 0,
+                    "telegram_task": 0,
+                    "twitter_task": 0,
+                    "community_stories": 0
+                },
+                "weekly_breakdown_formatted": {
+                    "learn_earn": "0.0 G$",
+                    "telegram_task": "0.0 G$",
+                    "twitter_task": "0.0 G$",
+                    "community_stories": "0.0 G$"
+                },
+                "weekly_date_range": {
+                    "start_date": "N/A",
+                    "end_date": "N/A"
+                },
+                "monthly_breakdown": {
+                    "learn_earn": 0,
+                    "telegram_task": 0,
+                    "twitter_task": 0,
+                    "community_stories": 0
+                },
+                "monthly_breakdown_formatted": {
+                    "learn_earn": "0.0 G$",
+                    "telegram_task": "0.0 G$",
+                    "twitter_task": "0.0 G$",
+                    "community_stories": "0.0 G$"
+                },
+                "monthly_date_range": {
+                    "start_date": "N/A",
+                    "end_date": "N/A"
+                }
             }
+            
+            logger.error(f"📊 Returning complete fallback structure with {len(fallback_breakdown)} breakdown categories")
+            return fallback_result
 
     def _get_user_feature_participation(self, wallet_address: str):
         """Get user's participation in Learn & Earn and Telegram Task - includes ALL historical claims"""
