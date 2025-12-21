@@ -18,24 +18,36 @@ def community_stories_page():
     """Community Stories main page - Publicly accessible"""
     wallet = session.get('wallet')
     verified = session.get('verified')
-    username = None
-
-    # Check if user is authenticated
-    if wallet and verified:
-        # Get username for authenticated users
-        from supabase_client import supabase_logger
-        username = supabase_logger.get_username(wallet)
 
     # Allow both authenticated and guest users to view the page
     return render_template('community_stories.html', 
-                         wallet=wallet if wallet and verified else None, 
-                         username=username if username else "Guest")
+                         wallet=wallet if wallet and verified else None)
 
 @community_stories_bp.route('/api/config', methods=['GET'])
 def get_config():
     """Get Community Stories configuration"""
     try:
         config = community_stories_service.get_config()
+        
+        # Get custom message from database
+        from supabase_client import get_supabase_client, safe_supabase_operation
+        supabase = get_supabase_client()
+        custom_message = COMMUNITY_STORIES_CONFIG['DESCRIPTION']  # Default fallback
+        
+        if supabase:
+            result = safe_supabase_operation(
+                lambda: supabase.table('maintenance_settings')\
+                    .select('custom_message')\
+                    .eq('feature_name', 'community_stories_message')\
+                    .execute(),
+                fallback_result=type('obj', (object,), {'data': []})(),
+                operation_name="get community stories custom message"
+            )
+            
+            if result.data and len(result.data) > 0 and result.data[0].get('custom_message'):
+                custom_message = result.data[0]['custom_message']
+                logger.info(f"✅ Using custom Community Stories message from database")
+        
         return jsonify({
             'success': True,
             'config': {
@@ -51,7 +63,7 @@ def get_config():
                     'start_day': config['WINDOW_START_DAY'],
                     'end_day': config['WINDOW_END_DAY']
                 },
-                'description': COMMUNITY_STORIES_CONFIG['DESCRIPTION']
+                'description': custom_message  # Use custom message from DB
             }
         })
     except Exception as e:
@@ -313,195 +325,6 @@ def reject_submission():
         logger.error(f"❌ Error rejecting submission: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
-@community_stories_bp.route('/api/admin/upload-requirement-image', methods=['POST'])
-def upload_requirement_image():
-    """Upload requirement example image to ImgBB"""
-    try:
-        wallet = session.get('wallet')
-        if not wallet or not session.get('verified'):
-            logger.error("❌ Upload requirement image: Not authenticated")
-            return jsonify({'success': False, 'error': 'Not authenticated'}), 401
-
-        from supabase_client import is_admin
-        if not is_admin(wallet):
-            logger.error(f"❌ Upload requirement image: Not admin - {wallet[:8]}...")
-            return jsonify({'success': False, 'error': 'Admin access required'}), 403
-
-        # Check if file was uploaded
-        if 'image' not in request.files:
-            return jsonify({'success': False, 'error': 'No image file provided'}), 400
-
-        file = request.files['image']
-        title = request.form.get('title', '').strip() or 'Requirement Example'
-
-        if file.filename == '':
-            return jsonify({'success': False, 'error': 'No file selected'}), 400
-
-        # Validate file type
-        allowed_extensions = {'png', 'jpg', 'jpeg', 'gif', 'bmp', 'webp'}
-        file_ext = file.filename.rsplit('.', 1)[1].lower() if '.' in file.filename else ''
-        if file_ext not in allowed_extensions:
-            return jsonify({'success': False, 'error': 'Invalid file type. Allowed: png, jpg, jpeg, gif, bmp, webp'}), 400
-
-        # Get ImgBB API key
-        imgbb_api_key = os.getenv('IMGBB_API_KEY')
-        if not imgbb_api_key:
-            logger.error("❌ ImgBB API key not configured")
-            return jsonify({'success': False, 'error': 'ImgBB API key not configured'}), 500
-
-        # Upload to ImgBB
-        logger.info(f"📤 Uploading requirement image to ImgBB...")
-        image_data = base64.b64encode(file.read()).decode('utf-8')
-
-        upload_url = 'https://api.imgbb.com/1/upload'
-        payload = {
-            'key': imgbb_api_key,
-            'image': image_data,
-            'name': f"requirement_{file.filename}"
-        }
-
-        response = requests.post(upload_url, data=payload, timeout=30)
-
-        if response.status_code != 200:
-            logger.error(f"❌ ImgBB upload failed: {response.status_code}")
-            return jsonify({'success': False, 'error': f'ImgBB upload failed: {response.status_code}'}), 500
-
-        upload_result = response.json()
-
-        if not upload_result.get('success'):
-            logger.error(f"❌ ImgBB API error: {upload_result}")
-            return jsonify({'success': False, 'error': 'ImgBB upload failed'}), 500
-
-        screenshot_url = upload_result['data']['url']
-        logger.info(f"✅ Requirement image uploaded to ImgBB: {screenshot_url}")
-
-        # Save to database
-        supabase = get_supabase_client()
-        if not supabase:
-            logger.error("❌ Supabase client not available")
-            return jsonify({'success': False, 'error': 'Database not available'}), 500
-
-        from datetime import datetime
-        screenshot_data = {
-            'screenshot_url': screenshot_url,
-            'wallet_address': 'admin_requirement',
-            'title': title,
-            'image_type': 'requirement',
-            'created_at': datetime.utcnow().isoformat()
-        }
-
-        try:
-            result = supabase.table('community_screenshots').insert(screenshot_data).execute()
-            
-            if result.data:
-                logger.info(f"✅ Requirement image saved to database")
-                return jsonify({
-                    'success': True,
-                    'url': screenshot_url,
-                    'title': title
-                })
-            else:
-                logger.error(f"❌ Database insert returned no data")
-                return jsonify({'success': False, 'error': 'Failed to save to database - no data returned'}), 500
-                
-        except Exception as db_error:
-            logger.error(f"❌ Database insert failed: {db_error}")
-            import traceback
-            logger.error(f"Traceback: {traceback.format_exc()}")
-            
-            # Check if table exists error
-            error_msg = str(db_error).lower()
-            if 'relation' in error_msg and 'does not exist' in error_msg:
-                return jsonify({
-                    'success': False, 
-                    'error': 'Database table "community_screenshots" does not exist. Please run the SQL schema in Supabase SQL Editor.'
-                }), 500
-            else:
-                return jsonify({'success': False, 'error': f'Database error: {str(db_error)}'}), 500
-
-    except Exception as e:
-        logger.error(f"❌ Error uploading requirement image: {e}")
-        import traceback
-        logger.error(f"Traceback: {traceback.format_exc()}")
-        return jsonify({'success': False, 'error': str(e)}), 500
-
-@community_stories_bp.route('/api/admin/requirement-images', methods=['GET'])
-def get_requirement_images():
-    """Get recent requirement images"""
-    try:
-        wallet = session.get('wallet')
-        if not wallet or not session.get('verified'):
-            return jsonify({'success': False, 'error': 'Not authenticated'}), 401
-
-        from supabase_client import is_admin
-        if not is_admin(wallet):
-            return jsonify({'success': False, 'error': 'Admin access required'}), 403
-
-        limit = int(request.args.get('limit', 10))
-
-        supabase = get_supabase_client()
-        if not supabase:
-            return jsonify({'success': False, 'error': 'Database not available'}), 500
-
-        result = safe_supabase_operation(
-            lambda: supabase.table('community_screenshots')\
-                .select('*')\
-                .eq('image_type', 'requirement')\
-                .order('created_at', desc=True)\
-                .limit(limit)\
-                .execute(),
-            fallback_result=type('obj', (object,), {'data': []})(),
-            operation_name="get requirement images"
-        )
-
-        images = result.data if result.data else []
-
-        return jsonify({
-            'success': True,
-            'images': images,
-            'count': len(images)
-        })
-
-    except Exception as e:
-        logger.error(f"❌ Error getting requirement images: {e}")
-        return jsonify({'success': False, 'error': str(e)}), 500
-
-@community_stories_bp.route('/api/requirement-example-images', methods=['GET'])
-def get_requirement_example_images():
-    """Get requirement example images for public display (no auth required)"""
-    try:
-        limit = int(request.args.get('limit', 5))
-
-        supabase = get_supabase_client()
-        if not supabase:
-            logger.warning("⚠️ Database not available, returning empty list")
-            return jsonify({'success': True, 'images': [], 'count': 0})
-
-        result = safe_supabase_operation(
-            lambda: supabase.table('community_screenshots')\
-                .select('screenshot_url, title, created_at')\
-                .eq('image_type', 'requirement')\
-                .order('created_at', desc=True)\
-                .limit(limit)\
-                .execute(),
-            fallback_result=type('obj', (object,), {'data': []})(),
-            operation_name="get requirement example images"
-        )
-
-        images = result.data if result.data else []
-
-        logger.info(f"✅ Retrieved {len(images)} requirement example images")
-
-        return jsonify({
-            'success': True,
-            'images': images,
-            'count': len(images)
-        })
-
-    except Exception as e:
-        logger.error(f"❌ Error getting requirement example images: {e}")
-        return jsonify({'success': True, 'images': [], 'count': 0})
-
 @community_stories_bp.route('/api/admin/upload-screenshot', methods=['POST'])
 def upload_screenshot():
     """Upload image directly to ImgBB and save to database"""
@@ -637,3 +460,51 @@ def get_admin_history():
     except Exception as e:
         logger.error(f"❌ Error getting history: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
+
+@community_stories_bp.route('/api/requirement-example-images', methods=['GET'])
+def get_requirement_example_images():
+    """Get requirement example images (selfie examples for higher reward)"""
+    try:
+        limit = int(request.args.get('limit', 3))
+        
+        # Get approved high reward submissions with screenshots as examples
+        supabase = get_supabase_client()
+        if not supabase:
+            return jsonify({'success': False, 'error': 'Database not available', 'images': []}), 200
+        
+        # Get approved_high submissions with screenshots (these are good examples)
+        result = safe_supabase_operation(
+            lambda: supabase.table('community_stories_submissions')\
+                .select('submission_id, storage_path, wallet_address, reviewed_at')\
+                .eq('status', 'approved_high')\
+                .not_.is_('storage_path', 'null')\
+                .order('reviewed_at', desc=True)\
+                .limit(limit)\
+                .execute(),
+            fallback_result=type('obj', (object,), {'data': []})(),
+            operation_name="get requirement example images"
+        )
+        
+        images = []
+        if result.data:
+            for item in result.data:
+                if item.get('storage_path'):
+                    images.append({
+                        'screenshot_url': item['storage_path'],
+                        'title': 'Good Example - Selfie with GoodWallet',
+                        'submission_id': item['submission_id']
+                    })
+        
+        logger.info(f"✅ Retrieved {len(images)} requirement example images")
+        
+        return jsonify({
+            'success': True,
+            'images': images,
+            'count': len(images)
+        })
+        
+    except Exception as e:
+        logger.error(f"❌ Error getting requirement example images: {e}")
+        import traceback
+        logger.error(f"🔍 Traceback: {traceback.format_exc()}")
+        return jsonify({'success': False, 'error': str(e), 'images': []}), 200
