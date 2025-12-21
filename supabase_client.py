@@ -80,21 +80,6 @@ def get_supabase_client():
                 return None
     return None # Should not be reached if logic is sound
 
-def safe_supabase_operation(operation_func, fallback_result=None, operation_name="database operation"):
-    """Safely execute a Supabase operation with error handling and retries"""
-    try:
-        # Apply the retry decorator to the operation
-        retried_operation = retry_on_connection_error(max_retries=3, delay=1)(operation_func)
-        return retried_operation()
-    except Exception as e:
-        error_msg = str(e).lower()
-        if any(keyword in error_msg for keyword in ['server disconnected', 'connection', 'timeout', 'network']):
-            logger.warning(f"⚠️ Connection issue during {operation_name}: {e}")
-        else:
-            logger.error(f"❌ Error during {operation_name}: {e}")
-        return fallback_result
-
-
 # Initialize the client
 supabase = get_supabase_client()
 
@@ -666,161 +651,6 @@ class SupabaseLogger:
             details=ubi_details or {}
         )
 
-    def check_username_available(self, username: str):
-        """Check if username is available"""
-        if not self.enabled:
-            return True
-
-        try:
-            # Check if username is already taken by any user
-            result = self.client.table("user_data")\
-                .select("username")\
-                .eq("username", username)\
-                .execute()
-
-            # If the result has data, it means the username is already taken
-            return len(result.data) == 0
-        except Exception as e:
-            logger.error(f"❌ Error checking username availability: {e}")
-            return False
-
-    def set_username(self, wallet_address: str, username: str):
-        """Set username for user"""
-        if not self.enabled:
-            return {"success": False, "error": "Database not enabled"}
-
-        try:
-            # Check if username is available
-            if not self.check_username_available(username):
-                return {"success": False, "error": "Username already taken"}
-
-            # Update user data
-            result = self.client.table("user_data")\
-                .update({
-                    "username": username,
-                    "username_set_at": datetime.now().isoformat()
-                })\
-                .eq("wallet_address", wallet_address)\
-                .execute()
-
-            logger.info(f"✅ Username set for {wallet_address}: {username}")
-            return {"success": True, "username": username}
-
-        except Exception as e:
-            logger.error(f"❌ Error setting username: {e}")
-            return {"success": False, "error": str(e)}
-
-    def can_edit_username(self, wallet_address: str):
-        """Check if user can edit their username (one-time only)"""
-        if not self.enabled:
-            return False
-
-        try:
-            result = self.client.table("user_data")\
-                .select("username_edited")\
-                .eq("wallet_address", wallet_address)\
-                .execute()
-
-            if result.data:
-                # If username_edited field exists and is False, user can edit
-                username_edited = result.data[0].get("username_edited", False)
-                return not username_edited
-            else:
-                # If user does not exist, they might be setting username for the first time
-                # or we need to ensure they haven't edited it previously.
-                # For simplicity, assume they can edit if they don't have an entry or entry lacks the field.
-                # A more robust check would involve ensuring the wallet_address exists first.
-                return True 
-
-        except Exception as e:
-            logger.error(f"❌ Error checking username edit status: {e}")
-            return False
-
-    def edit_username(self, wallet_address: str, new_username: str):
-        """Edit username - ONE TIME ONLY"""
-        if not self.enabled:
-            return {"success": False, "error": "Database not enabled"}
-
-        try:
-            # Check if user has an existing record and if they can edit
-            user_record_check = self.client.table("user_data").select("id").eq("wallet_address", wallet_address).execute()
-            if not user_record_check.data:
-                # If user doesn't exist, they can't edit. They should use set_username.
-                return {"success": False, "error": "User not found. Use set_username to create a username first."}
-
-            # Check if user can still edit
-            if not self.can_edit_username(wallet_address):
-                return {"success": False, "error": "You have already used your one-time username edit"}
-
-            # Check if new username is available
-            if not self.check_username_available(new_username):
-                return {"success": False, "error": "Username already taken"}
-
-            # Update username and mark as edited
-            result = self.client.table("user_data")\
-                .update({
-                    "username": new_username,
-                    "username_edited": True,
-                    "username_last_edited": datetime.now().isoformat()
-                })\
-                .eq("wallet_address", wallet_address)\
-                .execute()
-
-            logger.info(f"✅ Username edited for {wallet_address}: {new_username} (one-time edit used)")
-            return {"success": True, "username": new_username, "message": "Username updated successfully! This was your one-time edit."}
-
-        except Exception as e:
-            logger.error(f"❌ Error editing username: {e}")
-            return {"success": False, "error": str(e)}
-
-    def get_username(self, wallet_address: str):
-        """Get username for wallet address - DATABASE IS SOURCE OF TRUTH"""
-        if not self.enabled:
-            logger.warning("⚠️ Supabase not enabled - cannot get username")
-            return None
-
-        if not wallet_address:
-            logger.warning("⚠️ No wallet address provided")
-            return None
-
-        try:
-            # Normalize wallet address (ensure proper format)
-            wallet_address = wallet_address.strip()
-            if not wallet_address.startswith('0x'):
-                wallet_address = '0x' + wallet_address
-
-            logger.info(f"🔍 Querying username for wallet: {wallet_address}")
-
-            result = self.client.table("user_data")\
-                .select("username, wallet_address")\
-                .eq("wallet_address", wallet_address)\
-                .execute()
-
-            logger.info(f"🔍 Database query result count: {len(result.data) if result.data else 0}")
-            logger.info(f"🔍 Database query result: {result.data}")
-
-            if result.data and len(result.data) > 0:
-                username = result.data[0].get("username")
-                stored_wallet = result.data[0].get("wallet_address")
-
-                logger.info(f"🔍 Found user record - username: {username}, wallet: {stored_wallet}")
-
-                if username and username.strip():
-                    logger.info(f"✅ Retrieved username from DB for {wallet_address[:8]}...: {username}")
-                    return username.strip()
-                else:
-                    logger.info(f"ℹ️ User exists but username is empty/null for {wallet_address[:8]}...")
-                    return None
-            else:
-                logger.info(f"ℹ️ No user record found in DB for {wallet_address[:8]}...")
-                return None
-
-        except Exception as e:
-            logger.error(f"❌ Error getting username from DB for {wallet_address[:8]}...: {e}")
-            import traceback
-            logger.error(f"🔍 Traceback: {traceback.format_exc()}")
-            return None
-
     def get_user_stats(self, wallet_address: str):
         """Get comprehensive user statistics"""
         if not self.enabled:
@@ -967,6 +797,24 @@ class SupabaseLogger:
             logger.error(f"❌ Error fetching Learn & Earn earnings for {masked_wallet}: {e}")
             return 0.0
 
+def safe_supabase_operation(operation, fallback_result=None, operation_name="database operation"):
+    """
+    Safely execute a Supabase operation with error handling
+
+    Args:
+        operation: Lambda function containing the Supabase operation
+        fallback_result: Value to return if operation fails
+        operation_name: Name of the operation for logging
+
+    Returns:
+        Result of operation or fallback_result if it fails
+    """
+    try:
+        return operation()
+    except Exception as e:
+        logger.error(f"❌ Error in {operation_name}: {e}")
+        return fallback_result
+
 def get_supabase_client(retries=3):
     """Get Supabase client instance with retry logic"""
     global supabase_enabled
@@ -984,19 +832,41 @@ def get_supabase_client(retries=3):
 
     return None
 
-def is_admin(wallet_address: str) -> bool:
-    """Check if wallet address is an admin (using database)"""
-    if not wallet_address or not supabase_enabled:
-        return False
-
+def log_admin_action(admin_wallet: str, action_type: str, action_details: dict = None, target_wallet: str = None):
+    """Log admin actions to database"""
     try:
-        result = supabase.table("user_data")\
-            .select("is_admin")\
-            .eq("wallet_address", wallet_address)\
+        supabase = get_supabase_client()
+        if not supabase:
+            return
+
+        from datetime import datetime
+        action_data = {
+            'admin_wallet': admin_wallet,
+            'action_type': action_type,
+            'action_details': action_details or {},
+            'target_wallet': target_wallet,
+            'created_at': datetime.utcnow().isoformat()
+        }
+
+        supabase.table('admin_actions_log').insert(action_data).execute()
+        logger.info(f"✅ Logged admin action: {action_type} by {admin_wallet[:8]}...")
+    except Exception as e:
+        logger.error(f"❌ Error logging admin action: {e}")
+
+def is_admin(wallet_address: str) -> bool:
+    """Check if wallet address is an admin"""
+    try:
+        supabase = get_supabase_client()
+        if not supabase:
+            return False
+
+        result = supabase.table('user_data')\
+            .select('is_admin')\
+            .eq('wallet_address', wallet_address)\
             .execute()
 
         if result.data and len(result.data) > 0:
-            return result.data[0].get("is_admin", False)
+            return result.data[0].get('is_admin', False)
 
         return False
     except Exception as e:
@@ -1004,44 +874,25 @@ def is_admin(wallet_address: str) -> bool:
         return False
 
 def set_admin_status(wallet_address: str, is_admin_status: bool) -> dict:
-    """Set admin status for a wallet address"""
-    if not supabase_enabled:
-        return {"success": False, "error": "Database not enabled"}
-
+    """Set admin status for a user"""
     try:
-        result = supabase.table("user_data")\
-            .update({"is_admin": is_admin_status})\
-            .eq("wallet_address", wallet_address)\
+        supabase = get_supabase_client()
+        if not supabase:
+            return {"success": False, "error": "Database not available"}
+
+        result = supabase.table('user_data')\
+            .update({'is_admin': is_admin_status})\
+            .eq('wallet_address', wallet_address)\
             .execute()
 
-        logger.info(f"✅ Admin status updated for {wallet_address}: {is_admin_status}")
-        return {"success": True, "is_admin": is_admin_status}
+        if result.data:
+            logger.info(f"✅ Admin status set for {wallet_address[:8]}...: {is_admin_status}")
+            return {"success": True}
+        else:
+            return {"success": False, "error": "User not found"}
     except Exception as e:
         logger.error(f"❌ Error setting admin status: {e}")
         return {"success": False, "error": str(e)}
-
-def log_admin_action(admin_wallet: str, action_type: str, target_wallet: str = None, 
-                     action_details: dict = None, session_data: dict = None):
-    """Log admin actions for audit trail"""
-    if not supabase_enabled:
-        return None
-
-    try:
-        action_record = {
-            "admin_wallet": admin_wallet,
-            "action_type": action_type,
-            "target_wallet": target_wallet,
-            "action_details": action_details or {},
-            "ip_address": session_data.get("ip_address") if session_data else None,
-            "user_agent": session_data.get("user_agent") if session_data else None
-        }
-
-        result = supabase.table("admin_actions_log").insert(action_record).execute()
-        logger.info(f"✅ Admin action logged: {action_type} by {admin_wallet}")
-        return result
-    except Exception as e:
-        logger.error(f"❌ Error logging admin action: {e}")
-        return None
 
 # Global logger instance
 supabase_logger = SupabaseLogger()
