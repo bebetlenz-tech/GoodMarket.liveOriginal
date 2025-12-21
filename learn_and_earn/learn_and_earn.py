@@ -500,120 +500,6 @@ class LearnEarnQuizManager:
             # Default to eligible if there's an error during checking
             return True
 
-    async def process_reward_with_retry(self, user_wallet, reward_amount, quiz_log, quiz_result_summary=None, retry_count=0):
-        """Process blockchain reward with retry logic"""
-        try:
-            logger.info(f"💰 Processing reward: {reward_amount} G$ for {user_wallet}")
-
-            reward_result = await learn_blockchain_service.send_g_reward(user_wallet, reward_amount, quiz_result_summary)
-
-            if reward_result.get('success'):
-                logger.info(f"✅ Reward sent successfully: {reward_result.get('tx_hash')}")
-
-                # Update quiz log with reward transaction details
-                supabase = get_supabase_client()
-                supabase.table('learnearn_log')\
-                    .update({
-                        'transaction_hash': reward_result.get('tx_hash'),
-                        'reward_status': 'sent',
-                        'sent_at': datetime.utcnow().isoformat() + 'Z'  # Use UTC with Z suffix
-                    })\
-                    .eq('quiz_id', quiz_log['quiz_id'])\
-                    .execute()
-
-                return reward_result
-            else:
-                raise Exception(reward_result.get('error', 'Unknown reward error'))
-
-        except Exception as e:
-            logger.error(f"❌ Reward processing error (attempt {retry_count + 1}): {e}")
-
-            # Retry logic
-            if retry_count < self.max_retries:
-                logger.info(f"🔄 Retrying reward processing... ({retry_count + 1}/{self.max_retries})")
-                await asyncio.sleep(2 ** retry_count)
-                return await self.process_reward_with_retry(user_wallet, reward_amount, quiz_log, quiz_result_summary, retry_count + 1)
-            else:
-                # Log failed reward
-                try:
-                    supabase = get_supabase_client()
-                    supabase.table('learnearn_log')\
-                        .update({
-                            'reward_status': 'failed',
-                            'reward_error': str(e),
-                            'failed_at': datetime.utcnow().isoformat() + 'Z'  # Use UTC with Z suffix
-                        })\
-                        .eq('quiz_id', quiz_log['quiz_id'])\
-                        .execute()
-
-                    logger.error(f"❌ Reward processing failed after {retry_count + 1} attempts")
-
-                except Exception as log_error:
-                    logger.error(f"❌ Could not log reward failure: {log_error}")
-
-                return {'success': False, 'error': str(e)}
-
-    def check_user_eligibility(self, wallet_address: str) -> bool:
-        """Check user eligibility based on last quiz attempt timestamp.
-           Returns True if eligible, False otherwise."""
-        try:
-            supabase = get_supabase_client()
-            masked_address = self.mask_wallet_address(wallet_address)
-
-            # Fetch the most recent quiz attempt for the user
-            result = supabase.table('learnearn_log')\
-                .select('timestamp')\
-                .eq('wallet_address', masked_address)\
-                .order('timestamp', desc=True)\
-                .limit(1)\
-                .execute()
-
-            if result.data:
-                last_attempt_str = result.data[0]['timestamp']
-
-                # Handle timezone-aware datetime from Supabase - ensure UTC parsing
-                try:
-                    # Parse as UTC datetime consistently
-                    if last_attempt_str.endswith('Z'):
-                        # Already UTC with Z suffix - parse directly
-                        last_attempt_time = datetime.fromisoformat(last_attempt_str.replace('Z', '+00:00')).replace(tzinfo=None)
-                    elif '+' in last_attempt_str or '-' in last_attempt_str[-6:]:
-                        # Has timezone offset - convert to UTC
-                        dt_with_tz = datetime.fromisoformat(last_attempt_str)
-                        last_attempt_time = dt_with_tz.utctimetuple()
-                        last_attempt_time = datetime(*last_attempt_time[:6])  # Convert to naive UTC
-                    else:
-                        # Assume naive UTC datetime from Supabase
-                        last_attempt_time = datetime.fromisoformat(last_attempt_str)
-                except Exception as parse_error:
-                    logger.error(f"❌ Error parsing UTC timestamp in eligibility check: {parse_error}")
-                    logger.error(f"Original timestamp: {last_attempt_str}")
-                    # If parsing fails, assume user can take quiz
-                    return True
-
-                # Calculate using UTC time consistently
-                next_quiz_time = last_attempt_time + timedelta(hours=self.cooldown_hours)
-                current_utc_time = datetime.utcnow()
-                can_take_now = current_utc_time >= next_quiz_time
-
-                if can_take_now:
-                    logger.info(f"✅ User {masked_address} is eligible for quiz (UTC check).")
-                else:
-                    logger.warning(f"⚠️ User {masked_address} is not eligible for quiz. UTC cooldown active until {next_quiz_time}")
-
-                logger.info(f"🕐 UTC Eligibility Check - Last: {last_attempt_time}, Next: {next_quiz_time}, Current: {current_utc_time}")
-
-                return can_take_now
-            else:
-                # No previous attempts, user can take quiz immediately
-                logger.info(f"✅ User {masked_address} is eligible for quiz (first time).")
-                return True
-
-        except Exception as e:
-            logger.error(f"❌ Failed to check eligibility for {wallet_address}: {e}")
-            # Default to eligible if there's an error during checking
-            return True
-
     async def check_quiz_eligibility(self, wallet_address: str) -> Dict[str, Any]:
         """Check if user is eligible for Learn & Earn quiz (24-hour cooldown only)"""
         try:
@@ -637,7 +523,7 @@ class LearnEarnQuizManager:
                 logger.warning(f"⚠️ Maintenance check failed: {maint_error}")
                 # Continue with eligibility check even if maintenance check fails
 
-            # Check using sync method - only check cooldown, no UBI dependency
+            # Check using sync method like hour_bonus
             try:
                 eligible = self.check_user_eligibility(wallet_address)
             except Exception as elig_error:
@@ -868,6 +754,29 @@ class LearnEarnQuizManager:
         except Exception as e:
             logger.error(f"❌ Error updating quiz log {log_id} with transaction: {e}")
             return False
+
+    def get_module_links(self):
+        """Get active module links for Learn & Earn"""
+        try:
+            supabase = get_supabase_client()
+            if not supabase:
+                return []
+
+            result = supabase.table('learn_earn_module_links')\
+                .select('*')\
+                .eq('is_active', True)\
+                .order('display_order', desc=False)\
+                .execute()
+
+            if result.data:
+                logger.info(f"✅ Retrieved {len(result.data)} module links")
+                return result.data
+
+            return []
+
+        except Exception as e:
+            logger.error(f"❌ Error getting module links: {e}")
+            return []
 
     def get_username_from_db(self, wallet_address: str):
         """Get username for wallet address from user_data table"""
@@ -1147,6 +1056,10 @@ def start_quiz(current_user):
                 'difficulty': q.get('difficulty')
             })
 
+        # Get module links
+        module_links = quiz_manager.get_module_links()
+        logger.info(f"✅ Retrieved {len(module_links)} module links for quiz session")
+
         return jsonify({
             'success': True,
             'quiz_session': {
@@ -1158,7 +1071,8 @@ def start_quiz(current_user):
                     'time_per_question': quiz_manager.time_per_question,
                     'reward_per_correct': quiz_manager.reward_per_correct,
                     'max_reward': len(quiz_questions_for_response) * quiz_manager.reward_per_correct
-                }
+                },
+                'module_links': module_links
             },
             'feature_status': 'available',
             'learn_balance': learn_balance
@@ -1598,7 +1512,7 @@ def sell_achievement_card(current_user):
         from datetime import datetime
         selling_start_date = datetime(2026, 5, 10, 0, 0, 0)
         current_date = datetime.utcnow()
-        
+
         if current_date < selling_start_date:
             days_until_available = (selling_start_date - current_date).days
             logger.warning(f"⚠️ Achievement card selling not yet available. Available on: {selling_start_date.strftime('%B %d, %Y')}")
@@ -1699,7 +1613,7 @@ def sell_achievement_card(current_user):
             'message': f'Achievement card sold for {sell_price} G$!',
             'sell_price': sell_price,
             'transaction_hash': disbursement_result.get('tx_hash'),
-            'explorer_url': f"https://explorer.celo.org/mainnet/tx/{disbursement_result.get('tx_hash')}"
+            'explorer_url': f"https://celoscan.io/tx/{disbursement_result.get('tx_hash')}"
         }), 200
 
     except Exception as e:
