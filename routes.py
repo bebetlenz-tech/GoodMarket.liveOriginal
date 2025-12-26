@@ -55,6 +55,63 @@ def admin_required(f):
     wrapper.__name__ = f.__name__
     return wrapper
 
+@routes.route('/api/daily-task/claim', methods=['POST'])
+@auth_required
+def claim_daily_task():
+    """Claim unified daily task (Twitter or Telegram)"""
+    try:
+        wallet = session.get('wallet')
+        data = request.get_json()
+
+        platform = data.get('platform')  # 'twitter' or 'telegram'
+        post_url = data.get('post_url')
+
+        if platform not in ['twitter', 'telegram', 'facebook']:
+            return jsonify({
+                'success': False,
+                'error': 'Invalid platform. Choose twitter, telegram, or facebook.'
+            }), 400
+
+        if not post_url:
+            return jsonify({
+                'success': False,
+                'error': f'{platform.capitalize()} post URL is required'
+            }), 400
+
+        # Import appropriate service
+        if platform == 'twitter':
+            from twitter_task.twitter_task import twitter_task_service
+            service = twitter_task_service
+        elif platform == 'telegram':
+            from telegram_task.telegram_task import telegram_task_service
+            service = telegram_task_service
+        else:  # facebook
+            from facebook_task.facebook_task import facebook_task_service
+            service = facebook_task_service
+
+        import asyncio
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+
+        try:
+            result = loop.run_until_complete(
+                service.claim_task_reward(wallet, post_url)
+            )
+
+            if result.get('success'):
+                return jsonify(result), 200
+            else:
+                return jsonify(result), 400
+
+        finally:
+            loop.close()
+
+    except Exception as e:
+        logger.error(f"❌ Daily task claim error: {e}")
+        import traceback
+        logger.error(f"🔍 Traceback: {traceback.format_exc()}")
+        return jsonify({'success': False, 'error': 'Failed to claim reward'}), 500
+
 @routes.route('/api/daily-task/status', methods=['GET'])
 @auth_required
 def get_daily_task_status():
@@ -72,51 +129,113 @@ def get_daily_task_status():
         asyncio.set_event_loop(loop)
 
         try:
-            # Check both tasks
+            # Check all three tasks
             twitter_status = loop.run_until_complete(twitter_task_service.check_eligibility(wallet))
             telegram_status = loop.run_until_complete(telegram_task_service.check_eligibility(wallet))
 
-            # Check for pending submissions
-            has_pending_telegram = telegram_status.get('has_pending_submission', False)
-            has_pending_twitter = twitter_status.get('has_pending_submission', False)
-            has_pending = has_pending_telegram or has_pending_twitter
+            from facebook_task.facebook_task import facebook_task_service
+            facebook_status = loop.run_until_complete(facebook_task_service.check_eligibility(wallet))
 
-            # User can claim if BOTH are available (shared cooldown) and no pending submissions
-            can_claim = twitter_status.get('can_claim', False) and telegram_status.get('can_claim', False) and not has_pending
+            # CRITICAL FIX: Check ALL platforms for pending AND check database for actual pending submissions
+            # This ensures real-time accuracy even with caching issues
 
-            # Get next claim time from whichever was claimed more recently
+            # First, check direct database for ANY pending submissions
+            supabase = get_supabase_client()
+            actual_pending = False
+            actual_pending_platform = None
+
+            if supabase:
+                # Check Twitter pending
+                twitter_pending_check = safe_supabase_operation(
+                    lambda: supabase.table('twitter_task_log')\
+                        .select('id')\
+                        .eq('wallet_address', wallet)\
+                        .eq('status', 'pending')\
+                        .limit(1)\
+                        .execute(),
+                    fallback_result=type('obj', (object,), {'data': []})(),
+                    operation_name="check twitter pending"
+                )
+
+                if twitter_pending_check.data and len(twitter_pending_check.data) > 0:
+                    actual_pending = True
+                    actual_pending_platform = 'Twitter'
+
+                # Check Telegram pending only if Twitter not pending
+                if not actual_pending:
+                    telegram_pending_check = safe_supabase_operation(
+                        lambda: supabase.table('telegram_task_log')\
+                            .select('id')\
+                            .eq('wallet_address', wallet)\
+                            .eq('status', 'pending')\
+                            .limit(1)\
+                            .execute(),
+                        fallback_result=type('obj', (object,), {'data': []})(),
+                        operation_name="check telegram pending"
+                    )
+
+                    if telegram_pending_check.data and len(telegram_pending_check.data) > 0:
+                        actual_pending = True
+                        actual_pending_platform = 'Telegram'
+
+                # Check Facebook pending only if Twitter and Telegram not pending
+                if not actual_pending:
+                    facebook_pending_check = safe_supabase_operation(
+                        lambda: supabase.table('facebook_task_log')\
+                            .select('id')\
+                            .eq('wallet_address', wallet)\
+                            .eq('status', 'pending')\
+                            .limit(1)\
+                            .execute(),
+                        fallback_result=type('obj', (object,), {'data': []})(),
+                        operation_name="check facebook pending"
+                    )
+
+                    if facebook_pending_check.data and len(facebook_pending_check.data) > 0:
+                        actual_pending = True
+                        actual_pending_platform = 'Facebook'
+
+
+            # Determine pending platform based on actual database check
+            if actual_pending:
+                pending_platform = actual_pending_platform
+            else:
+                pending_platform = None
+
+            # Determine next claim time based on eligible platform cooldowns
             next_claim_time = None
-            time_remaining_seconds = None
-            if not can_claim:
-                twitter_next = twitter_status.get('next_claim_time')
-                telegram_next = telegram_status.get('next_claim_time')
+            if actual_pending:
+                # If there's a pending submission, next_claim_time is not relevant for claiming
+                pass
+            else:
+                # Check for cooldown (completed claims) - if ANY platform has cooldown, ALL are blocked
+                if not twitter_status.get('can_claim') or not telegram_status.get('can_claim') or not facebook_status.get('can_claim'):
+                    # If any platform has cooldown active (from completed claims), all are blocked
+                    twitter_next = twitter_status.get('next_claim_time')
+                    facebook_next = facebook_status.get('next_claim_time')
+                    telegram_next = telegram_status.get('next_claim_time')
 
-                # Use the later time (whichever task was done more recently)
-                if twitter_next and telegram_next:
-                    next_claim_time = max(twitter_next, telegram_next)
-                else:
-                    next_claim_time = twitter_next or telegram_next
+                    # Find the earliest next claim time among all platforms
+                    possible_next_claims = [t for t in [twitter_next, telegram_next, facebook_next] if t]
+                    if possible_next_claims:
+                        next_claim_time = min(possible_next_claims)
 
-                # Calculate time_remaining_seconds for live countdown timer
-                if next_claim_time:
-                    try:
-                        next_claim_dt = datetime.fromisoformat(next_claim_time.replace('Z', '+00:00'))
-                        now = datetime.now(timezone.utc)
-                        time_remaining_seconds = max(0, int((next_claim_dt - now).total_seconds()))
-                    except Exception as e:
-                        logger.error(f"❌ Error calculating time remaining: {e}")
-                        time_remaining_seconds = 0
+            # Calculate time remaining if next_claim_time exists
+            time_remaining_seconds = 0
+            if next_claim_time:
+                next_claim_dt = datetime.fromisoformat(next_claim_time.replace('Z', '+00:00'))
+                now = datetime.now(timezone.utc)
+                time_remaining_seconds = max(0, int((next_claim_dt - now).total_seconds()))
 
-            # Determine pending platform
-            pending_platform = None
-            if has_pending_twitter:
-                pending_platform = 'Twitter'
-            elif has_pending_telegram:
-                pending_platform = 'Telegram'
+            # User can claim if ALL platforms are available (shared cooldown) and no pending submissions
+            can_claim = twitter_status.get('can_claim', False) and \
+                        telegram_status.get('can_claim', False) and \
+                        facebook_status.get('can_claim', False) and \
+                        not actual_pending
 
             return jsonify({
                 'can_claim': can_claim,
-                'has_pending_submission': has_pending,
+                'has_pending_submission': actual_pending,
                 'pending_platform': pending_platform,
                 'next_claim_time': next_claim_time,
                 'time_remaining_seconds': time_remaining_seconds
@@ -126,57 +245,10 @@ def get_daily_task_status():
 
     except Exception as e:
         logger.error(f"❌ Daily task status error: {e}")
-        return jsonify({'error': 'Failed to get task status'}), 500
-
-@routes.route('/api/daily-task/claim', methods=['POST'])
-@auth_required
-def claim_daily_task():
-    """Unified endpoint for claiming both Telegram and Twitter tasks"""
-    try:
-        wallet = session.get('wallet')
-        data = request.get_json()
-        platform = data.get('platform', '').lower()
-        post_url = data.get('post_url', '').strip()
-
-        if not platform or platform not in ['telegram', 'twitter']:
-            return jsonify({'success': False, 'error': 'Invalid platform'}), 400
-
-        if not post_url:
-            return jsonify({'success': False, 'error': 'Post URL is required'}), 400
-
-        import asyncio
-
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-
-        try:
-            if platform == 'telegram':
-                from telegram_task.telegram_task import telegram_task_service
-                result = loop.run_until_complete(
-                    telegram_task_service.claim_task_reward(wallet, post_url)
-                )
-            else:
-                from twitter_task.twitter_task import twitter_task_service
-                result = loop.run_until_complete(
-                    twitter_task_service.claim_task_reward(wallet, post_url)
-                )
-
-            if result.get('success'):
-                return jsonify(result), 200
-            else:
-                return jsonify(result), 400
-
-        finally:
-            try:
-                loop.close()
-            except:
-                pass
-
-    except Exception as e:
-        logger.error(f"❌ Daily task claim error: {e}")
         import traceback
         logger.error(f"🔍 Traceback: {traceback.format_exc()}")
-        return jsonify({'success': False, 'error': 'Failed to claim reward'}), 500
+        return jsonify({'error': 'Failed to get task status'}), 500
+
 
 @routes.route('/api/daily-task/history', methods=['GET'])
 @auth_required
@@ -188,10 +260,12 @@ def get_daily_task_history():
 
         from twitter_task.twitter_task import twitter_task_service
         from telegram_task.telegram_task import telegram_task_service
+        from facebook_task.facebook_task import facebook_task_service
 
-        # Get both histories
+        # Get all histories
         twitter_history = twitter_task_service.get_transaction_history(wallet, limit)
         telegram_history = telegram_task_service.get_transaction_history(wallet, limit)
+        facebook_history = facebook_task_service.get_transaction_history(wallet, limit)
 
         # Combine transactions
         all_transactions = []
@@ -199,11 +273,25 @@ def get_daily_task_history():
         if twitter_history.get('success') and twitter_history.get('transactions'):
             for tx in twitter_history['transactions']:
                 tx['platform'] = 'twitter'
+                # Ensure rejection_reason is included
+                if 'rejection_reason' not in tx:
+                    tx['rejection_reason'] = None
                 all_transactions.append(tx)
 
         if telegram_history.get('success') and telegram_history.get('transactions'):
             for tx in telegram_history['transactions']:
                 tx['platform'] = 'telegram'
+                # Ensure rejection_reason is included
+                if 'rejection_reason' not in tx:
+                    tx['rejection_reason'] = None
+                all_transactions.append(tx)
+
+        if facebook_history.get('success') and facebook_history.get('transactions'):
+            for tx in facebook_history['transactions']:
+                tx['platform'] = 'facebook'
+                # Ensure rejection_reason is included
+                if 'rejection_reason' not in tx:
+                    tx['rejection_reason'] = None
                 all_transactions.append(tx)
 
         # Sort by date (newest first)
@@ -224,6 +312,8 @@ def get_daily_task_history():
 
     except Exception as e:
         logger.error(f"❌ Daily task history error: {e}")
+        import traceback
+        logger.error(f"🔍 Traceback: {traceback.format_exc()}")
         return jsonify({
             'success': False,
             'error': 'Failed to get history',
@@ -232,113 +322,6 @@ def get_daily_task_history():
             'total_earned': 0
         }), 500
 
-@routes.route("/api/can-edit-username", methods=["GET"])
-@auth_required
-def can_edit_username():
-    """Check if user can edit their username"""
-    try:
-        wallet = session.get("wallet")
-        supabase = get_supabase_client()
-
-        if not supabase:
-            return jsonify({"success": False, "error": "Database not available"}), 500
-
-        # Check if user has already edited username
-        user_result = safe_supabase_operation(
-            lambda: supabase.table('user_data').select('username, username_edited').eq('wallet_address', wallet).execute(),
-            fallback_result=type('obj', (object,), {'data': []})(),
-            operation_name="check username edit status"
-        )
-
-        can_edit = True
-        if user_result.data and len(user_result.data) > 0:
-            user_data = user_result.data[0]
-            username_edited = user_data.get('username_edited', False)
-            can_edit = not username_edited
-
-        return jsonify({
-            "success": True,
-            "can_edit": can_edit
-        })
-
-    except Exception as e:
-        logger.error(f"❌ Error checking username edit status: {e}")
-        return jsonify({"success": False, "error": str(e)}), 500
-
-@routes.route("/api/edit-username", methods=["POST"])
-@auth_required
-def edit_username():
-    """Edit username (one-time only)"""
-    try:
-        wallet = session.get("wallet")
-        data = request.get_json()
-        new_username = data.get("username", "").strip()
-
-        if not new_username:
-            return jsonify({"success": False, "error": "Username is required"}), 400
-
-        # Validate username
-        if len(new_username) < 3 or len(new_username) > 20:
-            return jsonify({"success": False, "error": "Username must be 3-20 characters"}), 400
-
-        if not new_username.replace('_', '').isalnum():
-            return jsonify({"success": False, "error": "Username can only contain letters, numbers, and underscores"}), 400
-
-        supabase = get_supabase_client()
-        if not supabase:
-            return jsonify({"success": False, "error": "Database not available"}), 500
-
-        # Check if username is already taken
-        username_check = safe_supabase_operation(
-            lambda: supabase.table('user_data').select('wallet_address').eq('username', new_username).execute(),
-            fallback_result=type('obj', (object,), {'data': []})(),
-            operation_name="check username availability"
-        )
-
-        if username_check.data and len(username_check.data) > 0:
-            existing_wallet = username_check.data[0].get('wallet_address')
-            if existing_wallet != wallet:
-                return jsonify({"success": False, "error": "Username already taken"}), 400
-
-        # Check if user can edit
-        user_result = safe_supabase_operation(
-            lambda: supabase.table('user_data').select('username_edited').eq('wallet_address', wallet).execute(),
-            fallback_result=type('obj', (object,), {'data': []})(),
-            operation_name="check edit permission"
-        )
-
-        if user_result.data and len(user_result.data) > 0:
-            username_edited = user_result.data[0].get('username_edited', False)
-            if username_edited:
-                return jsonify({"success": False, "error": "Username can only be edited once"}), 400
-
-        # Update username and mark as edited
-        update_result = safe_supabase_operation(
-            lambda: supabase.table('user_data').update({
-                'username': new_username,
-                'username_edited': True
-            }).eq('wallet_address', wallet).execute(),
-            fallback_result=type('obj', (object,), {'data': []})(),
-            operation_name="update username"
-        )
-
-        if not update_result.data:
-            return jsonify({"success": False, "error": "Failed to update username"}), 500
-
-        # Update session
-        session['username'] = new_username
-
-        logger.info(f"✅ Username updated to {new_username} for {wallet[:8]}...")
-
-        return jsonify({
-            "success": True,
-            "message": "Username updated successfully!",
-            "username": new_username
-        })
-
-    except Exception as e:
-        logger.error(f"❌ Error editing username: {e}")
-        return jsonify({"success": False, "error": str(e)}), 500
 
 @routes.route("/api/recent-daily-tasks", methods=["GET"])
 def get_recent_daily_tasks():
@@ -347,6 +330,16 @@ def get_recent_daily_tasks():
         from datetime import datetime, timedelta
         from supabase_client import get_supabase_client
         from flask import Response
+        from cache_utils import api_cache, cached
+
+        # Check cache first (2 minute TTL)
+        cache_key = "recent_daily_tasks"
+        cached_result = api_cache.get(cache_key)
+        if cached_result:
+            response = jsonify(cached_result)
+            response.headers['Content-Type'] = 'application/json'
+            response.headers['Cache-Control'] = 'public, max-age=120'
+            return response, 200
 
         supabase = get_supabase_client()
         if not supabase:
@@ -381,39 +374,70 @@ def get_recent_daily_tasks():
             operation_name="get recent telegram tasks"
         )
 
+        # Get Facebook task submissions from last 24 hours
+        facebook_submissions = safe_supabase_operation(
+            lambda: supabase.table('facebook_task_log')\
+                .select('wallet_address, reward_amount, created_at, facebook_url')\
+                .gte('created_at', twenty_four_hours_ago)\
+                .order('created_at', desc=True)\
+                .limit(50)\
+                .execute(),
+            fallback_result=type('obj', (object,), {'data': []})(),
+            operation_name="get recent facebook tasks"
+        )
+
         # Combine and format submissions WITH MESSAGES/LINKS
         all_submissions = []
 
-        # Add Twitter submissions WITH LINKS
+        # Add Twitter submissions WITH LINKS - USE CACHED USERNAMES
         if twitter_submissions and twitter_submissions.data:
             for sub in twitter_submissions.data:
                 wallet = sub.get('wallet_address', '')
-                username = supabase_logger.get_username(wallet)
 
                 all_submissions.append({
                     'wallet_address': wallet,
-                    'display_name': username if username else f"{wallet[:6]}...{wallet[-4:]}",
+                    'display_name': f"{wallet[:6]}...{wallet[-4:]}",
                     'reward_amount': float(sub.get('reward_amount', 0)),
                     'created_at': sub.get('created_at'),
                     'platform': 'Twitter',
-                    'submission_url': sub.get('twitter_url', ''),  # ADD TWITTER URL
-                    'submission_type': 'twitter_post'
+                    'submission_url': sub.get('twitter_url', ''),
+                    'submission_type': 'twitter_post',
+                    'status': sub.get('status', 'completed'),
+                    'rejection_reason': sub.get('rejection_reason')
                 })
 
         # Add Telegram submissions WITH LINKS
         if telegram_submissions and telegram_submissions.data:
             for sub in telegram_submissions.data:
                 wallet = sub.get('wallet_address', '')
-                username = supabase_logger.get_username(wallet)
 
                 all_submissions.append({
                     'wallet_address': wallet,
-                    'display_name': username if username else f"{wallet[:6]}...{wallet[-4:]}",
+                    'display_name': f"{wallet[:6]}...{wallet[-4:]}",
                     'reward_amount': float(sub.get('reward_amount', 0)),
                     'created_at': sub.get('created_at'),
                     'platform': 'Telegram',
-                    'submission_url': sub.get('telegram_url', ''),  # ADD TELEGRAM URL
-                    'submission_type': 'telegram_post'
+                    'submission_url': sub.get('telegram_url', ''),
+                    'submission_type': 'telegram_post',
+                    'status': sub.get('status', 'completed'),
+                    'rejection_reason': sub.get('rejection_reason')
+                })
+
+        # Add Facebook submissions WITH LINKS
+        if facebook_submissions and facebook_submissions.data:
+            for sub in facebook_submissions.data:
+                wallet = sub.get('wallet_address', '')
+
+                all_submissions.append({
+                    'wallet_address': wallet,
+                    'display_name': f"{wallet[:6]}...{wallet[-4:]}",
+                    'reward_amount': float(sub.get('reward_amount', 0)),
+                    'created_at': sub.get('created_at'),
+                    'platform': 'Facebook',
+                    'submission_url': sub.get('facebook_url', ''),
+                    'submission_type': 'facebook_post',
+                    'status': sub.get('status', 'completed'),
+                    'rejection_reason': sub.get('rejection_reason')
                 })
 
 
@@ -425,13 +449,18 @@ def get_recent_daily_tasks():
 
         logger.info(f"✅ Returning {len(all_submissions)} recent daily task submissions")
 
-        response = jsonify({
+        result = {
             "success": True,
             "submissions": all_submissions,
             "total_count": len(all_submissions)
-        })
+        }
+
+        # Cache for 2 minutes for better performance
+        api_cache.set(cache_key, result, ttl=120)
+
+        response = jsonify(result)
         response.headers['Content-Type'] = 'application/json'
-        response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+        response.headers['Cache-Control'] = 'public, max-age=120'
         return response, 200
 
     except Exception as e:
@@ -457,14 +486,17 @@ def get_learn_earn_participants():
         target_date = request.args.get('date')
 
         if target_date:
-            # Query for specific date
-            start_datetime = f"{target_date} 00:00:00"
-            end_datetime = f"{target_date} 23:59:59"
+            # Query for specific date with proper UTC timezone format
+            start_datetime = f"{target_date}T00:00:00Z"
+            end_datetime = f"{target_date}T23:59:59Z"
         else:
-            # Default to today
+            # Default to today with proper UTC timezone format
             today = datetime.utcnow().strftime('%Y-%m-%d')
-            start_datetime = f"{today} 00:00:00"
-            end_datetime = f"{today} 23:59:59"
+            start_datetime = f"{today}T00:00:00Z"
+            end_datetime = f"{today}T23:59:59Z"
+
+        logger.info(f"📊 Fetching Learn & Earn participants for {target_date or 'today'}")
+        logger.info(f"🕐 Date range: {start_datetime} to {end_datetime}")
 
         # Get all Learn & Earn participants for the date
         participants = safe_supabase_operation(
@@ -473,34 +505,34 @@ def get_learn_earn_participants():
                 .gte('timestamp', start_datetime)\
                 .lte('timestamp', end_datetime)\
                 .eq('status', True)\
-                .order('timestamp', desc=True)\
+                .order('timestamp', desc=False)\
                 .execute(),
             fallback_result=type('obj', (object,), {'data': []})(),
             operation_name="get learn earn participants"
         )
 
-        # Format participants with usernames
+        # Format participants
         formatted_participants = []
         total_g_disbursed = 0
 
         if participants and participants.data:
+            logger.info(f"✅ Found {len(participants.data)} Learn & Earn participants")
             for p in participants.data:
                 wallet = p.get('wallet_address', '')
                 amount = float(p.get('amount_g$', 0))
                 total_g_disbursed += amount
 
-                # Get username
-                username = supabase_logger.get_username(wallet)
-
                 formatted_participants.append({
                     'wallet_address': wallet,
-                    'display_name': username if username else f"{wallet[:6]}...{wallet[-4:]}",
+                    'display_name': f"{wallet[:6]}...{wallet[-4:]}",
                     'amount_g$': amount,
                     'amount_formatted': f"{amount:,.1f} G$",
                     'timestamp': p.get('timestamp'),
                     'transaction_hash': p.get('transaction_hash', 'N/A'),
                     'quiz_id': p.get('quiz_id', 'N/A')
                 })
+        else:
+            logger.info(f"ℹ️ No Learn & Earn participants found for {target_date or 'today'}")
 
         return jsonify({
             "success": True,
@@ -554,6 +586,13 @@ def get_community_screenshots():
     try:
         from community_stories.community_stories_service import community_stories_service
         from supabase_client import get_supabase_client
+        from cache_utils import api_cache
+
+        # Check cache first (2 minute TTL)
+        cache_key = "community_screenshots"
+        cached_result = api_cache.get(cache_key)
+        if cached_result:
+            return jsonify(cached_result)
 
         supabase = get_supabase_client()
         if not supabase:
@@ -564,12 +603,13 @@ def get_community_screenshots():
         result = community_stories_service.get_screenshots_for_homepage(limit)
 
         if result.get('success') and result.get('screenshots'):
-            # Add usernames
-            from supabase_client import supabase_logger
+            # Display names are now just wallet truncations (no username lookup)
             for screenshot in result['screenshots']:
                 wallet = screenshot.get('wallet_address', '')
-                username = supabase_logger.get_username(wallet)
-                screenshot['display_name'] = username if username else f"{wallet[:6]}...{wallet[-4:]}"
+                screenshot['display_name'] = f"{wallet[:6]}...{wallet[-4:]}"
+
+        # Cache for 2 minutes for better performance
+        api_cache.set(cache_key, result, ttl=120)
 
         return jsonify(result)
 
@@ -601,16 +641,15 @@ def get_recent_community_stories():
             operation_name="get recent community stories"
         )
 
-        # Format stories with username
+        # Format stories without username
         formatted_stories = []
         if stories and stories.data:
             for story in stories.data:
                 wallet = story.get('wallet_address', '')
-                username = supabase_logger.get_username(wallet)
 
                 formatted_stories.append({
                     'wallet_address': wallet,
-                    'display_name': username if username else f"{wallet[:6]}...{wallet[-4:]}",
+                    'display_name': f"{wallet[:6]}...{wallet[-4:]}",
                     'reward_amount': float(story.get('reward_amount', 0)),
                     'reviewed_at': story.get('reviewed_at'),
                     'status': story.get('status'),
@@ -844,32 +883,32 @@ def verify_ubi():
             session['terms_accepted'] = True
             session.permanent = True
 
-            # Check if username is set, redirect to setup if not
-            username = supabase_logger.get_username(wallet_address)
-            redirect_url = "/setup-username" if not username else "/overview"
+            redirect_url = "/overview"
 
-            return jsonify({
-                "status": "success",
-                "message": result["message"],
-                "wallet": wallet_address,
-                "block_number": block_number,
-                "claim_amount": claim_amount,
-                "activities": result.get("activities", []),
-                "summary": result.get("summary", {}),
-                "redirect_to": redirect_url
-            })
+            response_data = {
+                'success': True,
+                'message': result["message"],
+                'wallet': wallet_address,
+                'block_number': block_number,
+                'claim_amount': claim_amount,
+                'activities': result.get("activities", []),
+                'summary': result.get("summary", {}),
+                'redirect_to': redirect_url
+            }
+            return jsonify(response_data)
         else:
             # Track failed verification
             analytics.track_verification_attempt(wallet_address, False)
 
             # Use the detailed message from blockchain.py
-            error_message = result.get("message", "You need to claim G$ in goodwallet.xyz or gooddapp.org once every 48 hours to access GoodMarket.")
+            error_message = result.get("message", "You need to claim G$ once every 24 hours to access GoodMarket.\n\nClaim G$ using:\n• MiniPay app (built into Opera Mini)\n• goodwallet.xyz\n• gooddapp.org")
 
             return jsonify({
                 "status": "error",
                 "message": error_message,
                 "reason": "no_recent_claim",
                 "help_links": {
+                    "minipay": "https://www.opera.com/products/minipay",
                     "goodwallet": "https://goodwallet.xyz",
                     "gooddapp": "https://gooddapp.org"
                 }
@@ -878,7 +917,7 @@ def verify_ubi():
     except Exception as e:
         logger.exception("Verification error occurred")
         # Return custom message instead of generic error
-        error_message = "You need to claim G$ in goodwallet.xyz or gooddapp.org once every 24 hours to access GoodMarket."
+        error_message = "You need to claim G$ once every 24 hours to access GoodMarket.\n\nClaim G$ using:\n• MiniPay app (built into Opera Mini)\n• goodwallet.xyz\n• gooddapp.org"
         return jsonify({
             "status": "error",
             "message": error_message,
@@ -904,27 +943,8 @@ def overview():
             wallet = None
             verified = False
         else:
-            # Valid session - check username
-            try:
-                username = supabase_logger.get_username(wallet)
-                logger.info(f"🔍 Overview username check for {wallet[:8]}...: username={username}")
-
-                # Check if username exists AND is not empty/null
-                if username and username.strip():
-                    # Valid username exists
-                    session['username'] = username
-                    session.permanent = True
-                else:
-                    # No username or empty username - redirect to setup
-                    logger.info(f"⚠️ No valid username for {wallet[:8]}..., redirecting to setup")
-                    return redirect(url_for("routes.setup_username"))
-
-                # Track overview visit for authenticated users
-                analytics.track_page_view(wallet, "overview")
-            except Exception as e:
-                logger.error(f"❌ Error getting username in overview: {e}")
-                import traceback
-                logger.error(f"🔍 Traceback: {traceback.format_exc()}")
+            # Valid session - track overview visit
+            analytics.track_page_view(wallet, "overview")
 
     # Get analytics - pass None for guest users, wallet for authenticated users
     stats = analytics.get_dashboard_stats(wallet if wallet and verified else None)
@@ -939,7 +959,6 @@ def overview():
 
     return render_template("overview.html",
                          wallet=wallet if wallet and verified else None,
-                         username=username if username else "Guest",
                          data=stats)
 
 @routes.route("/dashboard")
@@ -961,23 +980,7 @@ def dashboard():
         session.clear()
         return redirect(url_for("routes.index"))
 
-    # ALWAYS check database for username (source of truth)
-    try:
-        username = supabase_logger.get_username(wallet)
-        logger.info(f"🔍 Dashboard username check for {wallet[:8]}...: {username}")
 
-        # Check if username exists AND is not empty/null
-        if username and username.strip():
-            # Valid username exists
-            session['username'] = username
-            session.permanent = True
-        else:
-            # No username or empty username - redirect to setup
-            logger.info(f"⚠️ No valid username for {wallet[:8]}..., redirecting to setup")
-            return redirect(url_for("routes.setup_username"))
-    except Exception as e:
-        logger.error(f"❌ Error getting username from DB: {e}")
-        return redirect(url_for("routes.setup_username"))
 
     # Track dashboard visit
     analytics.track_page_view(wallet, "dashboard")
@@ -987,7 +990,6 @@ def dashboard():
 
     return render_template("dashboard.html",
                          wallet=wallet,
-                         username=username,
                          user_stats=stats.get("user_stats", {}),
                          gooddollar_info=stats.get("gooddollar_info", {}),
                          platform_stats=stats.get("platform_stats", {}))
@@ -1032,16 +1034,11 @@ def ubi_tracker_page():
         return redirect(url_for("routes.index"))
 
     wallet = session.get("wallet")
-    # Check if user has set username, redirect to setup if not
-    username = supabase_logger.get_username(wallet)
-    if not username:
-        return redirect(url_for("routes.setup_username"))
 
     analytics.track_page_view(wallet, "ubi_tracker")
 
     return render_template("ubi_tracker.html",
                          wallet=wallet,
-                         username=username, # Pass username to template
                          contract_count=len(GOODDOLLAR_CONTRACTS))
 
 @routes.route("/logout")
@@ -1077,10 +1074,6 @@ def news_feed_page():
         return redirect(url_for("routes.index"))
 
     wallet = session.get("wallet")
-    # Check if user has set username, redirect to setup if not
-    username = supabase_logger.get_username(wallet)
-    if not username:
-        return redirect(url_for("routes.setup_username"))
 
     # Track news page visit
     analytics.track_page_view(wallet, "news_feed")
@@ -1094,11 +1087,47 @@ def news_feed_page():
 
     return render_template("news_feed.html",
                          wallet=wallet,
-                         username=username, # Pass username to template
                          featured_news=featured_news,
                          recent_news=recent_news,
                          news_stats=news_stats,
                          categories=news_feed_service.categories)
+
+@routes.route('/news/article/<article_id>')
+def news_article_page(article_id: str):
+    """Individual news article page"""
+    from news_feed import news_feed_service # Import moved here to avoid circular import issues if news_feed is used elsewhere before this route is called
+
+    article = news_feed_service.get_news_article(article_id)
+
+    if not article:
+        # return render_template("404.html"), 404 # Assuming a 404 template exists
+        return "Article not found", 404
+
+    # Get the full article URL for sharing
+    article_url = request.url
+
+    # Prepare meta tags for social media sharing - this is now handled by passing article_url to the template
+    # meta_tags = {
+    #     "title": article.get('title', 'GoodDollar News'),
+    #     "description": article.get('content', '')[:200], # Truncate description
+    #     "image": article.get('image_url', ''),
+    #     "url": article_url # Use the correctly constructed article URL
+    # }
+
+    # Add any additional session/wallet checks if this page requires authentication
+    wallet = session.get("wallet")
+    verified = session.get("verified")
+    username = None
+    if wallet and verified:
+        # username = supabase_logger.get_username(wallet) # Username fetching moved to template rendering if needed
+        analytics.track_page_view(wallet, f"news_article_{article_id}")
+
+    return render_template("news_article.html",
+                         article=article,
+                         article_url=article_url, # Pass article_url to template
+                         wallet=wallet if wallet and verified else None,
+                         username=username if username else "Guest")
+
 
 @routes.route("/api/admin/check", methods=["GET"])
 @auth_required
@@ -1605,13 +1634,81 @@ def delete_broadcast_message(broadcast_id):
         logger.error(f"❌ Delete broadcast message error: {e}")
         return jsonify({"success": False, "error": str(e)}), 500
 
+@routes.route("/api/admin/news-history", methods=["GET"])
+@admin_required
+def get_news_history():
+    """Get all news articles (admin only)"""
+    try:
+        from news_feed import news_feed_service
+
+        supabase = get_supabase_client()
+        if not supabase:
+            return jsonify({"success": False, "error": "Database not available"}), 500
+
+        # Get all news articles
+        news = safe_supabase_operation(
+            lambda: supabase.table('news_articles')\
+                .select('*')\
+                .order('created_at', desc=True)\
+                .execute(),
+            fallback_result=type('obj', (object,), {'data': []})(),
+            operation_name="get all news articles"
+        )
+
+        return jsonify({
+            "success": True,
+            "news": news.data if news.data else [],
+            "count": len(news.data) if news.data else 0
+        })
+
+    except Exception as e:
+        logger.error(f"❌ Error getting news history: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@routes.route("/api/admin/news/<int:news_id>", methods=["DELETE"])
+@admin_required
+def delete_news_article(news_id):
+    """Delete news article (admin only)"""
+    try:
+        supabase = get_supabase_client()
+        if not supabase:
+            return jsonify({"success": False, "error": "Database not available"}), 500
+
+        # Delete news article
+        result = safe_supabase_operation(
+            lambda: supabase.table('news_articles')\
+                .delete()\
+                .eq('id', news_id)\
+                .execute(),
+            fallback_result=type('obj', (object,), {'data': []})(),
+            operation_name="delete news article"
+        )
+
+        if result.data:
+            # Log admin action
+            admin_wallet = session.get('wallet')
+            log_admin_action(
+                admin_wallet=admin_wallet,
+                action_type="delete_news_article",
+                action_details={"news_id": news_id}
+            )
+
+            logger.info(f"✅ News article {news_id} deleted by admin {admin_wallet[:8]}...")
+            return jsonify({"success": True})
+        else:
+            return jsonify({"success": False, "error": "News article not found"}), 404
+
+    except Exception as e:
+        logger.error(f"❌ Error deleting news article: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
 @routes.route("/api/admin/publish-news", methods=["POST"])
 @admin_required
 def publish_news_article():
     """Publish a news article (admin only)"""
     try:
         from news_feed import news_feed_service
-        
+
         # Get form data
         title = request.form.get('title', '').strip()
         content = request.form.get('content', '').strip()
@@ -1619,11 +1716,11 @@ def publish_news_article():
         priority = request.form.get('priority', 'medium')
         featured = request.form.get('featured') == 'true'
         url = request.form.get('url', '').strip()
-        
+
         # Validate required fields
         if not title or not content:
             return jsonify({"success": False, "error": "Title and content are required"}), 400
-        
+
         # Handle image upload if present
         image_url = None
         if 'image' in request.files:
@@ -1633,7 +1730,7 @@ def publish_news_article():
                 try:
                     import requests
                     import base64
-                    
+
                     imgbb_api_key = os.getenv('IMGBB_API_KEY')
                     if not imgbb_api_key:
                         logger.warning("⚠️ IMGBB_API_KEY not configured - skipping image upload")
@@ -1641,17 +1738,17 @@ def publish_news_article():
                         # Reset file pointer to beginning and read image
                         image_file.seek(0)
                         image_data = image_file.read()
-                        
+
                         # Validate image data
                         if not image_data or len(image_data) == 0:
                             logger.error("❌ Image file is empty")
                             return jsonify({"success": False, "error": "Image file is empty"}), 400
-                        
+
                         # Encode to base64
                         encoded_image = base64.b64encode(image_data).decode('utf-8')
-                        
+
                         logger.info(f"📤 Uploading image to ImgBB: {image_file.filename} ({len(image_data)} bytes)")
-                        
+
                         # Upload to ImgBB
                         imgbb_response = requests.post(
                             'https://api.imgbb.com/1/upload',
@@ -1662,9 +1759,9 @@ def publish_news_article():
                             },
                             timeout=30
                         )
-                        
+
                         logger.info(f"📥 ImgBB Response: {imgbb_response.status_code}")
-                        
+
                         if imgbb_response.status_code == 200:
                             imgbb_data = imgbb_response.json()
                             if imgbb_data.get('success'):
@@ -1677,16 +1774,16 @@ def publish_news_article():
                         else:
                             logger.error(f"❌ ImgBB upload failed: {imgbb_response.status_code} - {imgbb_response.text[:500]}")
                             return jsonify({"success": False, "error": f"Image upload failed with status {imgbb_response.status_code}"}), 500
-                            
+
                 except Exception as img_error:
                     logger.error(f"❌ Image upload error: {img_error}")
                     import traceback
                     logger.error(f"Traceback: {traceback.format_exc()}")
                     return jsonify({"success": False, "error": f"Image upload error: {str(img_error)}"}), 500
-        
+
         # Get admin wallet
         admin_wallet = session.get("wallet")
-        
+
         # Add news article
         result = news_feed_service.add_news_article(
             title=title,
@@ -1698,7 +1795,7 @@ def publish_news_article():
             image_url=image_url,
             url=url if url else None
         )
-        
+
         if result.get('success'):
             # Log admin action
             log_admin_action(
@@ -1711,7 +1808,7 @@ def publish_news_article():
                     "has_image": bool(image_url)
                 }
             )
-            
+
             logger.info(f"✅ News article published: {title}")
             return jsonify({
                 "success": True,
@@ -1723,7 +1820,7 @@ def publish_news_article():
                 "success": False,
                 "error": result.get('error', 'Failed to publish article')
             }), 500
-            
+
     except Exception as e:
         logger.error(f"❌ Publish news article error: {e}")
         import traceback
@@ -2232,6 +2329,39 @@ def get_pending_daily_tasks():
             operation_name="get pending twitter tasks"
         )
 
+        # Get pending Telegram tasks
+        telegram_pending = safe_supabase_operation(
+            lambda: supabase.table('telegram_task_log')\
+                .select('*')\
+                .eq('status', 'pending')\
+                .order('created_at', desc=False)\
+                .execute(),
+            fallback_result=type('obj', (object,), {'data': []})(),
+            operation_name="get pending telegram tasks"
+        )
+
+        # Get pending Twitter tasks
+        twitter_pending = safe_supabase_operation(
+            lambda: supabase.table('twitter_task_log')\
+                .select('*')\
+                .eq('status', 'pending')\
+                .order('created_at', desc=False)\
+                .execute(),
+            fallback_result=type('obj', (object,), {'data': []})(),
+            operation_name="get pending twitter tasks"
+        )
+
+        # Get pending Facebook tasks
+        facebook_pending = safe_supabase_operation(
+            lambda: supabase.table('facebook_task_log')\
+                .select('*')\
+                .eq('status', 'pending')\
+                .order('created_at', desc=False)\
+                .execute(),
+            fallback_result=type('obj', (object,), {'data': []})(),
+            operation_name="get pending facebook tasks"
+        )
+
         telegram_tasks = []
         if telegram_pending.data:
             for task in telegram_pending.data:
@@ -2256,11 +2386,25 @@ def get_pending_daily_tasks():
                     'platform': 'twitter'
                 })
 
+        facebook_tasks = []
+        if facebook_pending.data:
+            for task in facebook_pending.data:
+                facebook_tasks.append({
+                    'id': task.get('id'),
+                    'wallet_address': task.get('wallet_address'),
+                    'url': task.get('facebook_url'),
+                    'reward_amount': task.get('reward_amount'),
+                    'created_at': task.get('created_at'),
+                    'platform': 'facebook'
+                })
+
+
         return jsonify({
             "success": True,
             "telegram_tasks": telegram_tasks,
             "twitter_tasks": twitter_tasks,
-            "total_pending": len(telegram_tasks) + len(twitter_tasks)
+            "facebook_tasks": facebook_tasks,
+            "total_pending": len(telegram_tasks) + len(twitter_tasks) + len(facebook_tasks)
         })
 
     except Exception as e:
@@ -2274,7 +2418,7 @@ def approve_daily_task():
     try:
         data = request.json
         submission_id = data.get('submission_id')
-        platform = data.get('platform')  # 'telegram' or 'twitter'
+        platform = data.get('platform')  # 'telegram' or 'twitter' or 'facebook'
         admin_wallet = session.get('wallet')
 
         if not submission_id or not platform:
@@ -2285,6 +2429,7 @@ def approve_daily_task():
         asyncio.set_event_loop(loop)
 
         try:
+            result = None
             if platform == 'telegram':
                 from telegram_task.telegram_task import telegram_task_service
                 result = loop.run_until_complete(
@@ -2295,23 +2440,30 @@ def approve_daily_task():
                 result = loop.run_until_complete(
                     twitter_task_service.approve_submission(submission_id, admin_wallet)
                 )
+            elif platform == 'facebook':
+                from facebook_task.facebook_task import facebook_task_service
+                result = loop.run_until_complete(
+                    facebook_task_service.approve_submission(submission_id, admin_wallet)
+                )
             else:
                 return jsonify({"success": False, "error": "Invalid platform"}), 400
 
             # Log admin action
-            if result.get('success'):
+            if result and result.get('success'):
                 log_admin_action(
                     admin_wallet=admin_wallet,
                     action_type=f"approve_{platform}_task",
                     action_details={"submission_id": submission_id}
                 )
 
-            return jsonify(result)
+            return jsonify(result) if result else jsonify({"success": False, "error": "Failed to process approval"}), 500
         finally:
             loop.close()
 
     except Exception as e:
         logger.error(f"❌ Error approving task: {e}")
+        import traceback
+        logger.error(f"🔍 Traceback: {traceback.format_exc()}")
         return jsonify({"success": False, "error": str(e)}), 500
 
 @routes.route("/api/admin/daily-tasks/reject", methods=["POST"])
@@ -2321,7 +2473,7 @@ def reject_daily_task():
     try:
         data = request.json
         submission_id = data.get('submission_id')
-        platform = data.get('platform')  # 'telegram' or 'twitter'
+        platform = data.get('platform')  # 'telegram' or 'twitter' or 'facebook'
         reason = data.get('reason', '')
         admin_wallet = session.get('wallet')
 
@@ -2333,6 +2485,7 @@ def reject_daily_task():
         asyncio.set_event_loop(loop)
 
         try:
+            result = None
             if platform == 'telegram':
                 from telegram_task.telegram_task import telegram_task_service
                 result = loop.run_until_complete(
@@ -2343,23 +2496,30 @@ def reject_daily_task():
                 result = loop.run_until_complete(
                     twitter_task_service.reject_submission(submission_id, admin_wallet, reason)
                 )
+            elif platform == 'facebook':
+                from facebook_task.facebook_task import facebook_task_service
+                result = loop.run_until_complete(
+                    facebook_task_service.reject_submission(submission_id, admin_wallet, reason)
+                )
             else:
                 return jsonify({"success": False, "error": "Invalid platform"}), 400
 
             # Log admin action
-            if result.get('success'):
+            if result and result.get('success'):
                 log_admin_action(
                     admin_wallet=admin_wallet,
                     action_type=f"reject_{platform}_task",
                     action_details={"submission_id": submission_id, "reason": reason}
                 )
 
-            return jsonify(result)
+            return jsonify(result) if result else jsonify({"success": False, "error": "Failed to process rejection"}), 500
         finally:
             loop.close()
 
     except Exception as e:
         logger.error(f"❌ Error rejecting task: {e}")
+        import traceback
+        logger.error(f"🔍 Traceback: {traceback.format_exc()}")
         return jsonify({"success": False, "error": str(e)}), 500
 
 @routes.route("/api/admin/quiz-questions/upload", methods=["POST"])
@@ -2547,6 +2707,121 @@ CORRECT: B
         logger.error(f"❌ Upload quiz questions error: {e}")
         return jsonify({"success": False, "error": str(e)}), 500
 
+@routes.route("/api/admin/module-links", methods=["GET"])
+@admin_required
+def get_module_links():
+    """Get all module links (admin only)"""
+    try:
+        supabase = get_supabase_client()
+        if not supabase:
+            return jsonify({"success": False, "error": "Database not available"}), 500
+
+        # Get all module links
+        links = safe_supabase_operation(
+            lambda: supabase.table('learn_earn_module_links')\
+                .select('*')\
+                .order('display_order', desc=False)\
+                .execute(),
+            fallback_result=type('obj', (object,), {'data': []})(),
+            operation_name="get module links"
+        )
+
+        return jsonify({
+            "success": True,
+            "links": links.data if links.data else [],
+            "count": len(links.data) if links.data else 0
+        })
+    except Exception as e:
+        logger.error(f"❌ Get module links error: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@routes.route("/api/admin/module-links", methods=["POST"])
+@admin_required
+def add_module_link():
+    """Add new module link (admin only)"""
+    try:
+        data = request.json
+        title = data.get('title', '').strip()
+        url = data.get('url', '').strip()
+        description = data.get('description', '').strip()
+        display_order = int(data.get('display_order', 1))
+
+        if not title or not url:
+            return jsonify({"success": False, "error": "Title and URL are required"}), 400
+
+        supabase = get_supabase_client()
+        if not supabase:
+            return jsonify({"success": False, "error": "Database not available"}), 500
+
+        from datetime import datetime
+        link_data = {
+            'title': title,
+            'url': url,
+            'description': description,
+            'display_order': display_order,
+            'is_active': True,
+            'created_at': datetime.utcnow().isoformat(),
+            'updated_at': datetime.utcnow().isoformat()
+        }
+
+        result = safe_supabase_operation(
+            lambda: supabase.table('learn_earn_module_links').insert(link_data).execute(),
+            fallback_result=type('obj', (object,), {'data': []})(),
+            operation_name="add module link"
+        )
+
+        if result.data:
+            admin_wallet = session.get('wallet')
+            log_admin_action(
+                admin_wallet=admin_wallet,
+                action_type="add_module_link",
+                action_details={"title": title, "url": url}
+            )
+
+            logger.info(f"✅ Module link added: {title}")
+            return jsonify({"success": True, "link": result.data[0]})
+        else:
+            return jsonify({"success": False, "error": "Failed to add module link"}), 500
+
+    except Exception as e:
+        logger.error(f"❌ Add module link error: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@routes.route("/api/admin/module-links/<int:link_id>", methods=["DELETE"])
+@admin_required
+def delete_module_link(link_id):
+    """Delete module link (admin only)"""
+    try:
+        supabase = get_supabase_client()
+        if not supabase:
+            return jsonify({"success": False, "error": "Database not available"}), 500
+
+        result = safe_supabase_operation(
+            lambda: supabase.table('learn_earn_module_links')\
+                .delete()\
+                .eq('id', link_id)\
+                .execute(),
+            fallback_result=type('obj', (object,), {'data': []})(),
+            operation_name="delete module link"
+        )
+
+        if result.data:
+            admin_wallet = session.get('wallet')
+            log_admin_action(
+                admin_wallet=admin_wallet,
+                action_type="delete_module_link",
+                action_details={"link_id": link_id}
+            )
+
+            logger.info(f"✅ Module link {link_id} deleted")
+            return jsonify({"success": True})
+        else:
+            return jsonify({"success": False, "error": "Link not found"}), 404
+
+    except Exception as e:
+        logger.error(f"❌ Delete module link error: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
 @routes.route("/admin")
 @auth_required
 def admin_dashboard():
@@ -2560,11 +2835,7 @@ def admin_dashboard():
 
     logger.info(f"✅ Admin access granted to {wallet[:8]}...")
 
-    # Get username for display
-    from supabase_client import supabase_logger
-    username = supabase_logger.get_username(wallet)
-
-    return render_template("admin_dashboard.html", wallet=wallet, username=username)
+    return render_template("admin_dashboard.html", wallet=wallet)
 
 
     return render_template("forum_post_detail.html",
@@ -2579,152 +2850,14 @@ def learn_earn_page():
         return redirect(url_for("routes.index"))
 
     wallet = session.get("wallet")
-    # Check if user has set username, redirect to setup if not
-    username = supabase_logger.get_username(wallet)
-    if not username:
-        return redirect(url_for("routes.setup_username"))
 
     # Track Learn & Earn page visit
     analytics.track_page_view(wallet, "learn_earn")
 
     return render_template("learn_and_earn.html",
-                         wallet=wallet,
-                         username=username) # Pass username to template
+                         wallet=wallet)
 
-# --- New routes for username setup ---
-@routes.route('/setup-username')
-def setup_username():
-    """Username setup page - ONE TIME ONLY"""
-    wallet_address = session.get('wallet') or session.get('wallet_address')
-    verified = session.get('verified') or session.get('ubi_verified')
-
-    if not wallet_address or not verified:
-        return redirect(url_for('routes.index'))
-
-    # ALWAYS check database first for existing username (source of truth)
-    try:
-        from supabase_client import get_supabase_client
-        supabase = get_supabase_client()
-
-        if supabase:
-            # Direct database check for username
-            result = supabase.table("user_data")\
-                .select("username, wallet_address")\
-                .eq("wallet_address", wallet_address)\
-                .execute()
-
-            logger.info(f"🔍 Database username check for {wallet_address[:8]}...: found {len(result.data) if result.data else 0} records")
-
-            if result.data and len(result.data) > 0:
-                username = result.data[0].get("username")
-                logger.info(f"🔍 Database returned username: '{username}' (type: {type(username)})")
-
-                # Check if username exists AND is not empty/null
-                if username and str(username).strip() and username != 'None':
-                    # Username already set in database
-                    logger.info(f"✅ Username already exists for {wallet_address[:8]}...: {username}, redirecting to overview")
-
-                    # Make sure it's also in session
-                    session['username'] = username
-                    session.permanent = True
-
-                    # Redirect to overview
-                    return redirect(url_for('routes.overview'))
-                else:
-                    logger.info(f"ℹ️ Username is empty/null for {wallet_address[:8]}..., showing setup page")
-            else:
-                logger.info(f"ℹ️ No user record found for {wallet_address[:8]}..., showing setup page")
-        else:
-            logger.warning(f"⚠️ Supabase not available for username check")
-
-    except Exception as e:
-        logger.error(f"❌ Error checking username in setup_username: {e}")
-        import traceback
-        logger.error(f"🔍 Traceback: {traceback.format_exc()}")
-
-    # No username yet, show setup page
-    logger.info(f"ℹ️ Showing username setup page for {wallet_address[:8]}...")
-    return render_template('setup_username.html', wallet_address=wallet_address)
-
-@routes.route('/api/check-username', methods=['POST'])
-def check_username():
-    """Check if username is available"""
-    data = request.get_json()
-    username = data.get('username', '').strip()
-
-    # Validate format
-    if not username or len(username) < 3 or len(username) > 50:
-        return jsonify({
-            'valid': False,
-            'message': 'Username must be 3-50 characters long'
-        })
-
-    # Check format (alphanumeric and underscore only)
-    import re
-    if not re.match(r'^[a-zA-Z0-9_]{3,50}$', username):
-        return jsonify({
-            'valid': False,
-            'message': 'Username can only contain letters, numbers, and underscores'
-        })
-
-    # Check availability using the imported or mocked supabase_logger
-    available = supabase_logger.check_username_available(username)
-
-    return jsonify({
-        'valid': available,
-        'message': 'Username is available!' if available else 'Username is already taken'
-    })
-
-@routes.route('/api/set-username', methods=['POST'])
-def set_username():
-    """Set username for user - ONE TIME SETUP ONLY"""
-    data = request.get_json()
-    wallet_address = data.get('wallet_address')
-    username = data.get('username', '').strip()
-
-    # Verify session integrity
-    if not wallet_address or wallet_address != session.get('wallet'):
-        return jsonify({'success': False, 'error': 'Invalid session or wallet mismatch'}), 401
-
-    if not username:
-        return jsonify({'success': False, 'error': 'Username is required'}), 400
-
-    # CRITICAL: Check database FIRST if username already set (prevent multiple changes)
-    existing_username = supabase_logger.get_username(wallet_address)
-    if existing_username:
-        logger.warning(f"⚠️ Attempt to set username again for {wallet_address[:8]}... (already has: {existing_username})")
-        return jsonify({
-            'success': False,
-            'error': f'Username already set to "{existing_username}". You can only set your username once.',
-            'current_username': existing_username
-        }), 400
-
-    # Use the imported or mocked supabase_logger to set username
-    result = supabase_logger.set_username(wallet_address, username)
-
-    if result.get('success'):
-        # IMPORTANT: Store username in session permanently
-        session['username'] = username
-        session.permanent = True
-
-        # Log the username setup
-        logger.info(f"✅ Username set for {wallet_address[:8]}...: {username}")
-
-        # Track analytics (only 2 params: wallet and page)
-        analytics.track_page_view(wallet_address, "username_setup_completed")
-
-        return jsonify({
-            'success': True,
-            'username': username,
-            'message': 'Username set successfully!'
-        })
-    else:
-        # Return the error from supabase_logger (e.g., username taken)
-        return jsonify(result), 400
-
-
-
-# --- End of new routes ---
+# Username functionality removed
 
 
 @routes.route('/api/p2p/history')
