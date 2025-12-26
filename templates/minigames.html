@@ -247,64 +247,44 @@
             </div>
         </div>
 
-        <!-- Balance & Withdrawal Section -->
-        <div class="withdrawal-section">
-            <h2 style="font-size: 1.5rem; margin-bottom: 1.5rem; color: #fbbf24;">💰 Your Balance</h2>
-            
-            <div style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(16, 185, 129, 0.1)); padding: 1.5rem; border-radius: 12px; margin-bottom: 1.5rem; border: 2px solid rgba(99, 102, 241, 0.3);">
-                <div style="font-size: 0.9rem; color: rgba(255,255,255,0.7); margin-bottom: 0.5rem;">💰 Available Balance</div>
-                <div id="availableBalanceDisplay" style="font-size: 2.5rem; font-weight: 800; color: #10b981;">
-                    <div style="font-size: 2.5rem; font-weight: 800; color: #ef4444;">0.00 G$</div>
-                    <div style="font-size: 0.9rem; color: #fbbf24; margin-top: 0.5rem;">⬇️ Deposit 100-500 G$ to start playing!</div>
-                </div>
-            </div>
-
-            <div style="background: rgba(251, 191, 36, 0.1); padding: 1rem; border-radius: 12px; margin-bottom: 1.5rem; text-align: left;">
-                <div style="font-size: 0.9rem; color: #fbbf24; font-weight: 600; margin-bottom: 0.5rem;">📋 How it works:</div>
-                <div style="font-size: 0.85rem; color: rgba(255,255,255,0.7); line-height: 1.6;">
-                    1. Deposit 100-500 G$ to play<br>
-                    2. Bet 50-250 G$ per game (max 20 games/day)<br>
-                    3. Cash out before 5x max crash!<br>
-                    4. Reach 10,000 G$ winnings to withdraw
-                </div>
-            </div>
-
-            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
-                <button id="depositBtn" onclick="window.openDepositModal()" style="padding: 1rem 1.5rem; background: linear-gradient(135deg, #6366f1, #a855f7); color: white; border: none; border-radius: 12px; font-size: 1rem; font-weight: 700; cursor: pointer; transition: all 0.3s ease;">
-                    💳 Deposit
-                </button>
-                <button id="mainWithdrawBtn" onclick="window.withdrawFromMain()" disabled style="padding: 1rem 1.5rem; background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; border-radius: 12px; font-size: 1rem; font-weight: 700; cursor: not-allowed; opacity: 0.5; transition: all 0.3s ease;">
-                    💸 Withdraw
-                </button>
-                <button onclick="window.openGameLogsModal()" style="padding: 1rem 1.5rem; background: linear-gradient(135deg, #f59e0b, #d97706); color: white; border: none; border-radius: 12px; font-size: 1rem; font-weight: 700; cursor: pointer; transition: all 0.3s ease;">
-                    📊 Game Logs
-                </button>
-            </div>
+        <!-- Game Info Section -->
+        <div style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(168, 85, 247, 0.1)); border: 2px solid rgba(99, 102, 241, 0.3); border-radius: 20px; padding: 2rem; margin-bottom: 2rem; text-align: center;">
+            <h2 style="font-size: 1.5rem; margin-bottom: 1rem; color: #10b981;">🎮 FREE Minigames!</h2>
+            <p style="color: rgba(255,255,255,0.8); font-size: 0.95rem;">Click on any game below to play and view your history!</p>
         </div>
 
         <div class="games-grid">
-            <!-- Crash Game -->
-            <div class="game-card">
+            <!-- G$ Garden Game -->
+            <div class="game-card" style="border-color: rgba(34, 197, 94, 0.4); background: linear-gradient(135deg, rgba(34, 197, 94, 0.1), rgba(22, 163, 74, 0.05));">
+                <div class="game-icon">🌱</div>
+                <div class="game-title">G$ Garden</div>
+                <div class="game-desc">Plant, grow, and harvest virtual crops with AI farmers!</div>
+                <div class="game-reward" style="background: linear-gradient(135deg, #10b981, #059669);">🎉 FREE | Relaxing farming</div>
+                <div style="color: rgba(34, 197, 94, 0.9); margin-bottom: 0.5rem; font-weight: 600;">✨ NEW GAME!</div>
+                <a href="/minigames/garden" class="play-btn" style="background: linear-gradient(135deg, #10b981, #059669); text-decoration: none; display: block;">🌱 Play G$ Garden</a>
+                <div style="margin-top: 1rem; padding: 1rem; background: rgba(34, 197, 94, 0.1); border-radius: 12px; font-size: 0.9rem; text-align: left;">
+                    <strong style="color: #10b981;">🌾 How to Play:</strong><br>
+                    1. Plant crops in your 6 garden plots<br>
+                    2. Choose from Tomato, Corn, or Carrot<br>
+                    3. Watch your crops grow automatically<br>
+                    4. Harvest when ready to earn G$ points<br>
+                    5. Hire AI farmers to automate watering!<br>
+                    <br>
+                    <strong style="color: #10b981;">🤖 AI Helpers:</strong><br>
+                    • Basic Farmer - Auto-waters 2 plots<br>
+                    • Expert Farmer - 4 plots + 10% boost<br>
+                    • Master Farmer - All plots + auto-harvest!
+                </div>
+            </div>
+
+            <!-- Crash Game - NOW LIVE! -->
+            <div class="game-card" style="border-color: rgba(99, 102, 241, 0.4); background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(168, 85, 247, 0.05));">
                 <div class="game-icon">🚀</div>
                 <div class="game-title">Live Crash Game</div>
-                <div class="game-desc">Bet 50-250 G$ and cash out before 5x max crash!</div>
-                <div class="game-reward" style="background: linear-gradient(135deg, #ef4444, #dc2626);">⚡ Max 5x | 20 plays/day</div>
-                <div id="limit-crash_game" style="color: #fbbf24; margin-bottom: 0.5rem;">Loading...</div>
-                <button class="play-btn" id="play-crash_game" onclick="window.openGame('crash_game')">🚀 Play Crash Game</button>
-                <div style="margin-top: 1rem; padding: 1rem; background: rgba(99, 102, 241, 0.1); border-radius: 12px; font-size: 0.9rem; text-align: left;">
-                    <strong style="color: #fbbf24;">📖 How to Win:</strong><br>
-                    1. Place your bet (50-250 G$ per game)<br>
-                    2. Watch the multiplier rise from 1.00x<br>
-                    3. <strong style="color: #10b981;">Click "💰 Cash Out" button BEFORE it crashes!</strong><br>
-                    4. If it crashes before you click, you lose your bet<br>
-                    <br>
-                    <strong style="color: #ef4444;">⚠️ Important:</strong><br>
-                    • <strong>YOU MUST CLICK "CASH OUT" TO WIN!</strong><br>
-                    • The game will NOT cash out automatically<br>
-                    • Maximum crash: 5.00x<br>
-                    • Daily limit: 20 games<br>
-                    • Minimum withdrawal: 10,000 G$
-                </div>
+                <div class="game-desc">Cash out before it crashes! Max 20 G$ per game!</div>
+                <div class="game-reward" style="background: linear-gradient(135deg, #10b981, #059669);">💰 Win up to 20 G$</div>
+                <div id="limit-crash_game" style="color: rgba(99, 102, 241, 0.9); margin-bottom: 0.5rem; font-weight: 600;">20 plays remaining today</div>
+                <button id="play-crash_game" class="play-btn" onclick="window.openGame('crash_game')">🚀 Play Crash Game</button>
             </div>
         </div>
         {% endif %}
