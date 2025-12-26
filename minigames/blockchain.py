@@ -307,7 +307,19 @@ class MinigamesBlockchainService:
             import traceback
             logger.error(f"❌ Withdrawal error: {e}")
             logger.error(f"🔍 Traceback: {traceback.format_exc()}")
-            return {"success": False, "error": str(e)}
+            
+            # Check for insufficient funds error
+            error_msg = str(e).lower()
+            if "insufficient funds" in error_msg:
+                logger.error(f"❌ GAMES_KEY wallet needs CELO for gas fees!")
+                return {
+                    "success": False, 
+                    "error": "Withdrawal system temporarily unavailable. Please try again later or contact support.",
+                    "error_type": "insufficient_gas",
+                    "balance_safe": True
+                }
+            
+            return {"success": False, "error": "Withdrawal failed. Please try again later."}
 
     async def disburse_game_reward(self, wallet_address: str, amount: float, game_type: str, session_id: str) -> dict:
         """
