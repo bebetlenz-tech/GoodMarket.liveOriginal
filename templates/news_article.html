@@ -5,25 +5,25 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ article.title }} - GoodDollar News</title>
-    
+
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="article">
     <meta property="og:url" content="{{ article_url }}">
     <meta property="og:title" content="{{ article.title }}">
-    <meta property="og:description" content="{{ article.content[:200] }}...">
+    <meta property="og:description" content="{{ article.excerpt if article.excerpt else (article.content|striptags)[:200] }}">
     {% if article.image_url %}
     <meta property="og:image" content="{{ article.image_url }}">
     {% endif %}
-    
+
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image">
     <meta property="twitter:url" content="{{ article_url }}">
     <meta property="twitter:title" content="{{ article.title }}">
-    <meta property="twitter:description" content="{{ article.content[:200] }}...">
+    <meta property="twitter:description" content="{{ article.excerpt if article.excerpt else (article.content|striptags)[:200] }}">
     {% if article.image_url %}
     <meta property="twitter:image" content="{{ article.image_url }}">
     {% endif %}
-    
+
     <style>
         * {
             margin: 0;
@@ -183,24 +183,24 @@
             letter-spacing: 0.4px;
             word-spacing: 2px;
         }
-        
+
         .article-content p {
             margin-bottom: 1.5rem;
         }
-        
+
         .article-content br {
             display: block;
             content: "";
             margin-top: 1rem;
         }
-        
+
         .article-content a {
             color: #4facfe;
             text-decoration: underline;
             font-weight: 500;
             padding: 0 2px;
         }
-        
+
         .article-content a:hover {
             color: #00f2fe;
             background: rgba(79, 172, 254, 0.1);
@@ -363,25 +363,25 @@
         function makeLinksClickable() {
             const contentElement = document.getElementById('articleContent');
             if (!contentElement) return;
-            
+
             let content = contentElement.innerHTML;
-            
+
             // Skip if already processed (check if there are already anchor tags)
             if (content.includes('<a href=')) {
                 console.log('✅ Links already clickable, skipping processing');
                 return;
             }
-            
+
             console.log('🔗 Processing URLs to make them clickable...');
-            
+
             // More comprehensive URL regex to match both http/https and www links
             const urlRegex = /(https?:\/\/[^\s<>"]+|www\.[^\s<>"]+)/gi;
-            
+
             const clickableContent = content.replace(urlRegex, function(url) {
                 const href = url.startsWith('http') ? url : 'https://' + url;
                 return '<a href="' + href + '" target="_blank" rel="noopener noreferrer" style="color: #4facfe; text-decoration: underline; font-weight: 500; word-break: break-word;">' + url + '</a>';
             });
-            
+
             contentElement.innerHTML = clickableContent;
             console.log('✅ URLs processed and now clickable');
         }
@@ -393,8 +393,8 @@
 
         // Share buttons
         const articleUrl = "{{ article_url }}";
-        const articleTitle = "{{ article.title }}";
-        const articleText = "{{ article.content[:100] }}...";
+        const articleTitle = "{{ article.title|striptags }}";
+        const articleText = "{{ (article.excerpt if article.excerpt else (article.content|striptags)[:100]) }}";
 
         document.getElementById('shareTwitter').addEventListener('click', function(e) {
             e.preventDefault();
