@@ -19,21 +19,18 @@ learn_earn_bp = Blueprint('learn_earn', __name__, url_prefix='/learn-earn')
 class LearnEarnQuizManager:
     def __init__(self):
         self.questions_per_quiz = 10
-        self.time_per_question = 20  # seconds
-        self.max_reward_per_quiz = 2000  # Total G$ reward for perfect quiz
+        self.time_per_question = 20
+        self.max_reward_per_quiz = 2000
         self.max_retries = 3
-        self.cooldown_hours = 24 # Added for quiz cooldown
+        self.cooldown_hours = 120
 
-        # Load quiz settings from database on initialization
         self.load_quiz_settings()
 
     @property
     def reward_per_correct(self):
-        """Calculate reward per correct answer dynamically"""
         return self.max_reward_per_quiz / self.questions_per_quiz
 
     def load_quiz_settings(self):
-        """Load quiz settings from Supabase"""
         try:
             supabase = get_supabase_client()
             if not supabase:
@@ -61,7 +58,6 @@ class LearnEarnQuizManager:
             logger.error(f"❌ Error loading quiz settings: {e}")
 
     def get_quiz_settings(self):
-        """Get current quiz settings"""
         return {
             'questions_per_quiz': self.questions_per_quiz,
             'time_per_question': self.time_per_question,
@@ -70,7 +66,6 @@ class LearnEarnQuizManager:
         }
 
     def update_quiz_settings(self, questions_per_quiz=None, time_per_question=None, max_reward_per_quiz=None):
-        """Update quiz settings in database and memory"""
         try:
             supabase = get_supabase_client()
             if not supabase:
@@ -107,7 +102,6 @@ class LearnEarnQuizManager:
             return {'success': False, 'error': str(e)}
 
     async def initialize_sample_questions(self):
-        """Initialize sample questions in Supabase if none exist"""
         try:
             supabase = get_supabase_client()
 
@@ -260,7 +254,6 @@ class LearnEarnQuizManager:
             logger.error(f"❌ Error initializing sample questions: {e}")
 
     async def get_random_questions(self, count=10):
-        """Get random questions from Supabase"""
         try:
             supabase = get_supabase_client()
 
@@ -306,7 +299,6 @@ class LearnEarnQuizManager:
             return []
 
     def mask_wallet_address(self, wallet_address: str) -> str:
-        """Mask wallet address for logging"""
         if not wallet_address.startswith("0x") or len(wallet_address) < 10:
             return wallet_address
         return wallet_address[:6] + "..." + wallet_address[-4:]
@@ -351,8 +343,8 @@ class LearnEarnQuizManager:
                         'can_take_now': True
                     }
 
-                # Ensure we use the correct 24-hour cooldown
-                next_quiz_time = last_attempt_time + timedelta(hours=24)
+                # Use the configured cooldown hours (120 hours = 5 days)
+                next_quiz_time = last_attempt_time + timedelta(hours=self.cooldown_hours)
                 current_utc_time = datetime.utcnow() # Use UTC time
                 can_take_now = current_utc_time >= next_quiz_time
 
@@ -360,6 +352,7 @@ class LearnEarnQuizManager:
                 logger.info(f"📅 Last attempt: {last_attempt_time}")
                 logger.info(f"📅 Next quiz time: {next_quiz_time}")
                 logger.info(f"📅 Current time: {current_utc_time}")
+                logger.info(f"⏰ Cooldown: {self.cooldown_hours} hours")
                 logger.info(f"✅ Can take now: {can_take_now}")
 
                 return {
@@ -545,11 +538,11 @@ class LearnEarnQuizManager:
                 return {
                     'eligible': False,
                     'blocked': True,
-                    'reason': '24-hour cooldown active',
-                    'message': 'You have already completed a quiz in the last 24 hours. Please wait before taking another quiz.',
+                    'reason': '5-day cooldown active',
+                    'message': 'You have already completed a quiz in the last 5 days. Please wait before taking another quiz.',
                     'next_quiz_time': next_quiz_info.get('next_quiz_time'),
                     'can_take_now': False,
-                    'cooldown_hours': 24,
+                    'cooldown_hours': 120,
                     'feature_available': True  # Feature is available, just on cooldown
                 }
 
@@ -562,7 +555,7 @@ class LearnEarnQuizManager:
                 'message': f'You can take the quiz and earn up to {self.questions_per_quiz * self.reward_per_correct} G$!',
                 'max_reward': self.questions_per_quiz * self.reward_per_correct,
                 'can_take_now': True,
-                'cooldown_hours': 24,
+                'cooldown_hours': 120,
                 'feature_available': True
             }
 
@@ -578,6 +571,7 @@ class LearnEarnQuizManager:
                 'feature_available': True,
                 'max_reward': self.questions_per_quiz * self.reward_per_correct,
                 'can_take_now': True,
+                'cooldown_hours': 120,
                 'error': str(e)  # Include error for debugging
             }
 
