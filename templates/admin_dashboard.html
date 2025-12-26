@@ -1035,11 +1035,22 @@
             <section id="news-management-section" class="section">
                 <div class="page-header">
                     <h1 class="page-title">📰 News Management</h1>
-                    <p style="color: rgba(241, 245, 249, 0.7);">Publish news articles with images for all users</p>
+                    <p style="color: rgba(241, 245, 249, 0.7);">Publish and manage news articles</p>
+                </div>
+
+                <!-- News History Section -->
+                <div class="content-box">
+                    <h2>📋 News Posts History</h2>
+                    <div id="newsHistoryTable">
+                        <div class="loading">
+                            <div class="spinner"></div>
+                            <p>Loading news history...</p>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="content-box">
-                    <h2>Publish New News Article</h2>
+                    <h2>📝 Publish New News Article</h2>
 
                     <form id="newsForm" enctype="multipart/form-data" style="padding: 1.5rem; background: rgba(255, 255, 255, 0.05); border-radius: 12px;">
                         <div style="margin-bottom: 1.5rem;">
@@ -1355,6 +1366,9 @@ CORRECT: C
                     break;
                 case 'module-links': // New case for module links section
                     loadModuleLinks();
+                    break;
+                case 'news-management':
+                    loadNewsHistory();
                     break;
             }
         }
@@ -2667,73 +2681,130 @@ CORRECT: C
                 if (data.success) {
                     const telegramTasks = data.telegram_tasks || [];
                     const twitterTasks = data.twitter_tasks || [];
+                    const facebookTasks = data.facebook_tasks || []; // Added Facebook tasks
                     const totalPending = data.total_pending || 0;
 
+                    let html = '';
+
                     if (totalPending === 0) {
-                        contentDiv.innerHTML = '<p style="text-align: center; padding: 2rem; color: rgba(241, 245, 249, 0.6);">No pending submissions</p>';
-                        return;
-                    }
+                        html = `
+                            <div style="padding: 2rem; text-align: center; background: rgba(16, 185, 129, 0.1); border-radius: 8px; border: 1px dashed rgba(16, 185, 129, 0.3);">
+                                <p style="color: #10b981; font-size: 1.1rem;">✅ No pending submissions</p>
+                                <p style="color: rgba(241, 245, 249, 0.6); font-size: 0.9rem; margin-top: 0.5rem;">All tasks have been reviewed!</p>
+                            </div>
+                        `;
+                    } else {
+                        html += `
+                            <div style="margin-bottom: 1rem; padding: 1rem; background: rgba(251, 191, 36, 0.1); border-left: 4px solid #fbbf24; border-radius: 8px;">
+                                <strong style="color: #fbbf24;">⏳ ${totalPending} pending submission(s) waiting for review</strong>
+                            </div>
+                        `;
 
-                    let html = `
-                        <div style="margin-bottom: 1rem; padding: 1rem; background: rgba(251, 191, 36, 0.1); border-left: 4px solid #fbbf24; border-radius: 8px;">
-                            <strong style="color: #fbbf24;">⏳ ${totalPending} pending submission(s) waiting for review</strong>
-                        </div>
-                    `;
-
-                    // Telegram Tasks
-                    if (telegramTasks.length > 0) {
-                        html += '<h3 style="margin: 1.5rem 0 1rem 0; color: #10b981;">📱 Telegram Tasks (${telegramTasks.length})</h3>';
-                        html += '<table><thead><tr><th>#</th><th>Wallet</th><th>Post Link</th><th>Reward</th><th>Submitted</th><th>Actions</th></tr></thead><tbody>';
-
-                        telegramTasks.forEach((task, index) => {
+                        // Facebook tasks section
+                        if (facebookTasks.length > 0) {
                             html += `
-                                <tr id="task-telegram-${task.id}">
-                                    <td>${index + 1}</td>
-                                    <td style="font-family: monospace;">${task.wallet_address.substring(0,8)}...${task.wallet_address.substring(task.wallet_address.length - 6)}</td>
-                                    <td><a href="${task.url}" target="_blank" style="color: #3b82f6; text-decoration: underline;">🔗 View Post</a></td>
-                                    <td>${task.reward_amount} G$</td>
-                                    <td style="font-size: 0.9rem;">${new Date(task.created_at).toLocaleString()}</td>
-                                    <td>
-                                        <button class="btn btn-primary" onclick="approveDailyTask(${task.id}, 'telegram')" style="margin-right: 0.5rem; padding: 0.4rem 0.8rem; font-size: 0.85rem; background: linear-gradient(135deg, #10b981, #059669);">
-                                            ✅ Approve
-                                        </button>
-                                        <button class="btn btn-danger" onclick="rejectDailyTask(${task.id}, 'telegram')" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">
-                                            ❌ Reject
-                                        </button>
-                                    </td>
-                                </tr>
+                                <h3 style="color: #1877f2; margin-top: 2rem; margin-bottom: 1rem;">📘 Facebook Tasks (${facebookTasks.length})</h3>
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>#</th>
+                                            <th>Wallet</th>
+                                            <th>Facebook Post</th>
+                                            <th>Reward</th>
+                                            <th>Submitted</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
                             `;
-                        });
 
-                        html += '</tbody></table>';
-                    }
+                            facebookTasks.forEach((task, index) => {
+                                html += `
+                                    <tr id="task-row-facebook-${task.id}">
+                                        <td>${index + 1}</td>
+                                        <td style="font-family: monospace;">${task.wallet_address.substring(0,8)}...${task.wallet_address.substring(task.wallet_address.length - 6)}</td>
+                                        <td>
+                                            <a href="${task.url}" target="_blank" style="color: #1877f2; text-decoration: underline;">
+                                                📘 View Post
+                                            </a>
+                                        </td>
+                                        <td style="font-weight: 600; color: #10b981;">${task.reward_amount} G$</td>
+                                        <td style="font-size: 0.9rem;">${new Date(task.created_at).toLocaleString()}</td>
+                                        <td>
+                                            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                                                <button class="btn btn-primary" onclick="approveDailyTask(${task.id}, 'facebook')" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">
+                                                    ✅ Approve
+                                                </button>
+                                                <button class="btn btn-danger" onclick="rejectDailyTask(${task.id}, 'facebook')" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">
+                                                    ❌ Reject
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                `;
+                            });
 
-                    // Twitter Tasks
-                    if (twitterTasks.length > 0) {
-                        html += '<h3 style="margin: 1.5rem 0 1rem 0; color: #3b82f6;">🐦 Twitter Tasks (${twitterTasks.length})</h3>';
-                        html += '<table><thead><tr><th>#</th><th>Wallet</th><th>Tweet Link</th><th>Reward</th><th>Submitted</th><th>Actions</th></tr></thead><tbody>';
-
-                        twitterTasks.forEach((task, index) => {
                             html += `
-                                <tr id="task-twitter-${task.id}">
-                                    <td>${index + 1}</td>
-                                    <td style="font-family: monospace;">${task.wallet_address.substring(0,8)}...${task.wallet_address.substring(task.wallet_address.length - 6)}</td>
-                                    <td><a href="${task.url}" target="_blank" style="color: #3b82f6; text-decoration: underline;">🔗 View Tweet</a></td>
-                                    <td>${task.reward_amount} G$</td>
-                                    <td style="font-size: 0.9rem;">${new Date(task.created_at).toLocaleString()}</td>
-                                    <td>
-                                        <button class="btn btn-primary" onclick="approveDailyTask(${task.id}, 'twitter')" style="margin-right: 0.5rem; padding: 0.4rem 0.8rem; font-size: 0.85rem; background: linear-gradient(135deg, #10b981, #059669);">
-                                            ✅ Approve
-                                        </button>
-                                        <button class="btn btn-danger" onclick="rejectDailyTask(${task.id}, 'twitter')" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">
-                                            ❌ Reject
-                                        </button>
-                                    </td>
-                                </tr>
+                                    </tbody>
+                                </table>
                             `;
-                        });
+                        }
 
-                        html += '</tbody></table>';
+                        // Twitter tasks section
+                        if (twitterTasks.length > 0) {
+                            html += '<h3 style="color: #3b82f6; margin-top: 2rem; margin-bottom: 1rem;">🐦 Twitter Tasks (${twitterTasks.length})</h3>';
+                            html += '<table><thead><tr><th>#</th><th>Wallet</th><th>Tweet Link</th><th>Reward</th><th>Submitted</th><th>Actions</th></tr></thead><tbody>';
+
+                            twitterTasks.forEach((task, index) => {
+                                html += `
+                                    <tr id="task-twitter-${task.id}">
+                                        <td>${index + 1}</td>
+                                        <td style="font-family: monospace;">${task.wallet_address.substring(0,8)}...${task.wallet_address.substring(task.wallet_address.length - 6)}</td>
+                                        <td><a href="${task.url}" target="_blank" style="color: #3b82f6; text-decoration: underline;">🔗 View Tweet</a></td>
+                                        <td>${task.reward_amount} G$</td>
+                                        <td style="font-size: 0.9rem;">${new Date(task.created_at).toLocaleString()}</td>
+                                        <td>
+                                            <button class="btn btn-primary" onclick="approveDailyTask(${task.id}, 'twitter')" style="margin-right: 0.5rem; padding: 0.4rem 0.8rem; font-size: 0.85rem; background: linear-gradient(135deg, #10b981, #059669);">
+                                                ✅ Approve
+                                            </button>
+                                            <button class="btn btn-danger" onclick="rejectDailyTask(${task.id}, 'twitter')" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">
+                                                ❌ Reject
+                                            </button>
+                                        </td>
+                                    </tr>
+                                `;
+                            });
+
+                            html += '</tbody></table>';
+                        }
+
+                        // Telegram tasks
+                        if (telegramTasks.length > 0) {
+                            html += '<h3 style="color: #00acee; margin-top: 2rem; margin-bottom: 1rem;">📱 Telegram Tasks (${telegramTasks.length})</h3>';
+                            html += '<table><thead><tr><th>#</th><th>Wallet</th><th>Post Link</th><th>Reward</th><th>Submitted</th><th>Actions</th></tr></thead><tbody>';
+
+                            telegramTasks.forEach((task, index) => {
+                                html += `
+                                    <tr id="task-telegram-${task.id}">
+                                        <td>${index + 1}</td>
+                                        <td style="font-family: monospace;">${task.wallet_address.substring(0,8)}...${task.wallet_address.substring(task.wallet_address.length - 6)}</td>
+                                        <td><a href="${task.url}" target="_blank" style="color: #00acee; text-decoration: underline;">🔗 View Post</a></td>
+                                        <td>${task.reward_amount} G$</td>
+                                        <td style="font-size: 0.9rem;">${new Date(task.created_at).toLocaleString()}</td>
+                                        <td>
+                                            <button class="btn btn-primary" onclick="approveDailyTask(${task.id}, 'telegram')" style="margin-right: 0.5rem; padding: 0.4rem 0.8rem; font-size: 0.85rem; background: linear-gradient(135deg, #6366f1, #a855f7);">
+                                                ✅ Approve
+                                            </button>
+                                            <button class="btn btn-danger" onclick="rejectDailyTask(${task.id}, 'telegram')" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">
+                                                ❌ Reject
+                                            </button>
+                                        </td>
+                                    </tr>
+                                `;
+                            });
+
+                            html += '</tbody></table>';
+                        }
                     }
 
                     contentDiv.innerHTML = html;
@@ -3183,6 +3254,81 @@ CORRECT: C
         }
 
         // Module Links Management Functions
+        async function loadNewsHistory() {
+            try {
+                const response = await fetch('/api/admin/news-history');
+                const data = await response.json();
+
+                const tableDiv = document.getElementById('newsHistoryTable');
+
+                if (data.success && data.news && data.news.length > 0) {
+                    const tableHtml = `
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Title</th>
+                                    <th>Category</th>
+                                    <th>Priority</th>
+                                    <th>Featured</th>
+                                    <th>Created</th>
+                                    <th>Views</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${data.news.map(article => `
+                                    <tr>
+                                        <td>${article.id}</td>
+                                        <td style="max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${article.title}</td>
+                                        <td>${article.category}</td>
+                                        <td><span style="padding: 0.25rem 0.5rem; border-radius: 4px; background: ${article.priority === 'high' ? '#ef4444' : article.priority === 'medium' ? '#fbbf24' : '#10b981'}; color: white; font-size: 0.8rem;">${article.priority}</span></td>
+                                        <td>${article.featured ? '⭐ Yes' : 'No'}</td>
+                                        <td>${new Date(article.created_at).toLocaleDateString()}</td>
+                                        <td>${article.view_count || 0} views</td>
+                                        <td>
+                                            <a href="/news/article/${article.id}" target="_blank" class="btn btn-primary" style="padding: 0.3rem 0.6rem; font-size: 0.85rem; margin-right: 0.5rem;">👁️ View</a>
+                                            <button class="btn btn-danger" onclick="deleteNews(${article.id}, '${article.title.replace(/'/g, "\\'")}')" style="padding: 0.3rem 0.6rem; font-size: 0.85rem;">🗑️ Delete</button>
+                                        </td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    `;
+                    tableDiv.innerHTML = tableHtml;
+                } else {
+                    tableDiv.innerHTML = '<p style="text-align: center; color: rgba(241, 245, 249, 0.6);">No news articles found</p>';
+                }
+            } catch (error) {
+                console.error('❌ Error loading news history:', error);
+                document.getElementById('newsHistoryTable').innerHTML = '<p style="color: #ef4444;">Error loading news history</p>';
+            }
+        }
+
+        async function deleteNews(newsId, newsTitle) {
+            if (!confirm(`⚠️ Are you sure you want to delete this news article?\n\n"${newsTitle}"\n\nThis action cannot be undone!`)) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/admin/news/${newsId}`, {
+                    method: 'DELETE'
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    alert(`✅ News article deleted successfully!`);
+                    await loadNewsHistory();
+                } else {
+                    alert('❌ Error: ' + data.error);
+                }
+            } catch (error) {
+                console.error('❌ Error deleting news:', error);
+                alert('❌ Error deleting news article');
+            }
+        }
+
         async function loadModuleLinks() {
             try {
                 const response = await fetch('/api/admin/module-links');
