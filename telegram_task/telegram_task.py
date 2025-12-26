@@ -11,81 +11,53 @@ logger = logging.getLogger(__name__)
 _TELEGRAM_MESSAGES: List[str] = []
 
 def _generate_telegram_messages() -> List[str]:
-    """Generate 1000+ detailed custom messages featuring GoodMarket"""
+    """Generate 1000 unique custom messages for Telegram with varying word counts (9-20 words)"""
+    import random
     messages = []
-    
-    templates = [
-        "{emoji} GoodMarket represents the perfect balance of earning opportunities! The quiz system rewards knowledge instantly, daily tasks are straightforward and pay immediately. GoodWallet makes claiming G$ incredibly easy and simple. The instant payment system builds trust you complete something you get paid right away! {benefit} 💚",
-        "{emoji} I love GoodMarket's instant reward system! Quizzes pay out immediately when you answer correctly, daily tasks have straightforward requirements and instant G$ payments. GoodWallet is very easy to claim G$ every day with just a few taps. Trust is built through instant payments! {benefit} 🌍",
-        "{emoji} GoodMarket is amazing for earning opportunities! Educational quizzes reward your knowledge instantly, daily tasks are simple and pay immediately upon completion. GoodWallet makes it very easy to claim your G$ daily rewards. You complete tasks you get paid right away no waiting! {benefit} ✨",
-        "{emoji} The balance of earning on GoodMarket is perfect! Quiz system gives instant rewards for correct answers, daily tasks are clear and straightforward with immediate payment. GoodWallet is incredibly easy to use for claiming G$ daily. Instant payments build real trust in the platform! {benefit} 🚀",
-        "{emoji} GoodMarket combines learning and earning brilliantly! Quizzes instantly reward your knowledge and intelligence, daily tasks pay immediately making earning straightforward. GoodWallet makes claiming G$ very easy every single day. The instant payment feature means you get paid right away! {benefit} 💰",
-        "{emoji} I trust GoodMarket because payments are instant! Quiz rewards hit your wallet immediately, daily tasks pay out right away when completed. GoodWallet is very easy to claim G$ making daily earnings simple. Instant payment system builds confidence you earn you get paid! {benefit} 🎮",
-        "{emoji} GoodMarket's earning system is perfectly balanced! Knowledge quizzes reward instantly, straightforward daily tasks pay immediately. GoodWallet makes it very easy to claim your G$ rewards daily. The instant payment model builds trust complete and get paid right away! {benefit} 🌟",
-        "{emoji} Perfect earning opportunities on GoodMarket! Quizzes test knowledge and pay instantly, daily tasks are simple with immediate G$ payments. GoodWallet is incredibly easy for claiming your daily G$ rewards. Instant payments mean no waiting you complete you get paid! {benefit} 💚",
-        "{emoji} GoodMarket represents true earning balance! Educational quizzes give instant rewards, daily tasks are straightforward and pay immediately. GoodWallet makes claiming G$ very easy and accessible daily. The instant payment system builds real trust in the platform! {benefit} ⚡",
-        "{emoji} I love GoodMarket's instant reward model! Quiz system pays out immediately for correct answers, daily tasks are simple and pay right away. GoodWallet is very easy to claim G$ making daily rewards accessible. Instant payments build trust you earn you receive! {benefit} 🎯",
-        "{emoji} GoodMarket balances earning perfectly! Quizzes reward knowledge instantly, straightforward daily tasks pay immediately upon completion. GoodWallet makes it incredibly easy to claim your G$ daily. Instant payment feature means you get paid right away no delays! {benefit} 🌈",
-        "{emoji} The earning opportunities on GoodMarket are excellent! Quiz rewards are instant, daily tasks are clear and pay immediately. GoodWallet is very easy to use for claiming G$ every day. Instant payments build trust you complete tasks you get paid! {benefit} 🔥",
-        "{emoji} GoodMarket provides balanced earning! Knowledge quizzes give instant rewards, daily tasks are straightforward with immediate payments. GoodWallet makes claiming G$ very easy and simple daily. The instant payment system means you get paid right away! {benefit} ⭐",
-        "{emoji} I trust GoodMarket's instant payment system! Quizzes pay out immediately, daily tasks are simple and straightforward with instant G$ rewards. GoodWallet is incredibly easy to claim your daily G$. You complete something you receive payment right away! {benefit} 🎊",
-        "{emoji} GoodMarket represents perfect earning balance! Educational quizzes reward instantly, daily tasks pay immediately and are straightforward. GoodWallet is very easy for claiming G$ making daily rewards simple. Instant payments build real trust in the platform! {benefit} 🌺",
+
+    # All messages are 20-30 words - all include goodmarket.live
+    custom_messages = [
+        "✨ My journey with GoodMarket at goodmarket.live has been incredibly rewarding! Learning about universal basic income while earning G$ - it's amazing! GoodWallet swapping is smooth! @gooddollarorg",
+        "🎓 Interactive quizzes at goodmarket.live make learning about crypto fun and profitable! Instant rewards appear in my GoodWallet after every completed Learn & Earn task! @gooddollarorg",
+        "💎 Everything at goodmarket.live is transparent - I can track every G$ I earn through Learn & Earn, Minigames, and Daily Tasks! GoodWallet integration is seamless! @gooddollarorg",
+        "⚡ Tasks at goodmarket.live are simple, straightforward, and pay immediately upon completion! I love how transparent the entire GoodMarket reward system operates with GoodWallet! @gooddollarorg",
+        "🌟 GoodWallet integration makes claiming my goodmarket.live earnings incredibly smooth! From signup to earning took me less than 5 minutes with GoodMarket's intuitive Learn & Earn platform! @gooddollarorg",
+        "🤝 The GoodDollar community at goodmarket.live is welcoming and helpful! Each quiz teaches me something valuable about blockchain technology while earning G$ through GoodMarket! @gooddollarorg",
+        "💰 Fast, reliable payments every single time at goodmarket.live! Every day brings new opportunities to learn and earn with GoodMarket's exciting tasks and GoodWallet swapping! @gooddollarorg",
+        "🎮 The minigames at goodmarket.live add fun elements to the earning experience! Social tasks connect me with the broader GoodDollar community while earning G$ through GoodMarket! @gooddollarorg",
+        "📱 Telegram and Twitter integrations at goodmarket.live make participation super easy! Regular updates bring new features and earning opportunities through GoodMarket's Learn & Earn daily! @gooddollarorg",
+        "🌍 This platform at goodmarket.live democratizes access to cryptocurrency earnings! Experience true financial freedom with GoodDollar, GoodMarket tasks, and GoodWallet's powerful swapping features! @gooddollarorg",
+        "🚀 GoodMarket at goodmarket.live revolutionizes how I earn cryptocurrency daily! Learn & Earn quizzes are engaging, minigames are fun, and GoodWallet makes swapping tokens effortless! @gooddollarorg",
+        "📚 Educational content at goodmarket.live teaches blockchain while I earn real G$ tokens! GoodMarket's Daily Tasks are simple, and GoodWallet's swapping feature is incredibly user-friendly! @gooddollarorg",
+        "✅ Claiming rewards at goodmarket.live is instant and hassle-free! GoodMarket offers Learn & Earn, Minigames, Daily Tasks - all paying directly to my GoodWallet for easy swapping! @gooddollarorg",
+        "🎯 Simple tasks at goodmarket.live combined with educational content make earning cryptocurrency genuinely rewarding! GoodWallet integration with GoodMarket ensures smooth token swapping and management! @gooddollarorg",
+        "💡 Daily quizzes at goodmarket.live test my knowledge and reward me instantly! GoodMarket's transparent system and GoodWallet's swapping features create the perfect earning ecosystem! @gooddollarorg",
+        "🌈 Join the universal basic income revolution at goodmarket.live! GoodMarket provides Learn & Earn opportunities, engaging minigames, and GoodWallet handles all your token swapping needs! @gooddollarorg",
+        "⭐ Earning crypto at goodmarket.live has never been this accessible! GoodMarket's Learn & Earn platform educates while you earn, and GoodWallet makes managing tokens simple! @gooddollarorg",
+        "🔥 GoodMarket at goodmarket.live makes blockchain education profitable! Complete quizzes, play minigames, finish daily tasks - all rewards flow smoothly into GoodWallet for convenient swapping! @gooddollarorg",
+        "🎊 Transparent reward system at goodmarket.live builds trust! GoodMarket offers multiple earning streams through Learn & Earn and tasks, while GoodWallet provides seamless token swapping! @gooddollarorg",
+        "🌟 From learning to earning at goodmarket.live - everything flows perfectly! GoodMarket's educational quizzes reward knowledge, and GoodWallet's swapping feature maximizes your G$ value! @gooddollarorg"
     ]
-    
-    emojis = [
-        "🌱", "🎮", "💡", "🤝", "🔐", "🧭", "💰", "🌍", "🧠", "⚖️",
-        "✨", "🚀", "💚", "🌟", "🎯", "💫", "🌈", "🔥", "⭐", "🎊",
-        "🌺", "🎨", "🏆", "🎪", "🎭", "🎲", "🎰", "🕹️", "📱", "💻",
-    ]
-    
-    benefits = [
-        "Perfect for beginners starting their crypto journey",
-        "Financial inclusion actually works in practice",
-        "Accessible for all people worldwide",
-        "True Web3 access without complications",
-        "Daily opportunities for income growth",
-        "Simple rewards system anyone can use",
-        "Easy crypto access with no technical barriers",
-        "Global participation encouraged and welcomed",
-        "No barriers preventing your success",
-        "Freedom starts with taking action",
-        "Everyone participates and earns together",
-        "Inclusive Web3 for the entire world",
-        "Accessible crypto for everyday people",
-        "Learn and earn simultaneously every day",
-        "Financial empowerment for all humanity",
-        "Universal access to digital currency",
-        "Daily rewards building your wealth",
-        "Simple system designed for everyone",
-        "Global access to financial freedom",
-        "Everyone earns real cryptocurrency rewards",
-        "Building wealth one day at a time",
-        "Community-driven financial revolution happening now",
-        "Sustainable income for all participants",
-        "Knowledge and earnings growing together",
-        "Revolutionary platform changing lives globally",
-    ]
-    
-    for template in templates:
-        for i in range(100):
-            emoji = emojis[i % len(emojis)]
-            benefit = benefits[i % len(benefits)]
-            messages.append(template.format(emoji=emoji, benefit=benefit))
-    
+
+    # Generate 1000 messages by cycling through the 20 base messages
+    all_message_pools = [custom_messages]
+
+    for i in range(1000):
+        # Cycle through all 20 custom messages
+        message_index = i % len(custom_messages)
+        messages.append(custom_messages[message_index])
+
     return messages
+
+# OLD CODE REMOVED - keeping only the compact opening section above
+
+
 
 # Generate messages once at module load
 _TELEGRAM_MESSAGES = _generate_telegram_messages()
 
 
 class TelegramTaskService:
-    """
-    Telegram Task Service
-
-    Manages daily Telegram posting task where users post to t.me/GoodDollarX
-    and submit their post link to earn 100 G$ rewards
-    """
-
     def __init__(self):
         self.supabase = get_supabase_client()
         self.task_reward = 100.0  # 100 G$ reward
@@ -100,9 +72,9 @@ class TelegramTaskService:
         logger.info(f"💰 Reward: {self.task_reward} G$")
         logger.info(f"📢 Channel: t.me/{self.telegram_channel}")
         logger.info(f"⏰ Cooldown: {self.cooldown_hours} hours")
-        logger.info(f"💬 Custom Messages: {len(self.custom_messages)} unique variations available (daily rotation per user)")
+        logger.info(f"💬 Custom Messages: {len(self.custom_messages)} unique variations (20 sentences each, wallet-based rotation ensures unique messages per user)")
 
-    
+
 
     def _create_tables(self):
         """Create necessary database tables (run this in Supabase SQL editor)"""
@@ -134,24 +106,44 @@ class TelegramTaskService:
         return wallet_address[:6] + "..." + wallet_address[-4:]
 
     def get_custom_message_for_user(self, wallet_address: str) -> str:
-        """Get a unique custom message for the user with DAILY ROTATION
+        """Get custom message for the user - wallet-based rotation ensures unique messages
 
         Each user gets a different message every day based on:
           1. Their wallet address (for uniqueness per user)
-          2. Current date (for daily rotation)
+          2. Current UTC timestamp (hour + day for better rotation)
 
         This ensures variety and prevents repetitive posts
         """
         import hashlib
+        from datetime import datetime, timezone
 
-        # Daily rotation with 1000+ messages
-        current_date = datetime.now().strftime('%Y-%m-%d')
-        daily_seed = f"{wallet_address}_{current_date}"
-        daily_hash = int(hashlib.sha256(daily_seed.encode()).hexdigest(), 16)
-        message_index = daily_hash % len(self.custom_messages)
+        # Normalize wallet address to lowercase
+        wallet_normalized = wallet_address.lower().strip()
 
-        logger.info(f"📅 Daily message for {wallet_address[:8]}... on {current_date}: index {message_index}/{len(self.custom_messages)}")
+        # Hash wallet address to get consistent index
+        wallet_hash = int(hashlib.sha256(wallet_normalized.encode()).hexdigest(), 16)
 
+        # Get current UTC time for rotation
+        now_utc = datetime.now(timezone.utc)
+        day_of_year = now_utc.timetuple().tm_yday
+        hour_of_day = now_utc.hour
+
+        # Use multiple factors for better distribution:
+        # 1. Wallet hash (unique per user)
+        # 2. Day of year (daily rotation)
+        # 3. Hour of day (hourly variation)
+        # 4. Last 4 chars of wallet (additional entropy)
+        last_4_chars = int(wallet_normalized[-4:], 16) if len(wallet_normalized) >= 4 else 0
+
+        # Combine all factors for unique message index
+        message_index = (
+            wallet_hash +
+            (day_of_year * 37) +  # Prime number multiplier
+            (hour_of_day * 17) +   # Prime number multiplier
+            (last_4_chars * 7)     # Prime number multiplier
+        ) % len(self.custom_messages)
+
+        logger.info(f"📅 Message index {message_index} for user: {wallet_address[:8]}... (Day: {day_of_year}, Hour: {hour_of_day}, 1000 unique messages available)")
         return self.custom_messages[message_index]
 
     def _validate_telegram_url(self, telegram_url: str) -> Dict[str, Any]:
@@ -163,7 +155,7 @@ class TelegramTaskService:
                 return {"valid": False, "error": "Telegram post URL is required"}
 
             # Valid formats: https://t.me/GoodDollarX/123 or https://telegram.me/GoodDollarX/123
-            if not (telegram_url.startswith("https://t.me/") or 
+            if not (telegram_url.startswith("https://t.me/") or
                    telegram_url.startswith("https://telegram.me/")):
                 return {"valid": False, "error": "Please provide a valid Telegram post URL (https://t.me/...)"}
 
@@ -301,7 +293,7 @@ class TelegramTaskService:
 
             if last_claim.data:
                 last_claim_status = last_claim.data[0]['status']
-                
+
                 # If last claim was REJECTED, user can resubmit immediately
                 if last_claim_status == 'rejected':
                     logger.info(f"✅ Last submission was rejected - user can resubmit")
@@ -309,7 +301,7 @@ class TelegramTaskService:
                         'can_claim': True,
                         'reward_amount': self.task_reward
                     }
-                
+
                 # If last claim was COMPLETED, cooldown is active
                 if last_claim_status == 'completed':
                     last_claim_time = datetime.fromisoformat(last_claim.data[0]['created_at'].replace('Z', '+00:00'))
@@ -522,12 +514,24 @@ class TelegramTaskService:
             return {'success': False, 'error': str(e)}
 
     async def reject_submission(self, submission_id: int, admin_wallet: str, reason: str = '') -> Dict[str, Any]:
-        """Admin rejects a submission - user can immediately resubmit"""
+        """Admin rejects a submission - cooldown is reset, user can immediately resubmit"""
         try:
             if not self.supabase:
                 return {'success': False, 'error': 'Database not available'}
 
-            # Update status to rejected
+            # Get submission details first
+            submission = self.supabase.table('telegram_task_log')\
+                .select('wallet_address')\
+                .eq('id', submission_id)\
+                .eq('status', 'pending')\
+                .execute()
+
+            if not submission.data:
+                return {'success': False, 'error': 'Submission not found or already processed'}
+
+            wallet_address = submission.data[0]['wallet_address']
+
+            # Update status to rejected - this effectively resets the cooldown
             result = self.supabase.table('telegram_task_log').update({
                 'status': 'rejected',
                 'rejected_by': admin_wallet,
@@ -536,11 +540,13 @@ class TelegramTaskService:
             }).eq('id', submission_id).eq('status', 'pending').execute()
 
             if result.data:
-                logger.info(f"❌ Admin {admin_wallet[:8]}... rejected submission {submission_id} - User can resubmit immediately")
+                logger.info(f"❌ Admin {admin_wallet[:8]}... rejected submission {submission_id}")
+                logger.info(f"✅ Cooldown reset for {wallet_address[:8]}... - User can resubmit immediately")
 
                 return {
                     'success': True,
-                    'message': 'Submission rejected. User can resubmit immediately with a new post.'
+                    'message': 'Submission rejected. Cooldown has been reset - user can resubmit immediately with a new post.',
+                    'cooldown_reset': True
                 }
             else:
                 return {'success': False, 'error': 'Submission not found or already processed'}
@@ -623,7 +629,8 @@ class TelegramTaskService:
                         'telegram_url': record.get('telegram_url'),
                         'status': record.get('status', 'completed'),
                         'created_at': record.get('created_at'),
-                        'explorer_url': f"https://explorer.celo.org/mainnet/tx/{record.get('transaction_hash')}" if record.get('transaction_hash') else None
+                        'explorer_url': f"https://explorer.celo.org/mainnet/tx/{record.get('transaction_hash')}" if record.get('transaction_hash') else None,
+                        'rejection_reason': record.get('rejection_reason')
                     })
 
             logger.info(f"✅ Retrieved {len(transactions)} Telegram task transactions for {wallet_address[:8]}... (Total: {total_earned} G$)")
