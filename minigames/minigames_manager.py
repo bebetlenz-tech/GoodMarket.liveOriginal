@@ -10,16 +10,6 @@ from .blockchain import minigames_blockchain
 logger = logging.getLogger(__name__)
 
 class MinigamesManager:
-    """
-    Manages all minigames and rewards
-
-    DEPOSIT & WITHDRAWAL FLOW:
-    1. Users deposit G$ to MERCHANT_ADDRESS (shown as "Deposit Address" to users)
-    2. Deposits are tracked in minigame_balances table
-    3. Users play games and accumulate winnings
-    4. Withdrawals are sent from GAMES_KEY to user's wallet
-    """
-
     def __init__(self):
         self.supabase = get_supabase_client()
         self.blockchain_service = minigames_blockchain
@@ -38,7 +28,7 @@ class MinigamesManager:
                 'max_plays_per_day': 20,  # Maximum 20 plays per day
                 'min_bet': 10.0,  # Minimum bet 10 G$
                 'max_bet': 250.0,  # Maximum bet 250 G$
-                'base_reward': 10,
+                'base_reward': 4,  # Base reward 4 G$ (max 20 G$ at 5x)
                 'min_multiplier': 1.20,
                 'max_multiplier': 5.00  # Maximum 5x crash multiplier
             }
@@ -47,7 +37,6 @@ class MinigamesManager:
         logger.info("🎮 Minigames Manager initialized")
 
     def get_deposit_balance(self, wallet_address: str) -> dict:
-        """Get user's available balance (merged deposits + winnings) - CACHED"""
         # Use 30-second cache for balance (shorter because it changes frequently)
         cache_key = f'minigame_balance_{wallet_address}'
         if hasattr(self, '_cache'):
@@ -256,65 +245,11 @@ class MinigamesManager:
                     'error': f"Daily limit reached (20 plays). Come back tomorrow!"
                 }
 
-            # For crash_game, validate and deduct bet amount
+            # Crash game is now FREE - no bet deduction needed
             if game_type == 'crash_game':
-                balance_info = self.get_deposit_balance(wallet_address)
-                available_balance = balance_info.get('available_balance', 0)
-
-                logger.info(f"💰 Balance check for {wallet_address[:8]}... - Available: {available_balance} G$, Bet: {bet_amount} G$")
-
-                # Check if user has any balance
-                if available_balance < 10:
-                    logger.warning(f"❌ Insufficient balance: {available_balance} G$ < 10 G$ minimum")
-                    return {
-                        'success': False,
-                        'error': f'No balance! You have {available_balance:.2f} G$. Please deposit at least 100 G$ to play.'
-                    }
-
-                # Validate bet amount
-                config = self.game_configs[game_type]
-                if bet_amount < config['min_bet']:
-                    logger.warning(f"❌ Bet too low: {bet_amount} G$ < {config['min_bet']} G$ minimum")
-                    return {
-                        'success': False,
-                        'error': f"Minimum bet is {config['min_bet']} G$"
-                    }
-
-                if bet_amount > config['max_bet']:
-                    logger.warning(f"❌ Bet too high: {bet_amount} G$ > {config['max_bet']} G$ maximum")
-                    return {
-                        'success': False,
-                        'error': f"Maximum bet is {config['max_bet']} G$"
-                    }
-
-                if bet_amount > available_balance:
-                    logger.warning(f"❌ Insufficient funds: Bet {bet_amount} G$ > Available {available_balance} G$")
-                    return {
-                        'success': False,
-                        'error': f'Insufficient balance! You have {available_balance:.2f} G$ but trying to bet {bet_amount:.2f} G$'
-                    }
-
-                # Deduct bet amount from available balance
-                try:
-                    new_balance_after_bet = available_balance - bet_amount
-
-                    logger.info(f"💰 BET DEDUCTION for {wallet_address[:8]}...")
-                    logger.info(f"   Old balance: {available_balance} G$")
-                    logger.info(f"   Bet amount: {bet_amount} G$")
-                    logger.info(f"   New balance: {new_balance_after_bet} G$")
-
-                    self.supabase.table('minigame_balances')\
-                        .update({
-                            'available_balance': new_balance_after_bet,
-                            'updated_at': datetime.now().isoformat()
-                        })\
-                        .eq('wallet_address', wallet_address)\
-                        .execute()
-
-                    logger.info(f"✅ Successfully deducted bet {bet_amount} G$ from {wallet_address[:8]}... balance")
-                except Exception as e:
-                    logger.error(f"❌ Error deducting bet: {e}")
-                    return {'success': False, 'error': 'Failed to process bet'}
+                # Game is free, no balance checking or deduction
+                bet_amount = 0
+                logger.info(f"🎮 Starting FREE crash game for {wallet_address[:8]}...")
 
             session_id = f"GAME-{uuid.uuid4().hex[:8].upper()}"
 
@@ -359,19 +294,35 @@ class MinigamesManager:
             wallet_address = session_info['wallet_address']
             game_type = session_info['game_type']
 
-            # For crash_game, calculate winnings based on bet amount
+            # For crash_game, calculate winnings using tier-based reward system
             if game_type == 'crash_game':
                 bet_amount = session_info.get('bet_amount', 0)
-                winnings = float(score)  # This is the total winnings (bet × multiplier) from frontend
-
-                # If player lost (crashed without cashing out), refund nothing
-                # If player won, winnings already calculated as bet × multiplier
-
-                # Extract multiplier from game_data for score field (use integer version)
+                winnings = float(score)  # Total winnings from frontend (tier-based)
+                
+                # TIER-BASED REWARD SYSTEM:
+                # 1.1x-1.9x = 4 G$, 2x-2.9x = 8 G$, 3x-3.9x = 12 G$, 4x-4.9x = 16 G$, 5x = 20 G$
+                
+                # Validate winnings match expected tiers
                 multiplier_str = game_data.get('multiplier', '0.00') if game_data else '0.00'
                 try:
                     multiplier_value = float(multiplier_str)
                     score_int = int(multiplier_value * 100)  # Store multiplier as integer (e.g., 1.69x = 169)
+                    
+                    # Verify winnings match tier
+                    expected_winnings = 4.0
+                    if multiplier_value >= 2.0:
+                        expected_winnings = 8.0
+                    if multiplier_value >= 3.0:
+                        expected_winnings = 12.0
+                    if multiplier_value >= 4.0:
+                        expected_winnings = 16.0
+                    if multiplier_value >= 5.0:
+                        expected_winnings = 20.0
+                    
+                    # Cap at expected amount to prevent abuse
+                    if winnings > expected_winnings:
+                        logger.warning(f"⚠️ Winnings {winnings} exceed expected {expected_winnings} for {multiplier_value}x, capping")
+                        winnings = expected_winnings
                 except:
                     score_int = 0
 
@@ -388,7 +339,7 @@ class MinigamesManager:
                     .execute()
 
                 # Update daily limits
-                self._update_daily_limits(wallet_address, game_type, 0)
+                self._update_daily_limits(wallet_address, game_type, winnings)
 
                 # Add winnings to available balance
                 balance_result = self.supabase.table('minigame_balances')\
@@ -415,6 +366,11 @@ class MinigamesManager:
                         })\
                         .eq('wallet_address', wallet_address)\
                         .execute()
+
+                    # Clear balance cache to force refresh
+                    cache_key = f'minigame_balance_{wallet_address}'
+                    if hasattr(self, '_cache') and cache_key in self._cache:
+                        del self._cache[cache_key]
 
                     logger.info(f"✅ Game complete: {wallet_address[:8]}... won {winnings} G$")
                     logger.info(f"💰 New available balance: {new_balance} G$")
@@ -557,6 +513,43 @@ class MinigamesManager:
         except Exception as e:
             logger.error(f"❌ Error updating daily limits: {e}")
 
+    def _update_user_stats(self, wallet_address: str, game_type: str, score: int, reward_amount: float) -> dict:
+        """Update user game statistics"""
+        try:
+            existing = self.supabase.table('user_game_stats')\
+                .select('*')\
+                .eq('wallet_address', wallet_address)\
+                .eq('game_type', game_type)\
+                .execute()
+
+            if existing.data:
+                stats = existing.data[0]
+                self.supabase.table('user_game_stats')\
+                    .update({
+                        'total_plays': stats['total_plays'] + 1,
+                        'total_score': stats['total_score'] + score,
+                        'highest_score': max(stats['highest_score'], score),
+                        'total_earned': stats['total_earned'] + reward_amount,
+                        'last_played': datetime.now().isoformat()
+                    })\
+                    .eq('id', stats['id'])\
+                    .execute()
+            else:
+                self.supabase.table('user_game_stats').insert({
+                    'wallet_address': wallet_address,
+                    'game_type': game_type,
+                    'total_plays': 1,
+                    'total_score': score,
+                    'highest_score': score,
+                    'total_earned': reward_amount,
+                    'virtual_tokens': 0,
+                    'last_played': datetime.now().isoformat()
+                }).execute()
+
+        except Exception as e:
+            logger.error(f"❌ Error updating user stats: {e}")
+
+
     def _update_user_stats_with_tokens(self, wallet_address: str, game_type: str, score: int, tokens_earned: int) -> dict:
         """Update user game statistics with virtual tokens"""
         try:
@@ -667,6 +660,11 @@ class MinigamesManager:
                     .eq('wallet_address', wallet_address)\
                     .execute()
 
+                # Clear balance cache to force refresh
+                cache_key = f'minigame_balance_{wallet_address}'
+                if hasattr(self, '_cache') and cache_key in self._cache:
+                    del self._cache[cache_key]
+
                 # Log the withdrawal
                 self.supabase.table('minigame_withdrawals_log').insert({
                     'wallet_address': wallet_address,
@@ -688,12 +686,19 @@ class MinigamesManager:
             else:
                 # Withdrawal FAILED - balance NOT changed
                 logger.error(f"❌ Blockchain withdrawal failed: {disburse_result.get('error')}")
+                
+                # Check if it's a gas/system error
+                if disburse_result.get('error_type') == 'insufficient_gas':
+                    error_message = "Withdrawal system is being refunded. Please try again in a few minutes. Your balance is safe."
+                else:
+                    error_message = f"Withdrawal failed: {disburse_result.get('error', 'Unknown error')}. Your balance is safe."
 
                 return {
                     'success': False,
-                    'error': f"Withdrawal failed: {disburse_result.get('error', 'Unknown error')}. Your balance is safe.",
+                    'error': error_message,
                     'balance_safe': True,
-                    'available_balance': available_balance
+                    'available_balance': available_balance,
+                    'retry_available': True
                 }
 
         except Exception as e:
