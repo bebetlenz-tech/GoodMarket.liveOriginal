@@ -14,15 +14,23 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 25%, #312e81 50%, #1e1b4b 75%, #0f172a 100%);
+            background-size: 400% 400%;
+            animation: gradientShift 15s ease infinite;
             min-height: 100vh;
             color: #ffffff;
             position: relative;
             overflow-x: hidden;
-            zoom: 0.6;
+            zoom: 0.5;
         }
 
-        
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+
 
         .container {
             max-width: 1200px;
@@ -133,23 +141,27 @@
         }
 
         .stat-card:nth-child(1) {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
             animation-delay: 0.4s;
+            border: 1px solid rgba(139, 92, 246, 0.3);
         }
 
         .stat-card:nth-child(2) {
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            background: linear-gradient(135deg, #ec4899 0%, #f43f5e 100%);
             animation-delay: 0.5s;
+            border: 1px solid rgba(244, 63, 94, 0.3);
         }
 
         .stat-card:nth-child(3) {
-            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            background: linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%);
             animation-delay: 0.6s;
+            border: 1px solid rgba(59, 130, 246, 0.3);
         }
 
         .stat-card:nth-child(4) {
-            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+            background: linear-gradient(135deg, #10b981 0%, #14b8a6 100%);
             animation-delay: 0.7s;
+            border: 1px solid rgba(20, 184, 166, 0.3);
         }
 
         @keyframes fadeInScale {
@@ -241,9 +253,9 @@
         }
 
         .start-quiz-btn {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
             color: white;
-            border: none;
+            border: 2px solid rgba(139, 92, 246, 0.5);
             padding: 18px 40px;
             border-radius: 15px;
             font-size: 1.3rem;
@@ -252,7 +264,7 @@
             width: 100%;
             margin-bottom: 20px;
             transition: all 0.3s ease;
-            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 10px 40px rgba(99, 102, 241, 0.5);
             position: relative;
             overflow: hidden;
         }
@@ -333,13 +345,13 @@
         }
 
         .quiz-history {
-            background: rgba(255, 255, 255, 0.15);
-            backdrop-filter: blur(10px);
-            border-radius: 15px;
-            padding: 25px;
-            box-shadow: 0 20px 60px rgba(255, 255, 255, 0.1);
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.1));
+            backdrop-filter: blur(15px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(102, 126, 234, 0.3);
             animation: slideUp 0.6s ease-out 0.7s both;
-            border: 1px solid rgba(255, 255, 255, 0.3);
+            border: 2px solid rgba(255, 255, 255, 0.4);
         }
 
         .quiz-history h2 {
@@ -372,9 +384,11 @@
         .history-table td {
             padding: 15px;
             text-align: left;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-            color: #ffffff;
-            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+            border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+            color: #ffffff !important;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            font-weight: 900 !important;
+            font-size: 1.1rem;
         }
 
         .history-table th:nth-child(4),
@@ -382,36 +396,48 @@
             text-align: center;
         }
 
+        .tx-hash-link {
+            color: #ffffff !important;
+            text-decoration: none;
+            font-family: monospace;
+            transition: all 0.3s ease;
+            font-weight: 900 !important;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .tx-hash-link:hover {
+            color: #ffffff !important;
+            text-decoration: underline;
+            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.7);
+        }
+
+        .tx-hash-link i {
+            color: #ffffff !important;
+            font-weight: 900 !important;
+        }
+
         .history-table th {
             background: linear-gradient(135deg, #667eea, #764ba2);
             color: white;
-            font-weight: 600;
-            font-size: 1.05rem;
+            font-weight: 900;
+            font-size: 1.2rem;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 1px;
+            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.5);
         }
 
         .history-table tbody tr {
             transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.05);
         }
 
         .history-table tbody tr:hover {
-            background: rgba(255, 255, 255, 0.05);
-            transform: scale(1.01);
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.3), rgba(118, 75, 162, 0.3));
+            transform: scale(1.02);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
         }
 
-        .tx-hash-link {
-            color: #667eea;
-            text-decoration: none;
-            font-size: 0.9rem;
-            font-family: monospace;
-            transition: all 0.3s ease;
-        }
 
-        .tx-hash-link:hover {
-            color: #764ba2;
-            text-decoration: underline;
-        }
 
         .back-btn {
             background: linear-gradient(135deg, #6c757d, #5a6268);
@@ -604,12 +630,13 @@
 
         /* Achievement Card Styles */
         .achievement-card {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 20px;
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%);
+            border-radius: 24px;
             padding: 2.5rem;
             margin: 2rem 0;
             color: white;
-            box-shadow: 0 20px 60px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 20px 60px rgba(99, 102, 241, 0.5);
+            border: 2px solid rgba(236, 72, 153, 0.3);
             position: relative;
             overflow: hidden;
         }
@@ -648,33 +675,38 @@
         }
 
         .achievement-title {
-            font-size: 2rem;
-            font-weight: 700;
+            font-size: 2.5rem;
+            font-weight: 900;
             margin: 1rem 0;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+            text-shadow: 4px 4px 8px rgba(0,0,0,0.6);
+            letter-spacing: 1px;
         }
 
         .achievement-badge {
-            background: rgba(255,255,255,0.2);
-            backdrop-filter: blur(10px);
-            border-radius: 15px;
-            padding: 1.5rem;
+            background: linear-gradient(135deg, rgba(255,255,255,0.3), rgba(255,255,255,0.15));
+            backdrop-filter: blur(15px);
+            border-radius: 20px;
+            padding: 2rem;
             margin: 1.5rem 0;
-            border: 2px solid rgba(255,255,255,0.3);
+            border: 3px solid rgba(255,255,255,0.5);
             position: relative;
             z-index: 1;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.4);
         }
 
         .badge-rank {
-            font-size: 2.5rem;
-            font-weight: 800;
+            font-size: 3rem;
+            font-weight: 900;
             margin-bottom: 0.5rem;
-            text-shadow: 3px 3px 6px rgba(0,0,0,0.3);
+            text-shadow: 4px 4px 10px rgba(0,0,0,0.6);
+            letter-spacing: 2px;
         }
 
         .badge-subtitle {
-            font-size: 1.1rem;
-            opacity: 0.9;
+            font-size: 1.3rem;
+            font-weight: 700;
+            opacity: 1;
+            text-shadow: 2px 2px 5px rgba(0,0,0,0.5);
         }
 
         .achievement-stats {
@@ -695,14 +727,21 @@
         }
 
         .stat-label {
-            font-size: 0.85rem;
-            opacity: 0.8;
+            font-size: 1rem;
+            font-weight: 900 !important;
+            opacity: 1;
             margin-bottom: 0.5rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #ffffff !important;
         }
 
         .stat-value {
-            font-size: 1.5rem;
-            font-weight: 700;
+            font-size: 1.8rem;
+            font-weight: 900 !important;
+            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.6);
+            color: #ffffff !important;
         }
 
         .achievement-footer {
@@ -745,13 +784,28 @@
 
         /* Timer Display Styles */
         .timer-display {
-            background: linear-gradient(135deg, #667eea, #764ba2);
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
             color: white;
-            padding: 15px;
-            border-radius: 12px;
+            padding: 20px;
+            border-radius: 16px;
             text-align: center;
             margin-bottom: 20px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4);
+            border: 2px solid rgba(139, 92, 246, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .timer-display::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
+            transform: rotate(45deg);
+            animation: shimmer 3s infinite;
         }
 
         .timer-text {
@@ -805,6 +859,17 @@
             0%, 100% { transform: translateY(0) translateX(0); }
             50% { transform: translateY(-20px) translateX(10px); }
         }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            50% {
+                transform: scale(1.1);
+                opacity: 0.8;
+            }
+        }
     </style>
 </head>
 <body>
@@ -842,12 +907,31 @@
         <div class="quiz-section">
             <h2>Take Quiz</h2>
 
-            <div id="loading" class="loading" style="display: none;">
-                <div class="spinner"></div>
-                <p>Loading quiz status...</p>
-            </div>
-
             <div id="eligibility-status" class="eligibility-status" style="display: none;"></div>
+
+            <!-- Live Countdown Timer -->
+            <div id="cooldown-timer" style="display: none; background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(139, 92, 246, 0.15)); backdrop-filter: blur(15px); border-radius: 20px; padding: 30px; margin-bottom: 25px; text-align: center; border: 2px solid rgba(99, 102, 241, 0.4); box-shadow: 0 10px 30px rgba(99, 102, 241, 0.2);">
+                <div style="font-size: 1.1rem; color: #ffffff; margin-bottom: 15px; font-weight: 700; text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">
+                    ⏰ Next Quiz Available In
+                </div>
+                <div id="countdown-display" style="font-size: 3rem; font-weight: 900; color: #a855f7; text-shadow: 3px 3px 6px rgba(0,0,0,0.5); font-family: 'Courier New', monospace; letter-spacing: 3px; margin: 15px 0;">
+                    --:--:--:--
+                </div>
+                <div style="font-size: 1rem; color: rgba(255,255,255,0.9); margin-top: 15px; font-weight: 600;">
+                    <span style="color: #ef4444; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">Days</span>
+                    <span style="color: rgba(255,255,255,0.5); margin: 0 5px;">:</span>
+                    <span style="color: #f59e0b; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">Hours</span>
+                    <span style="color: rgba(255,255,255,0.5); margin: 0 5px;">:</span>
+                    <span style="color: #10b981; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">Minutes</span>
+                    <span style="color: rgba(255,255,255,0.5); margin: 0 5px;">:</span>
+                    <span style="color: #3b82f6; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">Seconds</span>
+                </div>
+                <div style="margin-top: 15px; padding: 10px; background: rgba(0,0,0,0.2); border-radius: 10px;">
+                    <p style="margin: 0; font-size: 0.9rem; color: rgba(255,255,255,0.8);">
+                        💡 The quiz will automatically become available when the countdown reaches zero
+                    </p>
+                </div>
+            </div>
 
             <button id="start-quiz-btn" class="start-quiz-btn" disabled>
                 <i class="fas fa-play"></i> Start Quiz
@@ -873,10 +957,6 @@
 
         <div class="quiz-history">
             <h2><i class="fas fa-history"></i> Quiz History</h2>
-            <div id="history-loading" class="loading">
-                <div class="spinner"></div>
-                <p>Loading quiz history...</p>
-            </div>
             <div id="history-content" style="display: none;">
                 <table class="history-table">
                     <thead>
@@ -932,7 +1012,7 @@
     </div>
 
     <div class="action-buttons">
-        <button class="btn-share" id="sell-achievement-btn" style="display: none; background: linear-gradient(135deg, #f59e0b, #d97706);">
+        <button class="btn-share" id="sell-achievement-btn" style="display: none; background: linear-gradient(135deg, #f093fb, #f5576c);">
             <span>💰 Sell This Card</span>
         </button>
         <button class="btn-share" id="download-achievement-btn" style="display: none;">
@@ -971,6 +1051,7 @@
         };
 
         let quizHistory = []; // Store quiz history globally for showHistoryAchievement
+        let cooldownTimerInterval = null; // Store interval for cooldown timer
 
         // Audio context for sound effects
         const audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -1065,11 +1146,89 @@
             }
         }
 
+        // Start live countdown timer
+        function startCooldownTimer(nextQuizTime) {
+            console.log('⏰ Starting cooldown timer for:', nextQuizTime);
+
+            // Clear any existing timer
+            if (cooldownTimerInterval) {
+                clearInterval(cooldownTimerInterval);
+            }
+
+            const timerDiv = document.getElementById('cooldown-timer');
+            const countdownDisplay = document.getElementById('countdown-display');
+
+            if (!timerDiv || !countdownDisplay) {
+                console.error('❌ Timer elements not found!');
+                return;
+            }
+
+            // Show timer immediately
+            timerDiv.style.display = 'block';
+
+            function updateCountdown() {
+                const now = new Date();
+                const targetTime = new Date(nextQuizTime);
+                const timeDiff = targetTime - now;
+
+                if (timeDiff <= 0) {
+                    // Cooldown finished!
+                    console.log('✅ Cooldown finished! Reloading eligibility...');
+                    clearInterval(cooldownTimerInterval);
+                    countdownDisplay.innerHTML = '<span style="color: #10b981;">00:00:00:00</span>';
+
+                    // Hide timer after showing complete
+                    setTimeout(() => {
+                        timerDiv.style.display = 'none';
+                        checkEligibility(); // Re-check eligibility
+                        showNotification('Quiz is now available! 🎉', 'success');
+
+                        // Play a success sound effect
+                        try {
+                            const successSound = document.getElementById('success-sound');
+                            if (successSound) {
+                                successSound.play().catch(e => console.log('Audio play failed:', e));
+                            }
+                        } catch (e) {
+                            console.log('Success sound error:', e);
+                        }
+                    }, 1000);
+                    return;
+                }
+
+                // Calculate time components
+                const days = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((timeDiff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((timeDiff % (1000 * 60)) / 1000);
+
+                // Format with leading zeros
+                const formattedDays = String(days).padStart(2, '0');
+                const formattedHours = String(hours).padStart(2, '0');
+                const formattedMinutes = String(minutes).padStart(2, '0');
+                const formattedSeconds = String(seconds).padStart(2, '0');
+
+                // Update display with color-coded segments and pulsing animation on seconds
+                countdownDisplay.innerHTML = `
+                    <span style="color: #ef4444; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); font-weight: 900;">${formattedDays}</span><span style="color: rgba(255,255,255,0.6); margin: 0 5px;">:</span><span style="color: #f59e0b; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); font-weight: 900;">${formattedHours}</span><span style="color: rgba(255,255,255,0.6); margin: 0 5px;">:</span><span style="color: #10b981; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); font-weight: 900;">${formattedMinutes}</span><span style="color: rgba(255,255,255,0.6); margin: 0 5px;">:</span><span style="color: #3b82f6; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); font-weight: 900; animation: pulse 1s ease-in-out;">${formattedSeconds}</span>
+                `;
+
+                // Log countdown for debugging
+                console.log(`⏰ Countdown: ${formattedDays}d ${formattedHours}h ${formattedMinutes}m ${formattedSeconds}s`);
+            }
+
+            // Update immediately to show timer right away
+            updateCountdown();
+
+            // Update every second for live countdown
+            cooldownTimerInterval = setInterval(updateCountdown, 1000);
+
+            console.log('✅ Countdown timer started and updating every second');
+        }
+
         // Check eligibility and load quiz status
         async function checkEligibility() {
             try {
-                document.getElementById('loading').style.display = 'block';
-
                 const response = await fetch('/learn-earn/eligibility');
 
                 if (!response.ok) {
@@ -1082,6 +1241,7 @@
 
                 const statusDiv = document.getElementById('eligibility-status');
                 const startBtn = document.getElementById('start-quiz-btn');
+                const timerDiv = document.getElementById('cooldown-timer');
 
                 // Handle authentication/verification required
                 if (data.auth_required) {
@@ -1090,6 +1250,7 @@
                     startBtn.disabled = true;
                     startBtn.innerHTML = '<i class="fas fa-lock"></i> Login Required';
                     statusDiv.style.display = 'block';
+                    timerDiv.style.display = 'none';
                     return;
                 }
 
@@ -1099,20 +1260,42 @@
                     startBtn.disabled = true;
                     startBtn.innerHTML = '<i class="fas fa-exclamation-circle"></i> Verification Required';
                     statusDiv.style.display = 'block';
+                    timerDiv.style.display = 'none';
                     return;
                 }
 
                 // Handle eligibility status
                 if (data.success && data.eligible && !data.blocked) {
+                    console.log('✅ Quiz is available!');
                     statusDiv.className = 'eligibility-status eligibility-eligible';
                     statusDiv.innerHTML = `<i class="fas fa-check-circle"></i> ${data.message}`;
                     startBtn.disabled = false;
                     startBtn.innerHTML = '<i class="fas fa-play"></i> Start Quiz';
+                    timerDiv.style.display = 'none';
+
+                    // Clear any existing timer
+                    if (cooldownTimerInterval) {
+                        clearInterval(cooldownTimerInterval);
+                        cooldownTimerInterval = null;
+                    }
                 } else {
+                    console.log('⏸️ Quiz on cooldown');
                     statusDiv.className = 'eligibility-status eligibility-blocked';
                     statusDiv.innerHTML = `<i class="fas fa-clock"></i> ${data.message || 'Quiz not available'}`;
                     startBtn.disabled = true;
                     startBtn.innerHTML = '<i class="fas fa-clock"></i> Quiz on Cooldown';
+
+                    // Start live countdown timer if next_quiz_time is available
+                    if (data.next_quiz_time) {
+                        console.log('🕐 Starting countdown timer until:', data.next_quiz_time);
+                        startCooldownTimer(data.next_quiz_time);
+                    } else if (data.ubi_verification && data.ubi_verification.next_quiz_time) {
+                        console.log('🕐 Starting countdown timer from ubi_verification:', data.ubi_verification.next_quiz_time);
+                        startCooldownTimer(data.ubi_verification.next_quiz_time);
+                    } else {
+                        console.warn('⚠️ No next_quiz_time provided');
+                        timerDiv.style.display = 'none';
+                    }
                 }
 
                 statusDiv.style.display = 'block';
@@ -1126,8 +1309,6 @@
                 statusDiv.style.display = 'block';
                 startBtn.disabled = true;
                 startBtn.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Error';
-            } finally {
-                document.getElementById('loading').style.display = 'none';
             }
         }
 
@@ -1224,8 +1405,8 @@
                                         ${link.description ? `<p style="color: rgba(241, 245, 249, 0.7); font-size: 0.9rem; margin-bottom: 0.5rem;">${link.description}</p>` : ''}
                                     </div>
                                 </div>
-                                <a href="${link.url}" 
-                                   target="_blank" 
+                                <a href="${link.url}"
+                                   target="_blank"
                                    onclick="markModuleLinkClicked(${link.id})"
                                    style="display: inline-block; padding: 0.75rem 1.5rem; background: ${isClicked ? 'linear-gradient(135deg, #10b981, #059669)' : 'linear-gradient(135deg, #667eea, #764ba2)'}; color: white; text-decoration: none; border-radius: 8px; font-weight: 600; transition: all 0.3s ease;">
                                     ${isClicked ? '✅ Reviewed' : '🔗 Open Module'}
@@ -1235,9 +1416,9 @@
                     }).join('')}
                 </div>
 
-                <button 
-                    onclick="proceedToQuiz()" 
-                    ${!allLinksClicked ? 'disabled' : ''} 
+                <button
+                    onclick="proceedToQuiz()"
+                    ${!allLinksClicked ? 'disabled' : ''}
                     style="width: 100%; padding: 1.25rem; background: ${allLinksClicked ? 'linear-gradient(135deg, #10b981, #059669)' : 'linear-gradient(135deg, #cbd5e0, #a0aec0)'}; color: white; border: none; border-radius: 12px; font-size: 1.2rem; font-weight: bold; cursor: ${allLinksClicked ? 'pointer' : 'not-allowed'};">
                     ${allLinksClicked ? '✅ Start Quiz Now' : '🔒 Review All Modules to Continue'}
                 </button>
@@ -1425,7 +1606,15 @@
             }
 
             try {
-                showNotification('Submitting quiz...', 'info');
+                // Show loading state
+                const container = document.getElementById('quiz-container');
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 50px;">
+                        <div class="spinner"></div>
+                        <p style="margin-top: 20px; font-size: 1.2rem; color: #ffffff;">Submitting quiz...</p>
+                        <p style="margin-top: 10px; color: rgba(255,255,255,0.7);">Please wait while we process your answers</p>
+                    </div>
+                `;
 
                 const response = await fetch('/learn-earn/submit-quiz', {
                     method: 'POST',
@@ -1440,16 +1629,38 @@
 
                 const data = await response.json();
 
+                console.log('📊 Quiz submission response:', data);
+
                 if (data.success) {
                     showQuizResults(data);
                     loadQuizHistory(); // Refresh history
                     checkEligibility(); // Refresh eligibility
                 } else {
+                    // Hide loading and show error
+                    container.style.display = 'none';
                     showNotification(data.message || 'Failed to submit quiz', 'error');
+
+                    // Reset quiz UI
+                    setTimeout(() => {
+                        location.reload();
+                    }, 3000);
                 }
             } catch (error) {
-                console.error('Error submitting quiz:', error);
-                showNotification('Failed to submit quiz', 'error');
+                console.error('❌ Error submitting quiz:', error);
+
+                // Hide loading and show error
+                const container = document.getElementById('quiz-container');
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 50px;">
+                        <h2 style="color: #ef4444; margin-bottom: 20px;">❌ Submission Failed</h2>
+                        <p style="color: rgba(255,255,255,0.9); margin-bottom: 30px;">There was an error submitting your quiz. Please try again.</p>
+                        <button onclick="location.reload()" style="padding: 12px 30px; background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; border-radius: 10px; cursor: pointer; font-size: 1.1rem;">
+                            Try Again
+                        </button>
+                    </div>
+                `;
+
+                showNotification('Failed to submit quiz. Please try again.', 'error');
             }
         }
 
@@ -1459,31 +1670,41 @@
 
             console.log(`📊 Quiz Results Data:`, data);
 
+            // Ensure container is visible
+            container.style.display = 'block';
+
             container.innerHTML = `
-                <div style="text-align: center; padding: 30px;">
-                    <h2><i class="fas fa-trophy"></i> Quiz Complete!</h2>
-                    <div style="margin: 20px 0;">
-                        <h3>Score: ${data.score}/${data.total_questions}</h3>
-                        <h3>Reward: ${data.rewards} G$</h3>
+                <div style="text-align: center; padding: 30px; background: rgba(255,255,255,0.1); border-radius: 15px;">
+                    <h2 style="color: #ffffff; margin-bottom: 20px;"><i class="fas fa-trophy"></i> Quiz Complete!</h2>
+                    <div style="margin: 20px 0; padding: 20px; background: rgba(255,255,255,0.05); border-radius: 10px;">
+                        <h3 style="color: #ffffff; font-size: 1.5rem; margin-bottom: 10px;">Score: ${data.score}/${data.total_questions}</h3>
+                        <h3 style="color: #ffd700; font-size: 1.8rem;">Reward: ${data.rewards} G$</h3>
                     </div>
 
                     ${data.transaction_hash ?
-                        `<p style="color: #28a745;"><i class="fas fa-check-circle"></i> Reward sent successfully!</p>
-                         <p style="word-break: break-all; font-size: 0.9em;">TX: ${data.transaction_hash}</p>` :
-                        '<p style="color: #dc3545;"><i class="fas fa-exclamation-circle"></i> Reward processing failed</p>'
+                        `<div style="background: rgba(40, 167, 69, 0.2); padding: 15px; border-radius: 10px; margin: 20px 0; border: 2px solid #28a745;">
+                            <p style="color: #28a745; font-weight: bold;"><i class="fas fa-check-circle"></i> Reward sent successfully!</p>
+                            <p style="word-break: break-all; font-size: 0.9em; color: rgba(255,255,255,0.8);">TX: ${data.transaction_hash}</p>
+                        </div>` :
+                        `<div style="background: rgba(220, 53, 69, 0.2); padding: 15px; border-radius: 10px; margin: 20px 0; border: 2px solid #dc3545;">
+                            <p style="color: #dc3545; font-weight: bold;"><i class="fas fa-exclamation-circle"></i> Reward processing failed</p>
+                            ${data.error ? `<p style="color: rgba(255,255,255,0.8); margin-top: 10px;">${data.error}</p>` : ''}
+                        </div>`
                     }
 
-                    <button id="view-achievement-btn"
-                            data-score="${data.score}"
-                            data-total="${data.total_questions}"
-                            data-reward="${data.rewards}"
-                            style="margin: 20px 10px; padding: 12px 25px; background: linear-gradient(135deg, #f093fb, #f5576c); color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer;">
-                        <i class="fas fa-trophy"></i> View Achievement Card
-                    </button>
+                    <div style="margin-top: 30px;">
+                        <button id="view-achievement-btn"
+                                data-score="${data.score}"
+                                data-total="${data.total_questions}"
+                                data-reward="${data.rewards}"
+                                style="margin: 10px; padding: 15px 30px; background: linear-gradient(135deg, #f093fb, #f5576c); color: white; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 1.1rem; box-shadow: 0 5px 15px rgba(240, 147, 251, 0.4);">
+                            <i class="fas fa-trophy"></i> View Achievement Card
+                        </button>
 
-                    <button id="reset-quiz-btn" style="margin: 20px 10px; padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 5px;">
-                        <i class="fas fa-redo"></i> Take Another Quiz
-                    </button>
+                        <button id="reset-quiz-btn" style="margin: 10px; padding: 15px 30px; background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 1.1rem;">
+                            <i class="fas fa-redo"></i> Take Another Quiz
+                        </button>
+                    </div>
                 </div>
             `;
 
@@ -1509,9 +1730,40 @@
             // Play clap sound on success
             if (data.disbursement_success) {
                 playClapSound();
-                // Auto-show achievement card after 2 seconds
-                setTimeout(() => {
-                    showAchievementCard(data.score, data.total_questions, data.rewards);
+                // Auto-show achievement card after 2 seconds with selling info
+                setTimeout(async () => {
+                    // Fetch selling availability info
+                    try {
+                        const checkResponse = await fetch('/learn-earn/check-card-sold', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                quiz_id: 'current',
+                                score: data.score,
+                                total_questions: data.total_questions,
+                                timestamp: new Date().toISOString()
+                            })
+                        });
+                        const checkData = await checkResponse.json();
+
+                        showAchievementCard(data.score, data.total_questions, data.rewards, {
+                            already_sold: false,
+                            selling_available: checkData.selling_available || false,
+                            available_date: checkData.available_date || 'May 10, 2026',
+                            days_until_available: checkData.days_until_available || 0
+                        });
+                    } catch (error) {
+                        console.error('Error fetching selling info:', error);
+                        // Show card anyway with default selling info
+                        showAchievementCard(data.score, data.total_questions, data.rewards, {
+                            already_sold: false,
+                            selling_available: false,
+                            available_date: 'May 10, 2026',
+                            days_until_available: 0
+                        });
+                    }
                 }, 2000);
             }
         }
@@ -1540,14 +1792,14 @@
 
             modal.innerHTML = `
                 <div style="background: white; border-radius: 24px; padding: 0; max-width: 520px; position: relative; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
-                    <div id="achievement-card" style="background: linear-gradient(135deg, #667eea, #764ba2); padding: 40px; color: white; text-align: center; position: relative;">
+                    <div id="achievement-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%); padding: 40px; color: white; text-align: center; position: relative; box-shadow: 0 10px 40px rgba(0,0,0,0.5);">
                         <!-- Animated background -->
-                        <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle at 50% 50%, rgba(255,255,255,0.15) 0%, transparent 70%); animation: pulse 3s infinite;"></div>
+                        <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle at 50% 50%, rgba(255,255,255,0.25) 0%, transparent 70%); animation: pulse 3s infinite;"></div>
 
                         <!-- Trophy Icon -->
-                        <img src="https://img.icons8.com/fluency/96/trophy.png" alt="Trophy" style="width: 80px; height: 80px; animation: bounce 2s infinite; filter: drop-shadow(0 8px 16px rgba(0,0,0,0.3));">
-                        <h2 style="margin: 0 0 8px 0; font-size: 2.2rem; font-weight: 800; text-shadow: 2px 2px 8px rgba(0,0,0,0.3); position: relative; z-index: 1;">Quiz Completed!</h2>
-                        <p style="margin: 0 0 25px 0; opacity: 0.95; font-size: 1.05rem; position: relative; z-index: 1;">${today}</p>
+                        <img src="https://img.icons8.com/fluency/96/trophy.png" alt="Trophy" style="width: 100px; height: 100px; animation: bounce 2s infinite; filter: drop-shadow(0 10px 20px rgba(0,0,0,0.5));">
+                        <h2 style="margin: 0 0 12px 0; font-size: 2.8rem; font-weight: 900; text-shadow: 4px 4px 12px rgba(0,0,0,0.6); position: relative; z-index: 1; letter-spacing: 2px;">Quiz Completed!</h2>
+                        <p style="margin: 0 0 25px 0; font-weight: 700; font-size: 1.2rem; position: relative; z-index: 1; text-shadow: 2px 2px 6px rgba(0,0,0,0.5);">${today}</p>
 
                         ${soldInfo && soldInfo.already_sold ? `
                         <div style="background: rgba(239, 68, 68, 0.2); border: 2px solid rgba(239, 68, 68, 0.5); border-radius: 12px; padding: 10px 20px; margin: 10px 0;">
@@ -1567,16 +1819,16 @@
                         ` : ''}
 
                         <!-- Score Stats -->
-                        <div style="background: rgba(255, 255, 255, 0.2); border-radius: 18px; padding: 25px; margin: 20px 0; backdrop-filter: blur(10px); border: 2px solid rgba(255,255,255,0.3); position: relative; z-index: 1;">
-                            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px;">
+                        <div style="background: linear-gradient(135deg, rgba(255, 255, 255, 0.35), rgba(255, 255, 255, 0.2)); border-radius: 20px; padding: 30px; margin: 25px 0; backdrop-filter: blur(15px); border: 3px solid rgba(255,255,255,0.5); position: relative; z-index: 1; box-shadow: 0 8px 25px rgba(0,0,0,0.4);">
+                            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 25px;">
                                 <div>
-                                    <div style="font-size: 0.9rem; opacity: 0.9; margin-bottom: 5px;">Score</div>
-                                    <div style="font-size: 2rem; font-weight: 800;">${score}/${total}</div>
-                                    <div style="font-size: 0.9rem; opacity: 0.8; margin-top: 5px;">${percentage}%</div>
+                                    <div style="font-size: 1.1rem; font-weight: 700; margin-bottom: 8px; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); text-transform: uppercase; letter-spacing: 1px;">Score</div>
+                                    <div style="font-size: 2.5rem; font-weight: 900; text-shadow: 4px 4px 8px rgba(0,0,0,0.6);">${score}/${total}</div>
+                                    <div style="font-size: 1.1rem; font-weight: 700; margin-top: 8px; text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">${percentage}%</div>
                                 </div>
                                 <div>
-                                    <div style="font-size: 0.9rem; opacity: 0.9; margin-bottom: 5px;">Earned</div>
-                                    <div style="font-size: 2rem; font-weight: 800;">${reward} G$</div>
+                                    <div style="font-size: 1.1rem; font-weight: 700; margin-bottom: 8px; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); text-transform: uppercase; letter-spacing: 1px;">Earned</div>
+                                    <div style="font-size: 2.5rem; font-weight: 900; text-shadow: 4px 4px 8px rgba(0,0,0,0.6); color: #ffd700;">${reward} G$</div>
                                 </div>
                             </div>
                         </div>
@@ -1597,7 +1849,7 @@
                             🚀 Join me in earning crypto while learning!
                         </p>
                         <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
-                            <button id="sell-btn-modal" ${soldInfo.already_sold || !soldInfo.selling_available ? 'disabled' : ''} style="padding: 12px 24px; background: ${soldInfo.already_sold || !soldInfo.selling_available ? '#ccc' : 'linear-gradient(135deg, #f59e0b, #d97706)'}; color: white; border: none; border-radius: 12px; font-weight: 700; cursor: ${soldInfo.already_sold || !soldInfo.selling_available ? 'not-allowed' : 'pointer'}; box-shadow: 0 4px 12px rgba(245,158,11,0.3);" title="${!soldInfo.selling_available && !soldInfo.already_sold ? `Available on ${soldInfo.available_date}` : ''}">
+                            <button id="sell-btn-modal" ${soldInfo && soldInfo.already_sold || !soldInfo.selling_available ? 'disabled' : ''} style="padding: 12px 24px; background: ${soldInfo && soldInfo.already_sold || !soldInfo.selling_available ? '#ccc' : 'linear-gradient(135deg, #f59e0b, #d97706)'}; color: white; border: none; border-radius: 12px; font-weight: 700; cursor: ${soldInfo && soldInfo.already_sold || !soldInfo.selling_available ? 'not-allowed' : 'pointer'}; box-shadow: 0 4px 12px rgba(245,158,11,0.3);" title="${!soldInfo.selling_available && !soldInfo.already_sold ? `Available on ${soldInfo.available_date}` : ''}">
                                 ${!soldInfo.selling_available && !soldInfo.already_sold ? '🔒 Locked Until ' + soldInfo.available_date : '💰 Sell This Card'}
                             </button>
                             <button id="download-btn-modal" style="padding: 12px 24px; background: linear-gradient(135deg, #28a745, #20c997); color: white; border: none; border-radius: 12px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 12px rgba(40,167,69,0.3);">
@@ -1661,46 +1913,63 @@
         // Make functions globally accessible
         window.downloadAchievementCard = async function() {
             try {
+                console.log('📥 Starting achievement card download...');
                 const card = document.getElementById('achievement-card');
 
                 if (!card) {
-                    showNotification('Achievement card not found', 'error');
+                    console.error('❌ Achievement card element not found');
+                    showNotification('Failed to download card: Card element not found', 'error');
                     return;
                 }
 
-                // Check if html2canvas is loaded
-                if (typeof html2canvas === 'undefined') {
-                    showNotification('Download library not loaded. Please refresh and try again.', 'error');
-                    return;
-                }
+                console.log('✅ Achievement card element found');
+                showNotification('⏳ Generating image...', 'info');
 
-                showNotification('Generating image...', 'info');
-
+                // Use html2canvas to convert the card to an image
                 const canvas = await html2canvas(card, {
-                    backgroundColor: null,
+                    backgroundColor: '#667eea',
                     scale: 2,
                     logging: false,
                     useCORS: true,
-                    allowTaint: true
+                    allowTaint: false,
+                    windowWidth: card.scrollWidth,
+                    windowHeight: card.scrollHeight
                 });
 
-                // Convert to blob for better browser compatibility
+                console.log('✅ Canvas created successfully');
+
+                // Convert to blob and download
                 canvas.toBlob(function(blob) {
+                    if (!blob) {
+                        console.error('❌ Failed to create blob from canvas');
+                        showNotification('Failed to create image. Please try again.', 'error');
+                        return;
+                    }
+
+                    // Create download URL
                     const url = URL.createObjectURL(blob);
                     const link = document.createElement('a');
-                    link.download = `gooddollar-achievement-${Date.now()}.png`;
+                    const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
+                    link.download = `gooddollar-achievement-${timestamp}.png`;
                     link.href = url;
+
+                    // Trigger download
+                    document.body.appendChild(link);
                     link.click();
 
-                    // Clean up
-                    setTimeout(() => URL.revokeObjectURL(url), 100);
+                    // Cleanup
+                    setTimeout(() => {
+                        document.body.removeChild(link);
+                        URL.revokeObjectURL(url);
+                    }, 100);
 
-                    showNotification('Achievement card downloaded! 📥', 'success');
-                }, 'image/png');
+                    console.log('✅ Download completed!');
+                    showNotification('✅ Achievement card downloaded successfully!', 'success');
+                }, 'image/png', 1.0);
 
             } catch (error) {
-                console.error('Download error:', error);
-                showNotification('Failed to download image: ' + error.message, 'error');
+                console.error('❌ Download error:', error);
+                showNotification('Failed to download card. Please try again.', 'error');
             }
         };
 
@@ -1795,7 +2064,6 @@
                 console.log('📊 Quiz history response:', data);
 
                 const historyTableBody = document.getElementById('history-table-body');
-                const historyLoading = document.getElementById('history-loading');
                 const historyContent = document.getElementById('history-content');
 
                 if (data.success && data.quiz_history && data.quiz_history.length > 0) {
@@ -1815,7 +2083,7 @@
 
                         // Create achievement card link
                         const achievementLink = `
-                            <a href="#" class="achievement-link" onclick="event.preventDefault(); window.showHistoryAchievement('${quiz.quiz_id}'); return false;" style="cursor: pointer; color: #667eea; text-decoration: none; font-weight: 600;">
+                            <a href="#" class="achievement-link" onclick="event.preventDefault(); window.showHistoryAchievement('${quiz.quiz_id}'); return false;" style="cursor: pointer; color: #ffffff !important; text-decoration: none; font-weight: 900 !important; text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);">
                                 🏆 View Card
                             </a>
                         `;
@@ -1833,11 +2101,9 @@
                 } else {
                     historyTableBody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 20px;">No quiz history yet</td></tr>';
                 }
-                 historyLoading.style.display = 'none';
-                 historyContent.style.display = 'block';
+                historyContent.style.display = 'block';
             } catch (error) {
                 console.error('Error loading quiz history:', error);
-                document.getElementById('history-loading').style.display = 'none';
                 document.getElementById('history-content').style.display = 'block';
                 document.getElementById('history-table-body').innerHTML = '<tr><td colspan="5" style="text-align: center; color: red;">Failed to load history</td></tr>';
             }
@@ -1935,9 +2201,15 @@
 
         // Initialize page
         document.addEventListener('DOMContentLoaded', async function() {
+            console.log('🎓 Learn & Earn page loaded - initializing...');
             await loadQuizSettings();
             checkEligibility();
             loadQuizHistory();
+
+            // Check eligibility every 30 seconds to update timer if needed
+            setInterval(() => {
+                checkEligibility();
+            }, 30000); // 30 seconds
 
             // Add event listener to start quiz button
             const startQuizBtn = document.getElementById('start-quiz-btn');
