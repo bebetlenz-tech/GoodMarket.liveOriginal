@@ -268,6 +268,13 @@ if not init_twitter_task(app):
 else:
     logger.info("✅ Twitter Task initialized successfully")
 
+# Initialize Facebook Task
+from facebook_task import init_facebook_task
+if not init_facebook_task(app):
+    logger.warning("⚠️ Facebook Task initialization failed")
+else:
+    logger.info("✅ Facebook Task initialized successfully")
+
 # Initialize News Feed first
 from news_feed import init_news_feed, news_feed_service
 init_news_feed(app)
@@ -686,7 +693,7 @@ def verify_identity():
         if ubi_result["status"] != "success":
             logger.warning(f"❌ UBI verification failed for {wallet_address}: {ubi_result['message']}")
             # ALWAYS use the custom message from blockchain.py response
-            custom_message = ubi_result.get("message", "You need to claim G$ in goodwallet.xyz or gooddapp.org once every 24 hours to access GoodMarket.")
+            custom_message = ubi_result.get("message", "You need to claim G$ once every 24 hours to access GoodMarket.\n\nClaim G$ using:\n• MiniPay app (built into Opera Mini)\n• goodwallet.xyz\n• gooddapp.org")
 
             # Return the EXACT same format as routes.py to ensure consistency
             return jsonify({
