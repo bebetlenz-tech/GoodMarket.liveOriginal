@@ -879,11 +879,8 @@ def verify_ubi():
                     referral_error_message = str(ref_error)
                     logger.error(f"🎁 ========================================")
 
-            # Auto-accept terms for all users - skip terms page
-            session['terms_accepted'] = True
+            # Set permanent session
             session.permanent = True
-
-            redirect_url = "/overview"
 
             response_data = {
                 'success': True,
@@ -893,7 +890,7 @@ def verify_ubi():
                 'claim_amount': claim_amount,
                 'activities': result.get("activities", []),
                 'summary': result.get("summary", {}),
-                'redirect_to': redirect_url
+                'redirect_to': '/overview'
             }
             return jsonify(response_data)
         else:
@@ -2738,16 +2735,129 @@ def get_module_links():
 @routes.route("/api/admin/module-links", methods=["POST"])
 @admin_required
 def add_module_link():
-    """Add new module link (admin only)"""
+    """Add new module link (admin only) - supports auto-scraping from URL"""
     try:
         data = request.json
         title = data.get('title', '').strip()
         url = data.get('url', '').strip()
         description = data.get('description', '').strip()
+        content = data.get('content', '').strip()
+        reading_time_minutes = int(data.get('reading_time_minutes', 5))
         display_order = int(data.get('display_order', 1))
 
-        if not title or not url:
-            return jsonify({"success": False, "error": "Title and URL are required"}), 400
+        if not title:
+            return jsonify({"success": False, "error": "Title is required"}), 400
+
+        # Auto-scrape content from URL if no content provided - ALWAYS ENABLED
+        if url and not content:
+            logger.info(f"🔍 🤖 AUTO-SCRAPING ENABLED - Fetching content from URL: {url}")
+            try:
+                import requests
+                from bs4 import BeautifulSoup
+                
+                # Fetch webpage with comprehensive headers to avoid bot detection
+                logger.info(f"📥 Downloading webpage...")
+                headers = {
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
+                    'Accept-Language': 'en-US,en;q=0.9',
+                    'Accept-Encoding': 'gzip, deflate, br',
+                    'DNT': '1',
+                    'Connection': 'keep-alive',
+                    'Upgrade-Insecure-Requests': '1',
+                    'Sec-Fetch-Dest': 'document',
+                    'Sec-Fetch-Mode': 'navigate',
+                    'Sec-Fetch-Site': 'none',
+                    'Cache-Control': 'max-age=0',
+                }
+                
+                response = requests.get(url, timeout=15, headers=headers, allow_redirects=True)
+                response.raise_for_status()
+                logger.info(f"✅ Webpage downloaded successfully ({len(response.content)} bytes)")
+                
+                # Parse HTML
+                soup = BeautifulSoup(response.content, 'html.parser')
+                
+                # Remove script, style, and nav elements
+                for element in soup(['script', 'style', 'nav', 'footer', 'header', 'aside', 'iframe', 'noscript']):
+                    element.decompose()
+                
+                # Extract main content (try common article containers, including Medium-specific)
+                main_content = (
+                    soup.find('article') or 
+                    soup.find('div', class_='postArticle-content') or  # Medium specific
+                    soup.find('section', class_='section--body') or  # Medium specific
+                    soup.find('main') or 
+                    soup.find('div', class_='content') or
+                    soup.find('div', class_='article') or
+                    soup.find('body')
+                )
+                
+                if main_content:
+                    logger.info(f"📄 Found main content container: {main_content.name}")
+                    # Get text with basic HTML structure
+                    scraped_html = ""
+                    
+                    # Extract headings and paragraphs
+                    for element in main_content.find_all(['h1', 'h2', 'h3', 'p', 'ul', 'ol']):
+                        if element.name == 'h1':
+                            scraped_html += f"<h2>{element.get_text().strip()}</h2>\n"
+                        elif element.name == 'h2':
+                            scraped_html += f"<h3>{element.get_text().strip()}</h3>\n"
+                        elif element.name == 'h3':
+                            scraped_html += f"<h3>{element.get_text().strip()}</h3>\n"
+                        elif element.name == 'p':
+                            text = element.get_text().strip()
+                            if text:
+                                scraped_html += f"<p>{text}</p>\n"
+                        elif element.name == 'ul':
+                            scraped_html += "<ul>\n"
+                            for li in element.find_all('li', recursive=False):
+                                scraped_html += f"<li>{li.get_text().strip()}</li>\n"
+                            scraped_html += "</ul>\n"
+                        elif element.name == 'ol':
+                            scraped_html += "<ol>\n"
+                            for li in element.find_all('li', recursive=False):
+                                scraped_html += f"<li>{li.get_text().strip()}</li>\n"
+                            scraped_html += "</ol>\n"
+                    
+                    content = scraped_html.strip()
+                    
+                    # Auto-calculate reading time (average 200 words per minute)
+                    word_count = len(content.split())
+                    reading_time_minutes = max(1, round(word_count / 200))
+                    
+                    logger.info(f"✅ ✅ ✅ AUTO-SCRAPE SUCCESSFUL!")
+                    logger.info(f"📊 Content: {len(content)} characters")
+                    logger.info(f"📊 Words: {word_count}")
+                    logger.info(f"⏰ Reading time: ~{reading_time_minutes} minutes")
+                else:
+                    logger.warning(f"⚠️ Could not find main content in {url}")
+                    
+            except Exception as scrape_error:
+                logger.error(f"❌ Auto-scrape error: {scrape_error}")
+                import traceback
+                logger.error(f"🔍 Traceback: {traceback.format_exc()}")
+                
+                # Provide helpful error message
+                error_msg = str(scrape_error)
+                if "403" in error_msg or "Forbidden" in error_msg:
+                    error_msg = "Website blocked auto-scraping (403 Forbidden). Please copy and paste the content manually instead."
+                elif "404" in error_msg:
+                    error_msg = "Page not found (404). Please check the URL."
+                elif "timeout" in error_msg.lower():
+                    error_msg = "Request timed out. Please try again or paste content manually."
+                else:
+                    error_msg = f"Failed to scrape URL: {error_msg}"
+                
+                return jsonify({
+                    "success": False, 
+                    "error": error_msg
+                }), 400
+
+        # Validate content exists
+        if not content:
+            return jsonify({"success": False, "error": "Content is required (or enable auto-scrape with valid URL)"}), 400
 
         supabase = get_supabase_client()
         if not supabase:
@@ -2758,6 +2868,8 @@ def add_module_link():
             'title': title,
             'url': url,
             'description': description,
+            'content': content,
+            'reading_time_minutes': reading_time_minutes,
             'display_order': display_order,
             'is_active': True,
             'created_at': datetime.utcnow().isoformat(),
