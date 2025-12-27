@@ -552,8 +552,8 @@ class LearnEarnQuizManager:
                 'eligible': True,
                 'blocked': False,
                 'reason': 'No recent quiz completion found',
-                'message': f'You can take the quiz and earn up to {self.questions_per_quiz * self.reward_per_correct} G$!',
-                'max_reward': self.questions_per_quiz * self.reward_per_correct,
+                'message': f'You can take the quiz and earn up to {quiz_manager.questions_per_quiz * quiz_manager.reward_per_correct} G$!',
+                'max_reward': quiz_manager.questions_per_quiz * quiz_manager.reward_per_correct,
                 'can_take_now': True,
                 'cooldown_hours': 120,
                 'feature_available': True
@@ -567,9 +567,9 @@ class LearnEarnQuizManager:
                 'eligible': True,  # Default to eligible if check fails
                 'blocked': False,
                 'reason': 'Eligibility check bypassed due to error',
-                'message': f'Learn & Earn available - you can take the quiz and earn up to {self.questions_per_quiz * self.reward_per_correct} G$!',
+                'message': f'Learn & Earn available - you can take the quiz and earn up to {quiz_manager.questions_per_quiz * quiz_manager.reward_per_correct} G$!',
                 'feature_available': True,
-                'max_reward': self.questions_per_quiz * self.reward_per_correct,
+                'max_reward': quiz_manager.questions_per_quiz * quiz_manager.reward_per_correct,
                 'can_take_now': True,
                 'cooldown_hours': 120,
                 'error': str(e)  # Include error for debugging
@@ -750,26 +750,124 @@ class LearnEarnQuizManager:
             return False
 
     def get_module_links(self):
-        """Get active module links for Learn & Earn"""
+        """Get active module links for Learn & Earn with automatic content scraping"""
         try:
+            from supabase_client import get_supabase_client
             supabase = get_supabase_client()
+
             if not supabase:
+                logger.error("❌ Supabase client not available for module links")
                 return []
 
+            # Get active module links
             result = supabase.table('learn_earn_module_links')\
-                .select('*')\
+                .select('id, title, url, description, content, reading_time_minutes, display_order')\
                 .eq('is_active', True)\
                 .order('display_order', desc=False)\
                 .execute()
 
-            if result.data:
+            if result.data and len(result.data) > 0:
                 logger.info(f"✅ Retrieved {len(result.data)} module links")
-                return result.data
 
-            return []
+                # Auto-scrape missing content
+                for link in result.data:
+                    has_content = bool(link.get('content') and link.get('content').strip())
+                    has_url = bool(link.get('url') and link.get('url').strip())
+
+                    # If no content but has URL, auto-scrape
+                    if not has_content and has_url:
+                        logger.info(f"🔍 Auto-scraping content for '{link.get('title')}' from {link.get('url')}")
+                        try:
+                            import requests
+                            from bs4 import BeautifulSoup
+
+                            # Fetch webpage
+                            response = requests.get(link.get('url'), timeout=10, headers={
+                                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+                            })
+                            response.raise_for_status()
+
+                            # Parse HTML
+                            soup = BeautifulSoup(response.content, 'html.parser')
+
+                            # Remove unwanted elements
+                            for element in soup(['script', 'style', 'nav', 'footer', 'header', 'aside']):
+                                element.decompose()
+
+                            # Extract main content
+                            main_content = (
+                                soup.find('article') or
+                                soup.find('main') or
+                                soup.find('div', class_='content') or
+                                soup.find('div', class_='article') or
+                                soup.find('body')
+                            )
+
+                            if main_content:
+                                scraped_html = ""
+
+                                # Extract headings and paragraphs
+                                for element in main_content.find_all(['h1', 'h2', 'h3', 'p', 'ul', 'ol']):
+                                    if element.name == 'h1':
+                                        scraped_html += f"<h2>{element.get_text().strip()}</h2>\n"
+                                    elif element.name == 'h2':
+                                        scraped_html += f"<h3>{element.get_text().strip()}</h3>\n"
+                                    elif element.name == 'h3':
+                                        scraped_html += f"<h3>{element.get_text().strip()}</h3>\n"
+                                    elif element.name == 'p':
+                                        text = element.get_text().strip()
+                                        if text:
+                                            scraped_html += f"<p>{text}</p>\n"
+                                    elif element.name == 'ul':
+                                        scraped_html += "<ul>\n"
+                                        for li in element.find_all('li', recursive=False):
+                                            scraped_html += f"<li>{li.get_text().strip()}</li>\n"
+                                        scraped_html += "</ul>\n"
+                                    elif element.name == 'ol':
+                                        scraped_html += "<ol>\n"
+                                        for li in element.find_all('li', recursive=False):
+                                            scraped_html += f"<li>{li.get_text().strip()}</li>\n"
+                                        scraped_html += "</ol>\n"
+
+                                content = scraped_html.strip()
+
+                                # Auto-calculate reading time
+                                word_count = len(content.split())
+                                reading_time = max(1, round(word_count / 200))
+
+                                # Update database with scraped content
+                                supabase.table('learn_earn_module_links')\
+                                    .update({
+                                        'content': content,
+                                        'reading_time_minutes': reading_time
+                                    })\
+                                    .eq('id', link.get('id'))\
+                                    .execute()
+
+                                # Update in-memory link data
+                                link['content'] = content
+                                link['reading_time_minutes'] = reading_time
+
+                                logger.info(f"✅ Auto-scraped {len(content)} chars, {word_count} words, ~{reading_time} min read")
+                            else:
+                                logger.warning(f"⚠️ Could not find main content in {link.get('url')}")
+
+                        except Exception as scrape_error:
+                            logger.error(f"❌ Auto-scrape failed for '{link.get('title')}': {scrape_error}")
+
+                    # Log final status
+                    has_content = bool(link.get('content') and link.get('content').strip())
+                    logger.info(f"   Module '{link.get('title')}': has_content={has_content}, reading_time={link.get('reading_time_minutes')}min")
+
+                return result.data
+            else:
+                logger.warning("⚠️ No active module links found in database")
+                return []
 
         except Exception as e:
             logger.error(f"❌ Error getting module links: {e}")
+            import traceback
+            logger.error(f"❌ Traceback: {traceback.format_exc()}")
             return []
 
     def get_username_from_db(self, wallet_address: str):
@@ -1020,6 +1118,33 @@ def start_quiz(current_user):
                 'error': 'No questions available. Please try again later.'
             }), 500
 
+        # Get module links BEFORE creating quiz session
+        module_links = quiz_manager.get_module_links()
+        logger.info(f"📚 Retrieved {len(module_links)} module links for quiz session")
+
+        # Filter out module links without content
+        valid_module_links = []
+        if module_links:
+            for idx, link in enumerate(module_links):
+                content = link.get('content')
+
+                # Skip if content is None or empty
+                if content is None or content == '':
+                    logger.warning(f"   ⚠️ Module {idx + 1}: '{link.get('title')}' - content is NULL or empty in database (SKIPPED)")
+                    continue
+
+                # Convert to string and check if it has actual content
+                content_str = str(content).strip()
+                if not content_str:
+                    logger.warning(f"   ⚠️ Module {idx + 1}: '{link.get('title')}' - content is whitespace only (SKIPPED)")
+                    continue
+
+                # Valid content found
+                logger.info(f"   ✅ Module {idx + 1}: '{link.get('title')}' - valid content ({len(content_str)} chars, {link.get('reading_time_minutes', 5)} min reading time)")
+                valid_module_links.append(link)
+
+        logger.info(f"📚 {len(valid_module_links)} module links with valid content will be shown")
+
         # Create quiz session
         quiz_session = quiz_manager.create_quiz_session(current_user, questions)
 
@@ -1050,10 +1175,6 @@ def start_quiz(current_user):
                 'difficulty': q.get('difficulty')
             })
 
-        # Get module links
-        module_links = quiz_manager.get_module_links()
-        logger.info(f"✅ Retrieved {len(module_links)} module links for quiz session")
-
         return jsonify({
             'success': True,
             'quiz_session': {
@@ -1066,7 +1187,7 @@ def start_quiz(current_user):
                     'reward_per_correct': quiz_manager.reward_per_correct,
                     'max_reward': len(quiz_questions_for_response) * quiz_manager.reward_per_correct
                 },
-                'module_links': module_links
+                'module_links': valid_module_links
             },
             'feature_status': 'available',
             'learn_balance': learn_balance
@@ -1236,7 +1357,7 @@ def submit_quiz(current_user):
                 finally:
                     loop.close()
 
-        # Only save quiz attempt to database if reward was successfully sent OR if user wasn't eligible
+        # Only save quiz attempt to database if reward was actually sent OR if user wasn't eligible
         if should_block_user or not eligible:
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
