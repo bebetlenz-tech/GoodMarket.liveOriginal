@@ -402,6 +402,72 @@
         .fa-camera, .fa-external-link-alt, .fa-save, .fa-upload, .fa-spinner, .fa-check-circle, .fa-exclamation-circle {
             font-weight: 900;
         }
+
+        /* Custom styles for the module links section */
+        .admin-input {
+            display: block;
+            width: 100%;
+            padding: 0.75rem;
+            margin-bottom: 1rem;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 8px;
+            color: #f1f5f9;
+            font-size: 1rem;
+            box-sizing: border-box;
+        }
+        .admin-input:focus {
+            outline: none;
+            border-color: #6366f1;
+            box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.25);
+        }
+        .admin-btn {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            background-color: #6366f1;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: background-color 0.3s ease;
+        }
+        .admin-btn:hover {
+            background-color: #a855f7;
+        }
+        .module-link-item {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        .module-link-item div {
+            flex: 1;
+        }
+        .module-link-item p {
+            font-size: 0.9rem;
+            color: rgba(241, 245, 249, 0.8);
+            margin-top: 0.5rem;
+        }
+        .module-link-item strong {
+            font-size: 1.1rem;
+            color: #f1f5f9;
+        }
+        .module-link-item button {
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
+            background: #ef4444;
+        }
+        .module-link-item button:hover {
+            background: #dc2626;
+        }
     </style>
 </head>
 <body>
@@ -1269,24 +1335,34 @@ CORRECT: C
             <form id="addModuleLinkForm" style="margin-bottom: 1.5rem; padding: 1.5rem; background: rgba(255, 255, 255, 0.05); border-radius: 12px;">
                 <div style="margin-bottom: 1rem;">
                     <label class="form-label">Link Title</label>
-                    <input type="text" id="moduleLinkTitle" placeholder="e.g., Introduction to Blockchain" class="form-control" required>
+                    <input type="text" id="newModuleLinkTitle" placeholder="e.g., Introduction to Blockchain" class="form-control" required>
                 </div>
 
-                <div style="margin-bottom: 1rem;">
-                    <label class="form-label">URL</label>
-                    <input type="url" id="moduleLinkUrl" placeholder="https://example.com/module" class="form-control" required>
+                <input type="text" id="newModuleLinkUrl" placeholder="Module Link URL (optional)" class="admin-input">
+                <textarea id="newModuleLinkDescription" placeholder="Description (optional)" class="admin-input" rows="2"></textarea>
+
+                <div style="margin-bottom: 1rem; padding: 1rem; background: rgba(34, 197, 94, 0.15); border-radius: 8px; border-left: 3px solid #22c55e;">
+                    <div style="color: #86efac; font-weight: 700; margin-bottom: 0.5rem; font-size: 1.1rem;">
+                        🤖 AUTO-SCRAPING ENABLED
+                    </div>
+                    <small style="display: block; color: rgba(241, 245, 249, 0.7); line-height: 1.6;">
+                        ✨ Just paste a URL above and leave "Content" empty<br>
+                        📥 System will automatically fetch and format the content<br>
+                        ⏰ Reading time will be calculated automatically<br>
+                        💾 No manual copy-paste needed!
+                    </small>
                 </div>
 
-                <div style="margin-bottom: 1rem;">
-                    <label class="form-label">Description (Optional)</label>
-                    <textarea id="moduleLinkDescription" rows="3" placeholder="Brief description of the module..." class="form-control"></textarea>
-                </div>
+                <label style="color: #667eea; font-weight: bold; margin-top: 10px; display: block;">Module Content (Optional - leave empty to auto-scrape from URL):</label>
+                <textarea id="newModuleLinkContent" placeholder="✨ LEAVE EMPTY to auto-scrape content from URL above ✨
 
-                <div style="margin-bottom: 1.5rem;">
-                    <label class="form-label">Display Order (Lower numbers appear first)</label>
-                    <input type="number" id="moduleLinkOrder" min="1" value="1" class="form-control" required>
-                </div>
+OR manually enter HTML content here...
+(Supported tags: <h2>, <h3>, <p>, <ul>, <ol>, <li>, <strong>, <em>)" class="admin-input" rows="10" style="font-family: monospace;"></textarea>
 
+                <label style="color: #667eea; font-weight: bold; margin-top: 10px; display: block;">Reading Time (minutes):</label>
+                <input type="number" id="newModuleLinkReadingTime" placeholder="5" class="admin-input" value="5" min="1" max="60">
+
+                <input type="number" id="newModuleLinkOrder" placeholder="Display Order" class="admin-input" value="1" min="1">
                 <button type="submit" class="btn btn-primary" style="width: 100%; padding: 1rem; font-size: 1.1rem;">
                     ➕ Add Module Link
                 </button>
@@ -2720,7 +2796,7 @@ CORRECT: C
 
                             facebookTasks.forEach((task, index) => {
                                 html += `
-                                    <tr id="task-row-facebook-${task.id}">
+                                    <tr id="task-facebook-${task.id}">
                                         <td>${index + 1}</td>
                                         <td style="font-family: monospace;">${task.wallet_address.substring(0,8)}...${task.wallet_address.substring(task.wallet_address.length - 6)}</td>
                                         <td>
@@ -3405,45 +3481,85 @@ CORRECT: C
             if (form) {
                 form.addEventListener('submit', async function(e) {
                     e.preventDefault();
-
-                    const title = document.getElementById('moduleLinkTitle').value.trim();
-                    const url = document.getElementById('moduleLinkUrl').value.trim();
-                    const description = document.getElementById('moduleLinkDescription').value.trim();
-                    const displayOrder = parseInt(document.getElementById('moduleLinkOrder').value);
-
-                    if (!title || !url) {
-                        alert('⚠️ Please fill in title and URL');
-                        return;
-                    }
-
-                    try {
-                        const response = await fetch('/api/admin/module-links', {
-                            method: 'POST',
-                            headers: {'Content-Type': 'application/json'},
-                            body: JSON.stringify({
-                                title: title,
-                                url: url,
-                                description: description,
-                                display_order: displayOrder
-                            })
-                        });
-
-                        const data = await response.json();
-
-                        if (data.success) {
-                            alert('✅ Module link added successfully!');
-                            form.reset();
-                            await loadModuleLinks();
-                        } else {
-                            alert('❌ Error: ' + (data.error || 'Unknown error'));
-                        }
-                    } catch (error) {
-                        console.error('Error adding module link:', error);
-                        alert('❌ Error adding module link: ' + error.message);
-                    }
+                    await addModuleLink(e);
                 });
             }
         })();
+
+        async function addModuleLink(submitEvent) {
+            const title = document.getElementById('newModuleLinkTitle').value.trim();
+            const url = document.getElementById('newModuleLinkUrl').value.trim();
+            const description = document.getElementById('newModuleLinkDescription').value.trim();
+            const content = document.getElementById('newModuleLinkContent').value.trim();
+            const readingTime = parseInt(document.getElementById('newModuleLinkReadingTime').value) || 5;
+            const displayOrder = parseInt(document.getElementById('newModuleLinkOrder').value) || 1;
+
+            if (!title) {
+                alert('⚠️ Title is required!');
+                return;
+            }
+
+            // Find the submit button
+            const submitBtn = submitEvent.target.querySelector('button[type="submit"]');
+
+            try {
+                // Show loading message if URL provided but no content (auto-scraping)
+                const willAutoScrape = url && !content;
+                if (willAutoScrape) {
+                    if (submitBtn) {
+                        submitBtn.disabled = true;
+                        submitBtn.textContent = '🤖 Auto-scraping content from URL...';
+                        submitBtn.style.background = 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)';
+                    }
+                }
+
+                const response = await fetch('/api/admin/module-links', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        title,
+                        url,
+                        description,
+                        content,
+                        reading_time_minutes: readingTime,
+                        display_order: displayOrder
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    const wasAutoScraped = url && !content;
+                    const successMsg = wasAutoScraped 
+                        ? '✅ Module link added successfully!\n🤖 Content auto-scraped from URL!'
+                        : '✅ Module link added successfully!';
+                    alert(successMsg);
+                    
+                    document.getElementById('newModuleLinkTitle').value = '';
+                    document.getElementById('newModuleLinkUrl').value = '';
+                    document.getElementById('newModuleLinkDescription').value = '';
+                    document.getElementById('newModuleLinkContent').value = '';
+                    document.getElementById('newModuleLinkReadingTime').value = '5';
+                    document.getElementById('newModuleLinkOrder').value = '1';
+                    
+                    await loadModuleLinks();
+                } else {
+                    alert('❌ Error: ' + (data.error || 'Unknown error'));
+                }
+            } catch (error) {
+                console.error('Error adding module link:', error);
+                alert('❌ Error adding module link: ' + error.message);
+            } finally {
+                // Reset button state
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = '➕ Add Module Link';
+                    submitBtn.style.background = '';
+                }
+            }
+        }
     </script>
 </body>
 </html>
