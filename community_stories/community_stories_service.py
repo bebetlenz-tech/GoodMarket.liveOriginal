@@ -17,7 +17,6 @@ class CommunityStoriesService:
         self.logger.info("🌟 Community Stories Service initialized")
 
     def get_config(self):
-        """Get Community Stories configuration - reads from database if available"""
         try:
             from supabase_client import get_supabase_client, safe_supabase_operation
             import json
