@@ -63,7 +63,7 @@ def claim_daily_task():
         wallet = session.get('wallet')
         data = request.get_json()
 
-        platform = data.get('platform')  # 'twitter' or 'telegram'
+        platform = data.get('platform')  # 'twitter' or 'telegram' or 'facebook'
         post_url = data.get('post_url')
 
         if platform not in ['twitter', 'telegram', 'facebook']:
@@ -882,17 +882,13 @@ def verify_ubi():
             # Set permanent session
             session.permanent = True
 
-            response_data = {
+            return jsonify({
                 'success': True,
-                'message': result["message"],
+                'message': 'Identity verification successful!',
                 'wallet': wallet_address,
-                'block_number': block_number,
-                'claim_amount': claim_amount,
-                'activities': result.get("activities", []),
-                'summary': result.get("summary", {}),
+                'ubi_verified': True,
                 'redirect_to': '/overview'
-            }
-            return jsonify(response_data)
+            })
         else:
             # Track failed verification
             analytics.track_verification_attempt(wallet_address, False)
@@ -940,7 +936,7 @@ def overview():
             wallet = None
             verified = False
         else:
-            # Valid session - track overview visit
+            # Valid session - track overview page visit
             analytics.track_page_view(wallet, "overview")
 
     # Get analytics - pass None for guest users, wallet for authenticated users
@@ -1274,7 +1270,7 @@ def get_reward_config():
     """Get all reward configurations (admin only)"""
     try:
         from reward_config_service import reward_config_service
-        
+
         result = reward_config_service.get_all_rewards()
         return jsonify(result)
     except Exception as e:
@@ -1287,17 +1283,17 @@ def update_reward_config():
     """Update reward configuration (admin only)"""
     try:
         from reward_config_service import reward_config_service
-        
+
         data = request.json
         task_type = data.get('task_type')
         new_amount = float(data.get('reward_amount', 0))
         admin_wallet = session.get('wallet')
-        
+
         if not task_type or task_type not in ['telegram_task', 'twitter_task', 'facebook_task']:
             return jsonify({"success": False, "error": "Invalid task type"}), 400
-        
+
         result = reward_config_service.update_reward_amount(task_type, new_amount, admin_wallet)
-        
+
         if result.get('success'):
             # Log admin action
             log_admin_action(
@@ -1308,11 +1304,13 @@ def update_reward_config():
                     "new_amount": new_amount
                 }
             )
-        
+
         return jsonify(result)
     except Exception as e:
         logger.error(f"❌ Update reward config error: {e}")
         return jsonify({"success": False, "error": str(e)}), 500
+
+
 
 @routes.route("/api/admin/quiz-questions", methods=["GET"])
 @admin_required
@@ -3084,3 +3082,98 @@ def get_admin_notifications():
     except Exception as e:
         logger.error(f"❌ Error getting admin notifications: {e}")
         return jsonify({"success": False, "error": str(e)}), 500
+
+@routes.route("/api/admin/developer-profile", methods=["POST"])
+@admin_required
+def upload_developer_profile():
+    """Upload developer profile image (admin only) - supports multiple profiles"""
+    try:
+        from object_storage_client import upload_to_imgbb
+
+        if 'image' not in request.files:
+            return jsonify({"success": False, "error": "No image file provided"}), 400
+
+        image_file = request.files['image']
+        name = request.form.get('name', '').strip()
+        position = request.form.get('position', '').strip()
+
+        if not name or not position:
+            return jsonify({"success": False, "error": "Name and position are required"}), 400
+
+        # Upload to ImgBB
+        upload_result = upload_to_imgbb(image_file)
+
+        if not upload_result.get('success'):
+            return jsonify({"success": False, "error": upload_result.get('error', 'Upload failed')}), 500
+
+        image_url = upload_result.get('url')
+
+        # Store in database
+        supabase = get_supabase_client()
+        if not supabase:
+            return jsonify({"success": False, "error": "Database not available"}), 500
+
+        from datetime import datetime
+        profile_data = {
+            'name': name,
+            'position': position,
+            'image_url': image_url,
+            'is_active': True,
+            'created_at': datetime.utcnow().isoformat()
+        }
+
+        # Always insert new profile (allows multiple developers)
+        result = safe_supabase_operation(
+            lambda: supabase.table('developer_profile').insert(profile_data).execute(),
+            fallback_result=type('obj', (object,), {'data': []})(),
+            operation_name="insert developer profile"
+        )
+
+        if result.data:
+            admin_wallet = session.get('wallet')
+            log_admin_action(
+                admin_wallet=admin_wallet,
+                action_type="upload_developer_profile",
+                action_details={"name": name, "position": position}
+            )
+
+            logger.info(f"✅ Developer profile uploaded: {name}")
+            return jsonify({"success": True, "profile": result.data[0]})
+        else:
+            return jsonify({"success": False, "error": "Failed to save profile"}), 500
+
+    except Exception as e:
+        logger.error(f"❌ Upload developer profile error: {e}")
+        import traceback
+        logger.error(f"Traceback: {traceback.format_exc()}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@routes.route("/api/developer-profile", methods=["GET"])
+def get_developer_profile():
+    """Get all active developer profiles for homepage"""
+    try:
+        supabase = get_supabase_client()
+        if not supabase:
+            return jsonify({"success": False, "profiles": []})
+
+        result = safe_supabase_operation(
+            lambda: supabase.table('developer_profile')\
+                .select('*')\
+                .eq('is_active', True)\
+                .order('created_at', desc=False)\
+                .execute(),
+            fallback_result=type('obj', (object,), {'data': []})(),
+            operation_name="get developer profiles"
+        )
+
+        profiles = result.data if result.data else []
+
+        return jsonify({
+            "success": True,
+            "profiles": profiles,
+            "count": len(profiles)
+        })
+
+    except Exception as e:
+        logger.error(f"❌ Get developer profiles error: {e}")
+        return jsonify({"success": False, "profiles": []})
