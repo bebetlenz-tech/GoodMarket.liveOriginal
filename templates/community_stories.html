@@ -722,7 +722,7 @@
                             `).join('')}
                         </div>
                     `;
-                    
+
                     // Update both containers
                     document.getElementById('requirementExamplesContainer').innerHTML = examplesHtml;
                     const submitFormContainer = document.getElementById('submitFormExamplesContainer');
@@ -758,7 +758,7 @@
                     const customMessageBox = document.getElementById('customMessageBox');
                     customMessageBox.innerHTML = data.config.description;
                     customMessageBox.style.display = 'block';
-                    
+
                     console.log('✅ Custom message loaded from admin settings');
                 } else {
                     // Show default boxes if no custom message
