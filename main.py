@@ -295,6 +295,14 @@ if init_community_stories(app):
 else:
     logger.error("❌ Community Stories initialization failed")
 
+# Initialize Reward Configuration Service
+logger.info("💰 Initializing Reward Configuration Service...")
+try:
+    from reward_config_service import reward_config_service
+    logger.info("✅ Reward Configuration Service initialized")
+except Exception as e:
+    logger.error(f"❌ Reward Configuration Service initialization failed: {e}")
+
 # Initialize Learn & Earn System at module level (required for gunicorn)
 logger.info("🎓 Initializing Learn & Earn system...")
 if init_learn_and_earn(app):
