@@ -747,6 +747,16 @@
 
 
 
+    <!-- Developer Profiles Section -->
+    <section id="developerProfile" style="padding: 2rem; max-width: 1400px; margin: 0 auto; display: none;">
+        <h2 style="text-align: center; font-size: 2rem; font-weight: 800; color: #1f2937; margin-bottom: 2rem;">
+            👨‍💻 Meet Our Developers
+        </h2>
+        <div id="developerGrid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
+            <!-- Developer profiles will be inserted here -->
+        </div>
+    </section>
+
     <!-- Community Channels Section -->
     <section style="padding: 3rem 2rem; max-width: 1400px; margin: 0 auto;">
         <div style="background: linear-gradient(135deg, #7c3aed, #6d28d9); border-radius: 20px; padding: 2.5rem; box-shadow: 0 4px 6px rgba(124, 58, 237, 0.3);">
@@ -1011,6 +1021,43 @@
                 connectWallet();
             }
         });
+
+        // Load developer profiles
+        async function loadDeveloperProfile() {
+            try {
+                const response = await fetch('/api/developer-profile');
+                const data = await response.json();
+                
+                if (data.success && data.profiles && data.profiles.length > 0) {
+                    const grid = document.getElementById('developerGrid');
+                    grid.innerHTML = '';
+                    
+                    data.profiles.forEach(profile => {
+                        const profileCard = document.createElement('div');
+                        profileCard.style.cssText = 'background: linear-gradient(135deg, #f3f4f6, #e5e7eb); border-radius: 16px; padding: 1.5rem; text-align: center; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); transition: transform 0.3s ease;';
+                        profileCard.onmouseover = function() { this.style.transform = 'translateY(-5px)'; };
+                        profileCard.onmouseout = function() { this.style.transform = 'translateY(0)'; };
+                        
+                        profileCard.innerHTML = `
+                            <div style="display: inline-block; position: relative; margin-bottom: 1rem;">
+                                <img src="${profile.image_url}" alt="${profile.name}" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 3px solid #7c3aed; box-shadow: 0 4px 8px rgba(124, 58, 237, 0.3);">
+                            </div>
+                            <h3 style="font-size: 1.1rem; font-weight: 700; color: #1f2937; margin-bottom: 0.5rem;">${profile.name}</h3>
+                            <p style="font-size: 0.9rem; color: #6b7280; font-weight: 500;">${profile.position}</p>
+                        `;
+                        
+                        grid.appendChild(profileCard);
+                    });
+                    
+                    document.getElementById('developerProfile').style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Error loading developer profiles:', error);
+            }
+        }
+
+        // Load profiles on page load
+        window.addEventListener('load', loadDeveloperProfile);
 
         </script>
 </body>
