@@ -437,14 +437,14 @@ def get_gooddollar_balance_api():
         # Use blockchain.py get_gooddollar_balance function directly
         from blockchain import get_gooddollar_balance as get_balance
         result = get_balance(wallet)
-        
+
         if not result:
             return jsonify({
                 "success": False,
                 "error": "Failed to fetch balance",
                 "balance_formatted": "Error loading"
             }), 500
-            
+
         return jsonify(result)
     except Exception as e:
         logger.error(f"❌ Balance API error: {e}")
@@ -469,19 +469,19 @@ def get_balance_by_wallet(wallet_address):
         # Use blockchain.py get_gooddollar_balance function directly
         from blockchain import get_gooddollar_balance as get_balance
         result = get_balance(wallet_address)
-        
+
         if not result:
             return jsonify({
-                'success': False, 
+                'success': False,
                 'error': 'Failed to fetch balance',
                 'balance_formatted': 'Error loading'
             }), 500
-            
+
         return jsonify(result)
     except Exception as e:
         logger.error(f"Balance API error: {e}")
         return jsonify({
-            'success': False, 
+            'success': False,
             'error': str(e),
             'balance_formatted': 'Error loading'
         }), 500
@@ -504,7 +504,7 @@ def logout():
 def get_gooddollar_balance():
     """Get GoodDollar balance for authenticated user"""
     try:
-        wallet_address = session.get('wallet')
+        wallet_address = session.get('wallet') or session.get('wallet_address')
         if not wallet_address or not session.get('verified'):
             return jsonify({'success': False, 'error': 'Not authenticated'}), 401
 
@@ -723,7 +723,7 @@ def verify_identity():
         # Store in session with permanent flag
         session.permanent = True  # Make session persistent across browser restarts
         session['wallet'] = wallet_address
-        session['wallet_address'] = wallet_address # Ensure wallet_address is also set
+        session['wallet_address'] = wallet_address
         session['verified'] = True
         session['ubi_verified'] = True # Add this for clarity
         session['verification_time'] = datetime.now().isoformat()
@@ -732,17 +732,13 @@ def verify_identity():
 
         logger.info(f"✅ Identity verification successful for {wallet_address}")
 
-        response_data = {
-            'success': True,
-            'message': 'Identity verification successful!',
-            'wallet': wallet_address,
-            'ubi_verified': True,
-            'redirect_to': '/overview'
-        }
-
-        # Referral system removed
-
-        return jsonify(response_data)
+        return jsonify({
+                'success': True,
+                'message': 'Identity verification successful!',
+                'wallet': wallet_address,
+                'ubi_verified': True,
+                'redirect_to': '/overview'
+            })
 
     except Exception as e:
         logger.error(f"❌ Identity verification error: {e}")
