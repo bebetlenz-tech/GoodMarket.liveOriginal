@@ -119,6 +119,155 @@
             margin-bottom: 0.5rem;
         }
 
+        /* Admin Sections */
+        .admin-section {
+            display: none;
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+
+        .admin-section.active {
+            display: block;
+        }
+
+        .admin-section h2 {
+            margin-bottom: 1rem;
+            color: #f1f5f9;
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .admin-section h3 {
+            margin-bottom: 1rem;
+            color: #6366f1; /* Primary color for emphasis */
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .admin-section p {
+            font-size: 0.9rem;
+            color: rgba(241, 245, 249, 0.7);
+            margin-bottom: 1rem;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: rgba(241, 245, 249, 0.9);
+        }
+
+        .admin-input, .form-control {
+            display: block;
+            width: 100%;
+            padding: 0.75rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            color: #f1f5f9;
+            font-size: 1rem;
+            box-sizing: border-box;
+            transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+        }
+        .admin-input:focus, .form-control:focus {
+            outline: none;
+            border-color: #6366f1;
+            box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.25);
+        }
+
+        .admin-btn {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            background-color: #6366f1;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+        .admin-btn:hover {
+            background-color: #a855f7;
+            transform: translateY(-2px);
+        }
+        .admin-btn:active {
+            transform: translateY(0);
+        }
+
+        .admin-btn.danger {
+            background-color: #ef4444;
+        }
+        .admin-btn.danger:hover {
+            background-color: #dc2626;
+        }
+
+        .status-message {
+            margin-top: 1rem;
+            padding: 0.75rem;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: 500;
+            display: none;
+        }
+        .status-message.success {
+            background-color: rgba(16, 185, 129, 0.15);
+            color: #10b981;
+        }
+        .status-message.error {
+            background-color: rgba(239, 68, 68, 0.15);
+            color: #ef4444;
+        }
+        .status-message.warning {
+            background-color: rgba(251, 191, 36, 0.15);
+            color: #fbbf24;
+        }
+
+        /* Tab buttons for admin sections */
+        .tab-buttons {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            overflow-x: auto;
+            padding-bottom: 0.5rem;
+        }
+
+        .tab-btn {
+            padding: 0.6rem 1.2rem;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            background: rgba(255, 255, 255, 0.05);
+            color: rgba(241, 245, 249, 0.8);
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .tab-btn:hover {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+            border-color: transparent;
+        }
+
+        .tab-btn.active:hover {
+            background: linear-gradient(135deg, #dc2626, #a40000);
+        }
+
         /* Section Container */
         .section {
             display: none;
@@ -484,87 +633,93 @@
         <aside class="sidebar">
             <ul class="sidebar-menu">
                 <li class="menu-item">
-                    <a class="menu-link active" onclick="showSection('overview')">
+                    <a class="menu-link active" onclick="showSection('overview-section')">
                         <span class="menu-icon">📊</span>
                         <span>Overview</span>
                     </a>
                 </li>
                 <li class="menu-item">
-                    <a class="menu-link" onclick="showSection('users')">
+                    <a class="menu-link" onclick="showSection('users-section')">
                         <span class="menu-icon">👥</span>
                         <span>Users Management</span>
                     </a>
                 </li>
                 <li class="menu-item">
-                    <a class="menu-link" onclick="showSection('community-stories')">
+                    <a class="menu-link" onclick="showSection('community-stories-section')">
                         <span class="menu-icon">🌟</span>
                         <span>Community Stories</span>
                     </a>
                 </li>
                 <li class="menu-item">
-                    <a class="menu-link" onclick="showSection('daily-tasks')">
+                    <a class="menu-link" onclick="showSection('daily-tasks-section')">
                         <span class="menu-icon">✅</span>
                         <span>Daily Tasks Mgmt</span>
                     </a>
                 </li>
                 <li class="menu-item">
-                    <a class="menu-link" onclick="showSection('quiz')">
+                    <a class="menu-link" onclick="showSection('quiz-section')">
                         <span class="menu-icon">📚</span>
                         <span>Quiz Questions</span>
                     </a>
                 </li>
                 <li class="menu-item">
-                    <a class="menu-link" onclick="showSection('maintenance')">
+                    <a class="menu-link" onclick="showSection('maintenance-section')">
                         <span class="menu-icon">🔧</span>
                         <span>Learn & Earn Maintenance</span>
                     </a>
                 </li>
                 <li class="menu-item">
-                    <a class="menu-link" onclick="showSection('minigames-maintenance')">
+                    <a class="menu-link" onclick="showSection('minigames-maintenance-section')">
                         <span class="menu-icon">🎮</span>
                         <span>Minigames Maintenance</span>
                     </a>
                 </li>
                 <li class="menu-item">
-                    <a class="menu-link" onclick="showSection('quiz-settings')">
+                    <a class="menu-link" onclick="showSection('quiz-settings-section')">
                         <span class="menu-icon">⚙️</span>
                         <span>Quiz Settings</span>
                     </a>
                 </li>
                 <li class="menu-item">
-                    <a class="menu-link" onclick="showSection('community-stories-settings')">
+                    <a class="menu-link" onclick="showSection('community-stories-settings-section')">
                         <span class="menu-icon">🌟</span>
                         <span>Community Stories Settings</span>
                     </a>
                 </li>
                 <li class="menu-item">
-                    <a class="menu-link" onclick="showSection('insufficient-balance')">
+                    <a class="menu-link" onclick="showSection('insufficient-balance-section')">
                         <span class="menu-icon">💰</span>
                         <span>Balance Error Message</span>
                     </a>
                 </li>
                 <li class="menu-item">
-                    <a class="menu-link" onclick="showSection('broadcast-messages')">
+                    <a class="menu-link" onclick="showSection('broadcast-messages-section')">
                         <span class="menu-icon">📢</span>
                         <span>Broadcast Messages</span>
                     </a>
                 </li>
                 <li class="menu-item">
-                    <a class="menu-link" onclick="showSection('news-management')">
+                    <a class="menu-link" onclick="showSection('news-management-section')">
                         <span class="menu-icon">📰</span>
                         <span>News Management</span>
                     </a>
                 </li>
                 <li class="menu-item">
-                    <a class="menu-link" onclick="showSection('module-links')">
+                    <a class="menu-link" onclick="showSection('module-links-section')">
                         <span class="menu-icon">🔗</span>
                         <span>Module Links</span>
                     </a>
                 </li>
                 <li class="menu-item">
-                    <a class="menu-link" onclick="showSection('reward-config')">
+                    <a class="menu-link" onclick="showSection('reward-config-section')">
                         <span class="menu-icon">💰</span>
                         <span>Reward Config</span>
+                    </a>
+                </li>
+                <li class="menu-item">
+                    <a class="menu-link" onclick="showSection('developer-profile-section')">
+                        <span class="menu-icon">👨‍💻</span>
+                        <span>Developer Profile</span>
                     </a>
                 </li>
             </ul>
@@ -1273,205 +1428,357 @@ CORRECT: C
                     </div>
                 </div>
             </section>
-        </main>
-    </div>
 
-    <!-- Add Question Modal -->
-    <div id="questionModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; overflow-y: auto;">
-        <div style="max-width: 600px; margin: 50px auto; background: linear-gradient(135deg, #1e293b 0%, #334155 100%); padding: 2rem; border-radius: 16px; border: 1px solid rgba(239, 68, 68, 0.2);">
-            <h2 id="modalTitle" style="margin-bottom: 1.5rem;">Add New Question</h2>
-
-            <div style="margin-bottom: 1rem;">
-                <label style="display: block; margin-bottom: 0.5rem; color: rgba(241, 245, 249, 0.9);">Question ID</label>
-                <input type="text" id="questionId" style="width: 100%; padding: 0.75rem; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: #f1f5f9;" placeholder="Q001">
-            </div>
-
-            <div style="margin-bottom: 1rem;">
-                <label style="display: block; margin-bottom: 0.5rem; color: rgba(241, 245, 249, 0.9);">Question</label>
-                <textarea id="questionText" rows="3" style="width: 100%; padding: 0.75rem; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: #f1f5f9;" placeholder="What is...?"></textarea>
-            </div>
-
-            <div style="margin-bottom: 1rem;">
-                <label style="display: block; margin-bottom: 0.5rem; color: rgba(241, 245, 249, 0.9);">Answer A</label>
-                <input type="text" id="answerA" style="width: 100%; padding: 0.75rem; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: #f1f5f9;">
-            </div>
-
-            <div style="margin-bottom: 1rem;">
-                <label style="display: block; margin-bottom: 0.5rem; color: rgba(241, 245, 249, 0.9);">Answer B</label>
-                <input type="text" id="answerB" style="width: 100%; padding: 0.75rem; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: #f1f5f9;">
-            </div>
-
-            <div style="margin-bottom: 1rem;">
-                <label style="display: block; margin-bottom: 0.5rem; color: rgba(241, 245, 249, 0.9);">Answer C</label>
-                <input type="text" id="answerC" style="width: 100%; padding: 0.75rem; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: #f1f5f9;">
-            </div>
-
-            <div style="margin-bottom: 1rem;">
-                <label style="display: block; margin-bottom: 0.5rem; color: rgba(241, 245, 249, 0.9);">Answer D</label>
-                <input type="text" id="answerD" style="width: 100%; padding: 0.75rem; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: #f1f5f9;">
-            </div>
-
-            <div style="margin-bottom: 1.5rem;">
-                <label style="display: block; margin-bottom: 0.5rem; color: rgba(241, 245, 249, 0.9);">Correct Answer</label>
-                <select id="correctAnswer" style="width: 100%; padding: 0.75rem; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: #f1f5f9;">
-                    <option value="A">A</option>
-                    <option value="B">B</option>
-                    <option value="C">C</option>
-                    <option value="D">D</option>
-                </select>
-            </div>
-
-            <div style="display: flex; gap: 1rem;">
-                <button class="btn btn-primary" onclick="saveQuestion()" style="flex: 1;">Save Question</button>
-                <button class="btn btn-danger" onclick="closeQuestionModal()" style="flex: 1;">Cancel</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Module Links Section (NEW) -->
-    <section id="module-links-section" class="section">
-        <div class="page-header">
-            <h1 class="page-title">🔗 Module Links</h1>
-            <p style="color: rgba(241, 245, 249, 0.7);">Manage the module links for the Learn & Earn section.</p>
-        </div>
-
-        <div class="content-box">
-            <h2>Add New Module Link</h2>
-
-            <form id="addModuleLinkForm" style="margin-bottom: 1.5rem; padding: 1.5rem; background: rgba(255, 255, 255, 0.05); border-radius: 12px;">
-                <div style="margin-bottom: 1rem;">
-                    <label class="form-label">Link Title</label>
-                    <input type="text" id="newModuleLinkTitle" placeholder="e.g., Introduction to Blockchain" class="form-control" required>
+            <!-- Developer Profile Section -->
+            <section id="developer-profile-section" class="section">
+                <div class="page-header">
+                    <h1 class="page-title">👨‍💻 Developer Profile</h1>
+                    <p style="color: rgba(241, 245, 249, 0.7);">Upload or update the developer profile displayed on the homepage</p>
                 </div>
 
-                <input type="text" id="newModuleLinkUrl" placeholder="Module Link URL (optional)" class="admin-input">
-                <textarea id="newModuleLinkDescription" placeholder="Description (optional)" class="admin-input" rows="2"></textarea>
+                <div class="content-box">
+                    <h2>Upload Developer Profile</h2>
 
-                <div style="margin-bottom: 1rem; padding: 1rem; background: rgba(34, 197, 94, 0.15); border-radius: 8px; border-left: 3px solid #22c55e;">
-                    <div style="color: #86efac; font-weight: 700; margin-top: 10px; margin-bottom: 0.5rem; font-size: 1.1rem;">
-                        🤖 AUTO-SCRAPING ENABLED
+                    <div style="padding: 1.5rem; background: rgba(255, 255, 255, 0.05); border-radius: 12px;">
+                        <div style="margin-bottom: 1.5rem;">
+                            <label class="form-label">Developer Name</label>
+                            <input type="text" id="developerName" placeholder="Enter developer name" class="form-control">
+                        </div>
+
+                        <div style="margin-bottom: 1.5rem;">
+                            <label class="form-label">Position/Title</label>
+                            <input type="text" id="developerPosition" placeholder="e.g., Community Moderator of GoodDollar and Developer of GoodMarket" class="form-control">
+                        </div>
+
+                        <div style="margin-bottom: 1.5rem;">
+                            <label class="form-label">Profile Image (recommended: 200x200px, max 5MB)</label>
+                            <input type="file" id="developerImageFile" accept="image/*" class="form-control">
+                            <small style="color: rgba(241, 245, 249, 0.6); display: block; margin-top: 0.5rem;">
+                                Supported formats: JPG, PNG, GIF
+                            </small>
+                        </div>
+
+                        <button onclick="uploadDeveloperProfile()" class="btn btn-primary" style="width: 100%; padding: 1rem; font-size: 1.1rem;">
+                            📤 Upload Profile
+                        </button>
                     </div>
-                    <small style="display: block; color: rgba(241, 245, 249, 0.7); line-height: 1.6;">
-                        ✨ Just paste a URL above and leave "Content" empty<br>
-                        📥 System will automatically fetch and format the content<br>
-                        ⏰ Reading time will be calculated automatically<br>
-                        💾 No manual copy-paste needed!
-                    </small>
-                </div>
 
-                <label style="color: #667eea; font-weight: bold; margin-top: 10px; display: block;">Module Content (Optional - leave empty to auto-scrape from URL):</label>
-                <textarea id="newModuleLinkContent" placeholder="✨ LEAVE EMPTY to auto-scrape content from URL above ✨
+                    <div id="developerProfileStatus" style="margin-top: 1rem; padding: 0.75rem; border-radius: 8px; display: none;"></div>
+
+                    <!-- Current Profile Display -->
+                    <div id="currentProfile" style="margin-top: 2rem; padding: 1.5rem; background: rgba(255, 255, 255, 0.05); border-radius: 12px; display: none;">
+                        <h3 style="margin-bottom: 1rem; color: #f1f5f9;">Current Profile:</h3>
+                        <div style="display: flex; align-items: center; gap: 1.5rem;">
+                            <img id="currentProfileImage" src="" alt="Profile" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 3px solid #6366f1;">
+                            <div>
+                                <div id="currentProfileName" style="font-weight: 700; font-size: 1.1rem; margin-bottom: 0.25rem; color: #f1f5f9;"></div>
+                                <div id="currentProfilePosition" style="color: rgba(241, 245, 249, 0.7);"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            
+
+            <!-- Add Question Modal -->
+            <div id="questionModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; overflow-y: auto;">
+                <div style="max-width: 600px; margin: 50px auto; background: linear-gradient(135deg, #1e293b 0%, #334155 100%); padding: 2rem; border-radius: 16px; border: 1px solid rgba(239, 68, 68, 0.2);">
+                    <h2 id="modalTitle" style="margin-bottom: 1.5rem;">Add New Question</h2>
+                    <div style="margin-bottom: 1rem;">
+                        <label style="display: block; margin-bottom: 0.5rem; color: rgba(241, 245, 249, 0.9);">Question ID</label>
+                        <input type="text" id="questionId" style="width: 100%; padding: 0.75rem; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: #f1f5f9;" placeholder="Q001">
+                    </div>
+                    <div style="margin-bottom: 1rem;">
+                        <label style="display: block; margin-bottom: 0.5rem; color: rgba(241, 245, 249, 0.9);">Question</label>
+                        <textarea id="questionText" rows="3" style="width: 100%; padding: 0.75rem; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: #f1f5f9;" placeholder="What is...?"></textarea>
+                    </div>
+                    <div style="margin-bottom: 1rem;">
+                        <label style="display: block; margin-bottom: 0.5rem; color: rgba(241, 245, 249, 0.9);">Answer A</label>
+                        <input type="text" id="answerA" style="width: 100%; padding: 0.75rem; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: #f1f5f9;">
+                    </div>
+                    <div style="margin-bottom: 1rem;">
+                        <label style="display: block; margin-bottom: 0.5rem; color: rgba(241, 245, 249, 0.9);">Answer B</label>
+                        <input type="text" id="answerB" style="width: 100%; padding: 0.75rem; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: #f1f5f9;">
+                    </div>
+                    <div style="margin-bottom: 1rem;">
+                        <label style="display: block; margin-bottom: 0.5rem; color: rgba(241, 245, 249, 0.9);">Answer C</label>
+                        <input type="text" id="answerC" style="width: 100%; padding: 0.75rem; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: #f1f5f9;">
+                    </div>
+                    <div style="margin-bottom: 1rem;">
+                        <label style="display: block; margin-bottom: 0.5rem; color: rgba(241, 245, 249, 0.9);">Answer D</label>
+                        <input type="text" id="answerD" style="width: 100%; padding: 0.75rem; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: #f1f5f9;">
+                    </div>
+                    <div style="margin-bottom: 1.5rem;">
+                        <label style="display: block; margin-bottom: 0.5rem; color: rgba(241, 245, 249, 0.9);">Correct Answer</label>
+                        <select id="correctAnswer" style="width: 100%; padding: 0.75rem; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: #f1f5f9;">
+                            <option value="A">A</option>
+                            <option value="B">B</option>
+                            <option value="C">C</option>
+                            <option value="D">D</option>
+                        </select>
+                    </div>
+                    <div style="display: flex; gap: 1rem;">
+                        <button class="btn btn-primary" onclick="saveQuestion()" style="flex: 1;">Save Question</button>
+                        <button class="btn btn-danger" onclick="closeQuestionModal()" style="flex: 1;">Cancel</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Module Links Section (NEW) -->
+            <div class="admin-section" id="module-links-section" style="display: none;">
+                <h2>🔗 Module Links</h2>
+                <p>Manage the module links for the Learn & Earn section.</p>
+
+                <div class="content-box">
+                    <h2>Add New Module Link</h2>
+
+                    <form id="addModuleLinkForm" style="margin-bottom: 1.5rem; padding: 1.5rem; background: rgba(255, 255, 255, 0.05); border-radius: 12px;">
+                        <div style="margin-bottom: 1rem;">
+                            <label class="form-label">Link Title</label>
+                            <input type="text" id="newModuleLinkTitle" placeholder="e.g., Introduction to Blockchain" class="form-control" required>
+                        </div>
+
+                        <input type="text" id="newModuleLinkUrl" placeholder="Module Link URL (optional)" class="admin-input">
+                        <textarea id="newModuleLinkDescription" placeholder="Description (optional)" class="admin-input" rows="2"></textarea>
+
+                        <div style="margin-bottom: 1rem; padding: 1rem; background: rgba(34, 197, 94, 0.15); border-radius: 8px; border-left: 3px solid #22c55e;">
+                            <div style="color: #86efac; font-weight: 700; margin-top: 10px; margin-bottom: 0.5rem; font-size: 1.1rem;">
+                                🤖 AUTO-SCRAPING ENABLED
+                            </div>
+                            <small style="display: block; color: rgba(241, 245, 249, 0.7); line-height: 1.6;">
+                                ✨ Just paste a URL above and leave "Content" empty<br>
+                                📥 System will automatically fetch and format the content<br>
+                                ⏰ Reading time will be calculated automatically<br>
+                                💾 No manual copy-paste needed!
+                            </small>
+                        </div>
+
+                        <label style="color: #667eea; font-weight: bold; margin-top: 10px; display: block;">Module Content (Optional - leave empty to auto-scrape from URL):</label>
+                        <textarea id="newModuleLinkContent" placeholder="✨ LEAVE EMPTY to auto-scrape content from URL above ✨
 
 OR manually enter HTML content here...
 (Supported tags: <h2>, <h3>, <p>, <ul>, <ol>, <li>, <strong>, <em>)" class="admin-input" rows="10" style="font-family: monospace;"></textarea>
 
-                <label style="color: #667eea; font-weight: bold; margin-top: 10px; display: block;">Reading Time (minutes):</label>
-                <input type="number" id="newModuleLinkReadingTime" placeholder="5" class="admin-input" value="5" min="1" max="60">
+                        <label style="color: #667eea; font-weight: bold; margin-top: 10px; display: block;">Reading Time (minutes):</label>
+                        <input type="number" id="newModuleLinkReadingTime" placeholder="5" class="admin-input" value="5" min="1" max="60">
 
-                <input type="number" id="newModuleLinkOrder" placeholder="Display Order" class="admin-input" value="1" min="1">
-                <button type="submit" class="btn btn-primary" style="width: 100%; padding: 1rem; font-size: 1.1rem;">
-                    ➕ Add Module Link
-                </button>
-            </form>
-        </div>
-
-        <div class="content-box">
-            <h2>Current Module Links</h2>
-            <div id="moduleLinksTable">
-                <div class="loading">
-                    <div class="spinner"></div>
-                    <p>Loading module links...</p>
+                        <input type="number" id="newModuleLinkOrder" placeholder="Display Order" class="admin-input" value="1" min="1">
+                        <button type="submit" class="btn btn-primary" style="width: 100%; padding: 1rem; font-size: 1.1rem;">
+                            ➕ Add Module Link
+                        </button>
+                    </form>
                 </div>
-            </div>
-        </div>
-    </section>
 
-    <!-- Reward Configuration Section (NEW) -->
-    <section id="reward-config-section" class="section">
-        <div class="page-header">
-            <h1 class="page-title">💰 Reward Configuration</h1>
-            <p style="color: rgba(241, 245, 249, 0.7);">Manage reward amounts for social media tasks.</p>
-        </div>
-
-        <div class="content-box">
-            <h2>Task Rewards</h2>
-            <div id="reward-config-status" style="margin-bottom: 2rem;">
-                <div class="loading">
-                    <div class="spinner"></div>
-                    <p>Loading reward configuration...</p>
+                <div class="content-box">
+                    <h2>Current Module Links</h2>
+                    <div id="moduleLinksTable">
+                        <div class="loading">
+                            <div class="spinner"></div>
+                            <p>Loading module links...</p>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <div id="reward-config-controls" style="display: none;">
-                <!-- Telegram Task Reward -->
-                <div style="margin-bottom: 2rem; padding: 1.5rem; background: rgba(255, 255, 255, 0.05); border-radius: 12px;">
-                    <h3 style="margin-bottom: 1rem; color: #00acee;">
-                        <span class="menu-icon">📱</span> Telegram Task Reward
-                    </h3>
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
-                        <div>
-                            <strong>Current Reward:</strong>
-                            <p id="current-telegram-reward" style="font-size: 1.5rem; color: #10b981; margin-top: 0.5rem;">Loading...</p>
-                            <small id="telegram-last-updated" class="text-muted"></small>
-                        </div>
-                        <div>
-                            <label class="form-label">New Reward Amount (G$)</label>
-                            <input type="number" id="telegram-reward-input" min="10" max="10000" step="10" class="form-control" placeholder="100">
-                        </div>
-                    </div>
-                    <button class="btn btn-primary" onclick="updateRewardConfig('telegram_task')" style="width: 100%; padding: 1rem; font-size: 1.1rem;">
-                        💾 Update Telegram Reward
-                    </button>
-                </div>
+            <!-- Reward Configuration Section (NEW) -->
+            <div class="admin-section" id="reward-config-section" style="display: none;">
+                <h2>💰 Reward Configuration</h2>
+                <p>Manage reward amounts for social media tasks.</p>
 
-                <!-- Twitter Task Reward -->
-                <div style="margin-bottom: 2rem; padding: 1.5rem; background: rgba(255, 255, 255, 0.05); border-radius: 12px;">
-                    <h3 style="margin-bottom: 1rem; color: #1DA1F2;">
-                        <span class="menu-icon">🐦</span> Twitter Task Reward
-                    </h3>
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
-                        <div>
-                            <strong>Current Reward:</strong>
-                            <p id="current-twitter-reward" style="font-size: 1.5rem; color: #10b981; margin-top: 0.5rem;">Loading...</p>
-                            <small id="twitter-last-updated" class="text-muted"></small>
-                        </div>
-                        <div>
-                            <label class="form-label">New Reward Amount (G$)</label>
-                            <input type="number" id="twitter-reward-input" min="10" max="10000" step="10" class="form-control" placeholder="100">
+                <div class="content-box">
+                    <h2>Task Rewards</h2>
+                    <div id="reward-config-status" style="margin-bottom: 2rem;">
+                        <div class="loading">
+                            <div class="spinner"></div>
+                            <p>Loading reward configuration...</p>
                         </div>
                     </div>
-                    <button class="btn btn-primary" onclick="updateRewardConfig('twitter_task')" style="width: 100%; padding: 1rem; font-size: 1.1rem;">
-                        💾 Update Twitter Reward
-                    </button>
-                </div>
 
-                <!-- Facebook Task Reward -->
-                <div style="margin-bottom: 2rem; padding: 1.5rem; background: rgba(255, 255, 255, 0.05); border-radius: 12px;">
-                    <h3 style="margin-bottom: 1rem; color: #1877F2;">
-                        <span class="menu-icon">📘</span> Facebook Task Reward
-                    </h3>
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
-                        <div>
-                            <strong>Current Reward:</strong>
-                            <p id="current-facebook-reward" style="font-size: 1.5rem; color: #10b981; margin-top: 0.5rem;">Loading...</p>
-                            <small id="facebook-last-updated" class="text-muted"></small>
+                    <div id="reward-config-controls" style="display: none;">
+                        <!-- Telegram Task Reward -->
+                        <div style="margin-bottom: 2rem; padding: 1.5rem; background: rgba(255, 255, 255, 0.05); border-radius: 12px;">
+                            <h3 style="margin-bottom: 1rem; color: #00acee;">
+                                <span class="menu-icon">📱</span> Telegram Task Reward
+                            </h3>
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+                                <div>
+                                    <strong>Current Reward:</strong>
+                                    <p id="current-telegram-reward" style="font-size: 1.5rem; color: #10b981; margin-top: 0.5rem;">Loading...</p>
+                                    <small id="telegram-last-updated" class="text-muted"></small>
+                                </div>
+                                <div>
+                                    <label class="form-label">New Reward Amount (G$)</label>
+                                    <input type="number" id="telegram-reward-input" min="10" max="10000" step="10" class="form-control" placeholder="100">
+                                </div>
+                            </div>
+                            <button class="btn btn-primary" onclick="updateRewardConfig('telegram_task')" style="width: 100%; padding: 1rem; font-size: 1.1rem;">
+                                💾 Update Telegram Reward
+                            </button>
                         </div>
-                        <div>
-                            <label class="form-label">New Reward Amount (G$)</label>
-                            <input type="number" id="facebook-reward-input" min="10" max="10000" step="10" class="form-control" placeholder="100">
+
+                        <!-- Twitter Task Reward -->
+                        <div style="margin-bottom: 2rem; padding: 1.5rem; background: rgba(255, 255, 255, 0.05); border-radius: 12px;">
+                            <h3 style="margin-bottom: 1rem; color: #1DA1F2;">
+                                <span class="menu-icon">🐦</span> Twitter Task Reward
+                            </h3>
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+                                <div>
+                                    <strong>Current Reward:</strong>
+                                    <p id="current-twitter-reward" style="font-size: 1.5rem; color: #10b981; margin-top: 0.5rem;">Loading...</p>
+                                    <small id="twitter-last-updated" class="text-muted"></small>
+                                </div>
+                                <div>
+                                    <label class="form-label">New Reward Amount (G$)</label>
+                                    <input type="number" id="twitter-reward-input" min="10" max="10000" step="10" class="form-control" placeholder="100">
+                                </div>
+                            </div>
+                            <button class="btn btn-primary" onclick="updateRewardConfig('twitter_task')" style="width: 100%; padding: 1rem; font-size: 1.1rem;">
+                                💾 Update Twitter Reward
+                            </button>
+                        </div>
+
+                        <!-- Facebook Task Reward -->
+                        <div style="margin-bottom: 2rem; padding: 1.5rem; background: rgba(255, 255, 255, 0.05); border-radius: 12px;">
+                            <h3 style="margin-bottom: 1rem; color: #1877F2;">
+                                <span class="menu-icon">📘</span> Facebook Task Reward
+                            </h3>
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+                                <div>
+                                    <strong>Current Reward:</strong>
+                                    <p id="current-facebook-reward" style="font-size: 1.5rem; color: #10b981; margin-top: 0.5rem;">Loading...</p>
+                                    <small id="facebook-last-updated" class="text-muted"></small>
+                                </div>
+                                <div>
+                                    <label class="form-label">New Reward Amount (G$)</label>
+                                    <input type="number" id="facebook-reward-input" min="10" max="10000" step="10" class="form-control" placeholder="100">
+                                </div>
+                            </div>
+                            <button class="btn btn-primary" onclick="updateRewardConfig('facebook_task')" style="width: 100%; padding: 1rem; font-size: 1.1rem;">
+                                💾 Update Facebook Reward
+                            </button>
                         </div>
                     </div>
-                    <button class="btn btn-primary" onclick="updateRewardConfig('facebook_task')" style="width: 100%; padding: 1rem; font-size: 1.1rem;">
-                        💾 Update Facebook Reward
-                    </button>
                 </div>
             </div>
-        </div>
-    </section>
+        </main>
+    </div>
 
     <script>
-        // Section Navigation
-        function showSection(sectionName) {
+        // Load admin statistics on page load
+        async function loadAdminStats() {
+            try {
+                const response = await fetch('/api/admin/stats');
+                const data = await response.json();
+                
+                if (data.success && data.stats) {
+                    const statsGrid = document.getElementById('statsGrid');
+                    statsGrid.innerHTML = `
+                        <div class="stat-card">
+                            <div class="stat-label">Total Users</div>
+                            <div class="stat-value">${data.stats.total_users || 0}</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Verified Users</div>
+                            <div class="stat-value">${data.stats.verified_users || 0}</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Total Page Views</div>
+                            <div class="stat-value">${data.stats.total_page_views || 0}</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Verification Rate</div>
+                            <div class="stat-value">${data.stats.verification_rate || '0%'}</div>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('❌ Error loading stats:', error);
+                document.getElementById('statsGrid').innerHTML = `
+                    <div style="grid-column: 1 / -1; text-align: center; padding: 2rem; color: #ef4444;">
+                        Error loading statistics
+                    </div>
+                `;
+            }
+        }
+
+        // Load developer profile function
+        async function uploadDeveloperProfile() {
+            const name = document.getElementById('developerName').value.trim();
+            const position = document.getElementById('developerPosition').value.trim();
+            const imageFile = document.getElementById('developerImageFile').files[0];
+            const statusDiv = document.getElementById('developerProfileStatus');
+
+            if (!name || !position) {
+                statusDiv.className = 'status-message error';
+                statusDiv.style.display = 'block';
+                statusDiv.textContent = '❌ Name and position are required';
+                return;
+            }
+
+            if (!imageFile) {
+                statusDiv.className = 'status-message error';
+                statusDiv.style.display = 'block';
+                statusDiv.textContent = '❌ Profile image is required';
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('name', name);
+            formData.append('position', position);
+            formData.append('image', imageFile);
+
+            statusDiv.className = 'status-message';
+            statusDiv.style.display = 'block';
+            statusDiv.style.backgroundColor = 'rgba(251, 191, 36, 0.15)';
+            statusDiv.style.color = '#fbbf24';
+            statusDiv.textContent = '⏳ Uploading profile...';
+
+            try {
+                const response = await fetch('/api/admin/developer-profile', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    statusDiv.className = 'status-message success';
+                    statusDiv.textContent = '✅ ' + data.message;
+                    
+                    // Clear form
+                    document.getElementById('developerName').value = '';
+                    document.getElementById('developerPosition').value = '';
+                    document.getElementById('developerImageFile').value = '';
+                    
+                    // Show current profile if available
+                    if (data.profile) {
+                        showCurrentProfile(data.profile);
+                    }
+                } else {
+                    statusDiv.className = 'status-message error';
+                    statusDiv.textContent = '❌ ' + data.error;
+                }
+            } catch (error) {
+                statusDiv.className = 'status-message error';
+                statusDiv.textContent = '❌ Upload failed: ' + error.message;
+            }
+        }
+
+        function showCurrentProfile(profile) {
+            const currentProfileDiv = document.getElementById('currentProfile');
+            document.getElementById('currentProfileName').textContent = profile.name;
+            document.getElementById('currentProfilePosition').textContent = profile.position;
+            document.getElementById('currentProfileImage').src = profile.image_url;
+            currentProfileDiv.style.display = 'block';
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            loadAdminStats();
+        });
+
+        function showSection(sectionId) {
             // Hide all sections
             document.querySelectorAll('.section').forEach(section => {
                 section.classList.remove('active');
@@ -1482,13 +1789,19 @@ OR manually enter HTML content here...
                 link.classList.remove('active');
             });
 
-            // Show selected section
-            document.getElementById(sectionName + '-section').classList.add('active');
+            // Show the selected section
+            const sectionToShow = document.getElementById(sectionId);
+            if (sectionToShow) {
+                sectionToShow.classList.add('active');
+            }
 
-            // Add active to clicked menu link
-            event.target.closest('.menu-link').classList.add('active');
+            // Add active class to the clicked menu link
+            if (event && event.target) {
+                event.target.classList.add('active');
+            }
 
-            // Load section data
+            // Load data specific to the section
+            const sectionName = sectionId.replace('-section', '');
             loadSectionData(sectionName);
         }
 
@@ -1503,7 +1816,7 @@ OR manually enter HTML content here...
                 case 'community-stories':
                     loadCommunityStoriesNotifications();
                     loadCommunityStoriesHistory();
-                    loadRecentRequirementImages(); // Load recent images when section is activated
+                    loadRecentRequirementImages();
                     break;
                 case 'daily-tasks':
                     loadPendingDailyTasks();
@@ -1529,14 +1842,17 @@ OR manually enter HTML content here...
                 case 'broadcast-messages':
                     loadBroadcastMessages();
                     break;
-                case 'module-links': // New case for module links section
-                    loadModuleLinks();
-                    break;
                 case 'news-management':
                     loadNewsHistory();
                     break;
-                case 'reward-config': // New case for reward config section
+                case 'module-links':
+                    loadModuleLinks();
+                    break;
+                case 'reward-config':
                     loadRewardConfig();
+                    break;
+                case 'developerProfile':
+                    loadCurrentProfile();
                     break;
             }
         }
@@ -1552,13 +1868,11 @@ OR manually enter HTML content here...
                 if (data.success) {
                     const settings = data.settings;
 
-                    // Update current settings display
                     document.getElementById('current-questions').textContent = settings.questions_per_quiz;
                     document.getElementById('current-time').textContent = settings.time_per_question + 's';
                     document.getElementById('current-max-reward').textContent = settings.max_reward_per_quiz + ' G$';
                     document.getElementById('current-per-correct').textContent = Math.round(settings.reward_per_correct) + ' G$';
 
-                    // Set form values
                     document.getElementById('questions-per-quiz').value = settings.questions_per_quiz;
                     document.getElementById('time-per-question').value = settings.time_per_question;
                     document.getElementById('max-reward-per-quiz').value = settings.max_reward_per_quiz;
@@ -1626,7 +1940,6 @@ OR manually enter HTML content here...
                     const isMaintenance = data.is_maintenance;
                     const message = data.message || '';
 
-                    // Update status badge
                     const badge = document.getElementById('current-status-badge');
                     if (isMaintenance) {
                         badge.textContent = '🔧 Maintenance Mode';
@@ -1638,7 +1951,6 @@ OR manually enter HTML content here...
                         badge.style.color = 'white';
                     }
 
-                    // Show current message if exists
                     if (message) {
                         document.getElementById('current-message-display').style.display = 'block';
                         document.getElementById('current-message-text').textContent = message;
@@ -1646,7 +1958,6 @@ OR manually enter HTML content here...
                         document.getElementById('current-message-display').style.display = 'none';
                     }
 
-                    // Set form values
                     document.getElementById('maintenance-mode').value = isMaintenance.toString();
                     document.getElementById('maintenance-message').value = message;
 
@@ -1706,7 +2017,6 @@ OR manually enter HTML content here...
                     const isMaintenance = data.is_maintenance;
                     const message = data.message || '';
 
-                    // Update status badge
                     const badge = document.getElementById('minigames-current-status-badge');
                     if (isMaintenance) {
                         badge.textContent = '🔧 Maintenance Mode';
@@ -1718,7 +2028,6 @@ OR manually enter HTML content here...
                         badge.style.color = 'white';
                     }
 
-                    // Show current message if exists
                     if (message) {
                         document.getElementById('minigames-current-message-display').style.display = 'block';
                         document.getElementById('minigames-current-message-text').textContent = message;
@@ -1726,7 +2035,6 @@ OR manually enter HTML content here...
                         document.getElementById('minigames-current-message-display').style.display = 'none';
                     }
 
-                    // Set form values
                     document.getElementById('minigames-maintenance-mode').value = isMaintenance.toString();
                     document.getElementById('minigames-maintenance-message').value = message;
 
@@ -2050,7 +2358,6 @@ OR manually enter HTML content here...
             }
 
             try {
-                // Show loading
                 const questionsTable = document.getElementById('questionsTable');
                 questionsTable.innerHTML = `
                     <div class="loading">
@@ -2100,7 +2407,6 @@ OR manually enter HTML content here...
                 });
             }
 
-            // News form submission
             const newsForm = document.getElementById('newsForm');
             if (newsForm) {
                 newsForm.addEventListener('submit', async function(e) {
@@ -2177,7 +2483,7 @@ OR manually enter HTML content here...
                 if (data.success) {
                     showNewsStatus('✅ News article published successfully!' + (imageFile ? ' (Image uploaded to ImgBB)' : ''), 'success');
                     document.getElementById('newsForm').reset();
-                    removeNewsImagePreview(); // Clear preview
+                    removeNewsImagePreview();
                     setTimeout(() => {
                         showNewsStatus('', 'hidden');
                     }, 3000);
@@ -2199,13 +2505,11 @@ OR manually enter HTML content here...
                 return;
             }
 
-            try {
-                // Show loading
-                const originalBtn = event.target;
-                originalBtn.disabled = true;
-                originalBtn.innerHTML = '⏳ Parsing questions...';
+            const originalBtn = event.target;
+            originalBtn.disabled = true;
+            originalBtn.innerHTML = '⏳ Parsing questions...';
 
-                // Split by double newlines to get question blocks
+            try {
                 const blocks = text.split(/\n\s*\n/).filter(block => block.trim());
                 const questions = [];
                 const parseErrors = [];
@@ -2219,32 +2523,19 @@ OR manually enter HTML content here...
                     const lines = block.split('\n').map(line => line.trim()).filter(line => line);
 
                     for (let line of lines) {
-                        // Extract QUESTION_ID
                         if (line.toUpperCase().startsWith('QUESTION_ID:')) {
                             question.question_id = line.split(':', 2)[1].trim();
-                        }
-                        // Extract QUESTION
-                        else if (line.toUpperCase().startsWith('QUESTION:')) {
+                        } else if (line.toUpperCase().startsWith('QUESTION:')) {
                             question.question = line.split(':', 2)[1].trim();
-                        }
-                        // Extract answer A
-                        else if (line.toUpperCase().startsWith('A:')) {
+                        } else if (line.toUpperCase().startsWith('A:')) {
                             question.answer_a = line.split(':', 2)[1].trim();
-                        }
-                        // Extract answer B
-                        else if (line.toUpperCase().startsWith('B:')) {
+                        } else if (line.toUpperCase().startsWith('B:')) {
                             question.answer_b = line.split(':', 2)[1].trim();
-                        }
-                        // Extract answer C
-                        else if (line.toUpperCase().startsWith('C:')) {
+                        } else if (line.toUpperCase().startsWith('C:')) {
                             question.answer_c = line.split(':', 2)[1].trim();
-                        }
-                        // Extract answer D
-                        else if (line.toUpperCase().startsWith('D:')) {
+                        } else if (line.toUpperCase().startsWith('D:')) {
                             question.answer_d = line.split(':', 2)[1].trim();
-                        }
-                        // Extract CORRECT
-                        else if (line.toUpperCase().startsWith('CORRECT:')) {
+                        } else if (line.toUpperCase().startsWith('CORRECT:')) {
                             const correct = line.split(':', 2)[1].trim().toUpperCase();
                             if (['A', 'B', 'C', 'D'].includes(correct)) {
                                 question.correct = correct;
@@ -2252,7 +2543,6 @@ OR manually enter HTML content here...
                         }
                     }
 
-                    // Validate question has all required fields
                     if (question.question_id && question.question && 
                         question.answer_a && question.answer_b && 
                         question.answer_c && question.answer_d && question.correct) {
@@ -2280,7 +2570,6 @@ OR manually enter HTML content here...
 
                 console.log(`📚 Successfully parsed ${questions.length} questions`);
 
-                // Upload questions one by one
                 let successCount = 0;
                 let skipCount = 0;
                 let errorCount = 0;
@@ -2312,7 +2601,6 @@ OR manually enter HTML content here...
                     }
                 }
 
-                // Show results
                 let resultMsg = `✅ Upload Complete!\n\n`;
                 resultMsg += `📊 Total Questions Found: ${questions.length}\n`;
                 resultMsg += `✅ Successfully Added: ${successCount}\n`;
@@ -2324,7 +2612,6 @@ OR manually enter HTML content here...
 
                 alert(resultMsg);
 
-                // Clear textarea and reload questions
                 textarea.value = '';
                 await loadQuestions();
 
@@ -2334,8 +2621,8 @@ OR manually enter HTML content here...
             } catch (error) {
                 console.error('❌ Bulk parse error:', error);
                 alert('❌ Error parsing questions: ' + error.message);
-                event.target.disabled = false;
-                event.target.innerHTML = '✅ Add All Questions from Text';
+                originalBtn.disabled = false;
+                originalBtn.innerHTML = '✅ Add All Questions from Text';
             }
         }
 
@@ -2345,45 +2632,26 @@ OR manually enter HTML content here...
 
             try {
                 const text = await file.text();
-
-                // Split by blank lines to get question blocks
                 const questionBlocks = text.split(/\n\s*\n/).filter(block => block.trim());
                 const questions = [];
 
                 for (let block of questionBlocks) {
-                    // Parse each question block
                     const question = {};
-
-                    // Extract QUESTION_ID
                     const idMatch = block.match(/QUESTION_ID:\s*(\S+)/i);
-                    if (idMatch) {
-                        question.question_id = idMatch[1].trim();
-                    }
-
-                    // Extract QUESTION (everything between QUESTION: and A:)
+                    if (idMatch) question.question_id = idMatch[1].trim();
                     const questionMatch = block.match(/QUESTION:\s*(.+?)\s*A:/s);
-                    if (questionMatch) {
-                        question.question = questionMatch[1].trim();
-                    }
-
-                    // Extract answers A, B, C, D with strict boundaries
+                    if (questionMatch) question.question = questionMatch[1].trim();
                     const aMatch = block.match(/A:\s*(.+?)\s*B:/s);
                     const bMatch = block.match(/B:\s*(.+?)\s*C:/s);
                     const cMatch = block.match(/C:\s*(.+?)\s*D:/s);
                     const dMatch = block.match(/D:\s*(.+?)\s*CORRECT:/s);
-
                     if (aMatch) question.answer_a = aMatch[1].trim();
                     if (bMatch) question.answer_b = bMatch[1].trim();
                     if (cMatch) question.answer_c = cMatch[1].trim();
                     if (dMatch) question.answer_d = dMatch[1].trim();
-
-                    // Extract CORRECT answer
                     const correctMatch = block.match(/CORRECT:\s*([A-D])/i);
-                    if (correctMatch) {
-                        question.correct = correctMatch[1].toUpperCase();
-                    }
+                    if (correctMatch) question.correct = correctMatch[1].toUpperCase();
 
-                    // Validate question has all required fields
                     if (question.question_id && question.question && 
                         question.answer_a && question.answer_b && 
                         question.answer_c && question.answer_d && question.correct) {
@@ -2400,7 +2668,6 @@ OR manually enter HTML content here...
 
                 console.log(`📚 Found ${questions.length} valid questions to upload`);
 
-                // Upload questions one by one
                 let successCount = 0;
                 let failCount = 0;
 
@@ -2428,8 +2695,6 @@ OR manually enter HTML content here...
 
                 alert(`✅ Upload complete!\n\nSuccess: ${successCount}\nFailed: ${failCount}\nTotal found: ${questions.length}`);
                 await loadQuestions();
-
-                // Clear file input
                 event.target.value = '';
 
             } catch (error) {
@@ -2454,7 +2719,7 @@ OR manually enter HTML content here...
                                     <th>#</th>
                                     <th>Submission ID</th>
                                     <th>User Wallet</th>
-                                    <th>Tweet Link</th>
+                                    <th>Tweet Link / Screenshot</th>
                                     <th>Submitted At</th>
                                     <th>Actions</th>
                                 </tr>
@@ -2698,14 +2963,12 @@ OR manually enter HTML content here...
                 if (data.success) {
                     const settings = data.settings;
 
-                    // Update current settings display
                     document.getElementById('current-low-reward').textContent = settings.low_reward.toLocaleString() + ' G$';
                     document.getElementById('current-high-reward').textContent = settings.high_reward.toLocaleString() + ' G$';
-                    document.getElementById('current-window-start').textContent = settings.window_start_day + 'th';
+                    document.getElementById('current-window-startDay').textContent = settings.window_start_day + 'th';
                     document.getElementById('current-window-end').textContent = settings.window_end_day + 'th';
                     document.getElementById('current-mentions').textContent = settings.required_mentions;
 
-                    // Set form values
                     document.getElementById('low-reward').value = settings.low_reward;
                     document.getElementById('high-reward').value = settings.high_reward;
                     document.getElementById('required-mentions').value = settings.required_mentions;
@@ -2791,10 +3054,7 @@ OR manually enter HTML content here...
                 if (data.success) {
                     const message = data.message || 'G$ funds have been depleted. Please try to contact us at t.me/GoodDollarX';
 
-                    // Update current message display
                     document.getElementById('current-insufficient-message-text').textContent = message;
-
-                    // Set form value
                     document.getElementById('insufficient-balance-message').value = message;
 
                     statusDiv.style.display = 'none';
@@ -2837,8 +3097,6 @@ OR manually enter HTML content here...
             }
         }
 
-
-        // JavaScript functions for daily task management
         async function loadPendingDailyTasks() {
             try {
                 const response = await fetch('/api/admin/daily-tasks/pending');
@@ -2849,7 +3107,7 @@ OR manually enter HTML content here...
                 if (data.success) {
                     const telegramTasks = data.telegram_tasks || [];
                     const twitterTasks = data.twitter_tasks || [];
-                    const facebookTasks = data.facebook_tasks || []; // Added Facebook tasks
+                    const facebookTasks = data.facebook_tasks || [];
                     const totalPending = data.total_pending || 0;
 
                     let html = '';
@@ -2868,7 +3126,6 @@ OR manually enter HTML content here...
                             </div>
                         `;
 
-                        // Facebook tasks section
                         if (facebookTasks.length > 0) {
                             html += `
                                 <h3 style="color: #1877f2; margin-top: 2rem; margin-bottom: 1rem;">📘 Facebook Tasks (${facebookTasks.length})</h3>
@@ -2918,7 +3175,6 @@ OR manually enter HTML content here...
                             `;
                         }
 
-                        // Twitter tasks section
                         if (twitterTasks.length > 0) {
                             html += '<h3 style="color: #3b82f6; margin-top: 2rem; margin-bottom: 1rem;">🐦 Twitter Tasks (${twitterTasks.length})</h3>';
                             html += '<table><thead><tr><th>#</th><th>Wallet</th><th>Tweet Link</th><th>Reward</th><th>Submitted</th><th>Actions</th></tr></thead><tbody>';
@@ -2946,7 +3202,6 @@ OR manually enter HTML content here...
                             html += '</tbody></table>';
                         }
 
-                        // Telegram tasks
                         if (telegramTasks.length > 0) {
                             html += '<h3 style="color: #00acee; margin-top: 2rem; margin-bottom: 1rem;">📱 Telegram Tasks (${telegramTasks.length})</h3>';
                             html += '<table><thead><tr><th>#</th><th>Wallet</th><th>Post Link</th><th>Reward</th><th>Submitted</th><th>Actions</th></tr></thead><tbody>';
@@ -3004,7 +3259,6 @@ OR manually enter HTML content here...
 
                 if (data.success) {
                     alert(`✅ ${data.message}\nTX: ${data.tx_hash}`);
-                    // Remove the row
                     const row = document.getElementById(`task-${platform}-${submissionId}`);
                     if (row) row.remove();
                 } else {
@@ -3018,7 +3272,7 @@ OR manually enter HTML content here...
 
         async function rejectDailyTask(submissionId, platform) {
             const reason = prompt('Enter rejection reason (optional):');
-            if (reason === null) return; // User cancelled
+            if (reason === null) return; 
 
             try {
                 const response = await fetch('/api/admin/daily-tasks/reject', {
@@ -3035,7 +3289,6 @@ OR manually enter HTML content here...
 
                 if (data.success) {
                     alert(`✅ ${data.message}`);
-                    // Remove the row
                     const row = document.getElementById(`task-${platform}-${submissionId}`);
                     if (row) row.remove();
                 } else {
@@ -3047,7 +3300,6 @@ OR manually enter HTML content here...
             }
         }
 
-        // Screenshot upload functions
         document.addEventListener('DOMContentLoaded', function() {
             const fileInput = document.getElementById('screenshotFile');
             const imagePreview = document.getElementById('imagePreview');
@@ -3092,7 +3344,6 @@ OR manually enter HTML content here...
                     statusDiv.style.color = '#fbbf24';
                     statusDiv.textContent = '⏳ Uploading to ImgBB...';
 
-                    // Create FormData for file upload
                     const formData = new FormData();
                     formData.append('image', fileInput.files[0]);
                     formData.append('wallet_address', walletAddress);
@@ -3113,11 +3364,9 @@ OR manually enter HTML content here...
                             <small>URL: <a href="${data.screenshot_url}" target="_blank" style="color: #60a5fa;">${data.screenshot_url}</a></small>
                         `;
 
-                        // Reset form
                         uploadForm.reset();
                         imagePreview.innerHTML = '<small style="color: rgba(241, 245, 249, 0.5);">Image preview will appear here</small>';
 
-                        // Reload history
                         setTimeout(() => {
                             loadCommunityStoriesHistory();
                         }, 1500);
@@ -3136,10 +3385,7 @@ OR manually enter HTML content here...
             });
         });
 
-        // Screenshot upload functions
         async function loadCommunityStories() {
-            // This function might need to be updated to fetch and display screenshots on the homepage
-            // For now, it's a placeholder.
             console.log('Loading community stories...');
         }
 
@@ -3197,11 +3443,9 @@ OR manually enter HTML content here...
                 if (data.success) {
                     alert('✅ Broadcast message sent successfully!\n\nAll users will see this message in their inbox.');
 
-                    // Clear form
                     document.getElementById('broadcast-title').value = '';
                     document.getElementById('broadcast-message').value = '';
 
-                    // Reload broadcast history
                     await loadBroadcastMessages();
                 } else {
                     alert('❌ Error: ' + data.error);
@@ -3256,7 +3500,7 @@ OR manually enter HTML content here...
                     `;
                     tableDiv.innerHTML = messagesHtml;
                 } else {
-                    tableDiv.innerHTML = '<p style="text-align: center; padding: 2rem; color: rgba(241, 245, 249, 0.6);">No broadcast messages yet</p>';
+                    tableDiv.innerHTML = '<p style="text-align: center; color: rgba(241, 245, 249, 0.6);">No broadcast messages yet</p>';
                 }
             } catch (error) {
                 console.error('Error loading broadcasts:', error);
@@ -3288,11 +3532,10 @@ OR manually enter HTML content here...
             }
         }
 
-        // Load section data on page load
-        document.addEventListener('DOMContentLoaded', () => {
-            showSection('overview'); // Default section
+        document.addEventListener('DOMContentLoaded', function() {
+            // Show overview section by default
+            showSection('overview-section');
 
-            // Add requirement image upload handlers
             const requirementImageFile = document.getElementById('requirementImageFile');
             if (requirementImageFile) {
                 requirementImageFile.addEventListener('change', handleRequirementImagePreview);
@@ -3304,7 +3547,6 @@ OR manually enter HTML content here...
             }
         });
 
-        // Handle requirement image preview
         function handleRequirementImagePreview(event) {
             const file = event.target.files[0];
             const preview = document.getElementById('requirementImagePreview');
@@ -3322,7 +3564,6 @@ OR manually enter HTML content here...
             }
         }
 
-        // Upload requirement image
         async function uploadRequirementImage(event) {
             event.preventDefault();
 
@@ -3341,7 +3582,6 @@ OR manually enter HTML content here...
             const file = fileInput.files[0];
             const title = titleInput.value.trim();
 
-            // Show uploading status
             statusMessage.style.display = 'block';
             statusMessage.style.background = 'rgba(251, 191, 36, 0.2)';
             statusMessage.style.color = '#fbbf24';
@@ -3361,25 +3601,20 @@ OR manually enter HTML content here...
                 const data = await response.json();
 
                 if (data.success) {
-                    // Success
                     statusMessage.style.background = 'rgba(16, 185, 129, 0.2)';
                     statusMessage.style.color = '#10b981';
                     statusMessage.textContent = `✅ Requirement image uploaded successfully!`;
 
-                    // Reset form
                     fileInput.value = '';
                     titleInput.value = '';
                     document.getElementById('requirementImagePreview').innerHTML = '<small style="color: rgba(241, 245, 249, 0.5);">📷 Requirement image preview will appear here</small>';
 
-                    // Show recent images
                     loadRecentRequirementImages();
 
-                    // Hide success message after 3 seconds
                     setTimeout(() => {
                         statusMessage.style.display = 'none';
                     }, 3000);
                 } else {
-                    // Error
                     statusMessage.style.background = 'rgba(239, 68, 68, 0.2)';
                     statusMessage.style.color = '#ef4444';
                     statusMessage.textContent = `❌ Error: ${data.error || 'Upload failed'}`;
@@ -3392,7 +3627,6 @@ OR manually enter HTML content here...
             }
         }
 
-        // Load recent requirement images
         async function loadRecentRequirementImages() {
             try {
                 const response = await fetch('/community-stories/api/admin/requirement-images?limit=10');
@@ -3421,7 +3655,6 @@ OR manually enter HTML content here...
             }
         }
 
-        // Module Links Management Functions
         async function loadNewsHistory() {
             try {
                 const response = await fetch('/api/admin/news-history');
@@ -3567,7 +3800,6 @@ OR manually enter HTML content here...
             }
         }
 
-        // Initialize module links form handler
         (function() {
             const form = document.getElementById('addModuleLinkForm');
             if (form) {
@@ -3591,11 +3823,9 @@ OR manually enter HTML content here...
                 return;
             }
 
-            // Find the submit button
             const submitBtn = submitEvent.target.querySelector('button[type="submit"]');
 
             try {
-                // Show loading message if URL provided but no content (auto-scraping)
                 const willAutoScrape = url && !content;
                 if (willAutoScrape) {
                     if (submitBtn) {
@@ -3644,7 +3874,6 @@ OR manually enter HTML content here...
                 console.error('Error adding module link:', error);
                 alert('❌ Error adding module link: ' + error.message);
             } finally {
-                // Reset button state
                 if (submitBtn) {
                     submitBtn.disabled = false;
                     submitBtn.textContent = '➕ Add Module Link';
@@ -3654,7 +3883,6 @@ OR manually enter HTML content here...
         }
     </script>
     <script>
-        // Load reward configuration
         async function loadRewardConfig() {
             try {
                 const statusDiv = document.getElementById('reward-config-status');
@@ -3664,7 +3892,6 @@ OR manually enter HTML content here...
                 const data = await response.json();
 
                 if (data.success && data.rewards) {
-                    // Display current rewards
                     if (data.rewards.telegram_task) {
                         document.getElementById('current-telegram-reward').textContent = 
                             `${parseFloat(data.rewards.telegram_task.amount).toLocaleString()} G$`;
@@ -3710,7 +3937,6 @@ OR manually enter HTML content here...
             }
         }
 
-        // Update reward configuration
         async function updateRewardConfig(taskType) {
             try {
                 let inputId, displayId, taskName;
@@ -3756,10 +3982,8 @@ OR manually enter HTML content here...
                 if (data.success) {
                     alert(`✅ ${taskName} reward updated to ${newAmount} G$`);
 
-                    // Update display
                     document.getElementById(displayId).textContent = `${newAmount.toLocaleString()} G$`;
 
-                    // Reload full config to update timestamps
                     await loadRewardConfig();
                 } else {
                     alert(`❌ Error: ${data.error}`);
