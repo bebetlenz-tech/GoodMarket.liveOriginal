@@ -626,8 +626,7 @@
                             sessionStorage.setItem('verified', 'true');
 
                             setTimeout(() => {
-                                const redirectTo = data.redirect_to || "/overview";
-                                window.location.href = redirectTo;
+                                window.location.href = "/overview";
                             }, 1500);
                             return;
                         } else {
