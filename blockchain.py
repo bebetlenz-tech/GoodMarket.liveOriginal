@@ -4,50 +4,34 @@ from datetime import datetime, timedelta, timezone
 import logging
 import os
 
-# Logger for this module
 logger = logging.getLogger("blockchain")
 
-# Celo Network Configuration - Using environment variables from secrets
-CELO_CHAIN_ID = int(os.getenv("CHAIN_ID", "42220"))  # Celo Mainnet Chain ID
-CELO_RPC = os.getenv("CELO_RPC_URL", "https://forno.celo.org")  # Celo RPC endpoint from secrets
+CELO_CHAIN_ID = int(os.getenv("CHAIN_ID", "42220"))
+CELO_RPC = os.getenv("CELO_RPC_URL", "https://forno.celo.org")
 
-# GoodDollar Contracts - Using environment variables from secrets
 GOODDOLLAR_CONTRACTS = {
-    # Main UBI Contract - ERC1967 Proxy
     "UBI_PROXY": os.getenv("UBI_PROXY_CONTRACT", "0x43d72Ff17701B2DA814620735C39C620Ce0ea4A1"),
-
-    # Implementation contract (will be auto-discovered)
-    "UBI_IMPLEMENTATION": "",  # Will be filled by _validate_ubi_contract()
-
-    # Supporting contracts
+    "UBI_IMPLEMENTATION": "",
     "GOODDOLLAR_TOKEN": os.getenv("GOODDOLLAR_TOKEN_CONTRACT", "0x62B8B11039FcfE5aB0C56E502b1C372A3d2a9c7A"),
 }
 
-# Event signatures derived from implementation contract ABI
 UBI_EVENT_SIGNATURES = {
-    # Transfer Events (ERC20)
     "TRANSFER": "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef",
-
-    # UBI Events (from implementation contract ABI)
-    "UBI_CLAIMED": "0x89ed24731df6b066e4c5186901fffdba18cd9a10f07494aff900bdee260d1304",  # UBIClaimed(address,uint256)
-    "UBI_CALCULATED": "0x836fa39995340265746dfe9587d9fe5c5de35b7bce778afd9b124ce1cfeafdc4",  # UBICalculated(uint256,uint256,uint256)
-    "UBI_CYCLE_CALCULATED": "0x83e0d535b9e84324e0a25922406398d6ff5f96d0c686204ee490e16d7670566f",  # UBICycleCalculated(uint256,uint256,uint256,uint256)
+    "UBI_CLAIMED": "0x89ed24731df6b066e4c5186901fffdba18cd9a10f07494aff900bdee260d1304",
+    "UBI_CALCULATED": "0x836fa39995340265746dfe9587d9fe5c5de35b7bce778afd9b124ce1cfeafdc4",
+    "UBI_CYCLE_CALCULATED": "0x83e0d535b9e84324e0a25922406398d6ff5f96d0c686204ee490e16d7670566f",
 }
 
-
-# UBI valid for 24 hours
-CUTOFF_HOURS = 24  # 24 hours
+CUTOFF_HOURS = 24
 
 log = logging.getLogger("blockchain")
 
 
 def _topic_for_address(wallet: str) -> str:
-    """Convert wallet to padded topic format."""
     return "0x" + ("0" * 24) + wallet.lower().replace("0x", "")
 
 
 def _format_timestamp(block_number: int) -> str:
-    """Format timestamp to show relative time and exact datetime"""
     try:
         payload = {
             "jsonrpc": "2.0",
@@ -82,7 +66,6 @@ def _format_timestamp(block_number: int) -> str:
 
 
 def _get_latest_block_number() -> int:
-    """Get the latest block number from Celo blockchain"""
     try:
         payload = {
             "jsonrpc": "2.0",
@@ -99,8 +82,7 @@ def _get_latest_block_number() -> int:
 
 
 def _calculate_block_range(hours_back: int) -> tuple:
-    """Calculate approximate block range for the given hours back"""
-    blocks_per_hour = 720  # Celo ~5 second block time
+    blocks_per_hour = 720
     latest_block = _get_latest_block_number()
     from_block = latest_block - (hours_back * blocks_per_hour)
 
@@ -109,10 +91,6 @@ def _calculate_block_range(hours_back: int) -> tuple:
 
 
 def has_recent_ubi_claim(wallet_address: str) -> dict:
-    """
-    Check for UBI claims specifically from the UBI Proxy contract:
-    0x43d72Ff17701B2DA814620735C39C620Ce0ea4A1
-    """
     try:
         # Get block range for last 7 days (extended for better detection)
         search_hours = max(CUTOFF_HOURS, 24 * 7)  # At least 7 days
@@ -304,7 +282,7 @@ def has_recent_ubi_claim(wallet_address: str) -> dict:
         else:
             return {
                 "status": "error",
-                "message": "You need to claim G$ in goodwallet.xyz or gooddapp.org once every 24 hours to access GoodMarket."
+                "message": "You need to claim G$ once every 24 hours to access GoodMarket.\n\nClaim G$ using:\n• MiniPay app (built into Opera Mini)\n• goodwallet.xyz\n• gooddapp.org"
             }
 
     except Exception as e:
@@ -313,7 +291,6 @@ def has_recent_ubi_claim(wallet_address: str) -> dict:
 
 
 def get_gooddollar_balance(wallet_address: str) -> dict:
-    """Get GoodDollar token balance for a wallet address"""
     try:
         # Initialize Web3 connection
         import requests
