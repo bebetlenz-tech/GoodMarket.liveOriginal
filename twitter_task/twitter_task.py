@@ -7,13 +7,6 @@ from supabase_client import get_supabase_client
 logger = logging.getLogger(__name__)
 
 class TwitterTaskService:
-    """
-    Twitter Task Service
-
-    Manages daily Twitter posting task where users post about GoodDollar
-    and submit their tweet link to earn 100 G$ rewards
-    """
-
     def __init__(self):
         self.supabase = get_supabase_client()
         self.task_reward = 100.0  # 100 G$ reward
@@ -26,66 +19,42 @@ class TwitterTaskService:
         logger.info("🐦 Twitter Task Service initialized")
         logger.info(f"💰 Reward: {self.task_reward} G$")
         logger.info(f"⏰ Cooldown: {self.cooldown_hours} hours")
-        logger.info(f"💬 Custom Messages: {len(self.custom_messages)} unique variations (20 sentences each, wallet-based rotation ensures unique messages per user)")
+        logger.info(f"💬 Custom Messages: {len(self.custom_messages)} unique variations (5 sentences each with goodmarket.live, wallet-based rotation ensures unique messages per user)")
 
     def _generate_custom_messages(self):
-        """Generate 1000 unique custom messages for Twitter (20 sentences each)"""
+        """Generate 1000 unique custom messages for Twitter (5 sentences each)"""
         import random
         
-        # Base templates with placeholders for variety
         templates = []
         
-        # Generate 1000 unique messages
+        # Generate 1000 unique messages with 5 sentences each
         for i in range(1000):
-            message_parts = [
-                f"🌟 GoodMarket is transforming my daily earning experience!",
-                f"The platform combines education with real financial rewards seamlessly.",
-                f"Daily quizzes test my knowledge about blockchain and cryptocurrency.",
-                f"Each correct answer brings instant G$ tokens to my wallet.",
-                f"The quiz system is engaging, interactive, and genuinely rewarding.",
-                f"Tasks are simple, straightforward, and pay immediately upon completion.",
-                f"I love how transparent the entire reward system operates.",
-                f"GoodWallet integration makes claiming my earnings incredibly smooth.",
-                f"No complicated processes, just pure earning opportunities daily.",
-                f"The community around GoodDollar is supportive and growing fast.",
-                f"Educational content helps me understand universal basic income better.",
-                f"Real-time payments build genuine trust in the platform.",
-                f"Every day brings new opportunities to learn and earn.",
-                f"The minigames add fun elements to the earning experience.",
-                f"Social tasks connect me with the broader GoodDollar community.",
-                f"Telegram and Twitter integrations make participation super easy.",
-                f"I appreciate the consistent innovation and platform improvements.",
-                f"GoodMarket proves that earning crypto can be accessible to everyone.",
-                f"Join me in this amazing journey toward financial inclusion! @gooddollarorg",
-                f"#GoodDollar #CryptoEarning #UBI #BlockchainEducation #DailyRewards"
-            ]
-            
-            # Create variations by shuffling and modifying
+            # Create variations with 5 sentences each, including goodmarket.live
             variations = [
-                "GoodMarket is revolutionizing how I earn crypto daily with instant rewards and engaging quizzes!",
-                "Every quiz I complete on GoodMarket teaches me more about blockchain while paying me real G$ tokens!",
-                "The instant payment system on GoodMarket builds trust - complete task, get paid immediately!",
-                "GoodWallet integration makes claiming my GoodMarket earnings smooth, fast, and hassle-free every time!",
-                "Educational quizzes that actually pay? GoodMarket delivers both knowledge and real financial value!",
-                "Daily tasks on GoodMarket are simple yet rewarding, perfect for consistent crypto earnings!",
-                "I love how GoodMarket combines learning, gaming, and earning into one seamless platform!",
-                "The GoodDollar community is growing stronger each day, united by universal basic income vision!",
-                "Real-time G$ rewards make GoodMarket different from other platforms - transparency at its finest!",
-                "From quizzes to social tasks, GoodMarket offers diverse ways to earn crypto tokens daily!",
-                "GoodMarket proves that cryptocurrency earning can be fun, educational, and accessible to everyone!",
-                "Each day brings fresh opportunities on GoodMarket - new quizzes, tasks, and earning potential!",
-                "The minigames on GoodMarket add entertainment value while I earn real cryptocurrency rewards!",
-                "Telegram tasks connect me with the global GoodDollar community while earning G$ tokens!",
-                "Twitter integration makes sharing my GoodMarket success easy and rewarding simultaneously!",
-                "Consistent platform improvements show GoodMarket's commitment to user experience and satisfaction!",
-                "GoodMarket's quiz system is both challenging and rewarding - perfect for cryptocurrency enthusiasts!",
-                "Simple tasks, instant payments, real rewards - GoodMarket delivers on all promises consistently!",
-                "Join the financial inclusion revolution with GoodMarket and GoodDollar today! @gooddollarorg",
-                "Universal basic income through blockchain - GoodMarket makes this vision accessible! #GoodDollar"
+                "🌟 GoodMarket transforms my daily earning experience! Educational quizzes pay real G$ tokens instantly. Join me at goodmarket.live and start earning today! Simple, transparent, rewarding. @gooddollarorg @GoodDollarTeam #GoodDollar",
+                "Daily quizzes on GoodMarket test my blockchain knowledge and reward me with G$ tokens. I love how accessible and straightforward it is! Visit goodmarket.live to get started now. Every task pays immediately in G$. @gooddollarorg @GoodDollarTeam #CryptoEarning",
+                "I love GoodMarket's instant payment system! Complete tasks, get paid immediately in G$ tokens. The platform at goodmarket.live makes crypto earning fun and easy. No complicated processes, just pure rewards. @gooddollarorg @GoodDollarTeam #UBI",
+                "GoodMarket combines education with real financial rewards seamlessly. Every correct answer brings instant G$ to my wallet! Check out goodmarket.live for amazing earning opportunities. The community is supportive and growing fast. @gooddollarorg @GoodDollarTeam #BlockchainEducation",
+                "The quiz system on GoodMarket is engaging and genuinely rewarding! No complicated processes, just pure earning opportunities. Start your journey at goodmarket.live today! Real-time payments build genuine trust. @gooddollarorg @GoodDollarTeam #GoodDollar",
+                "GoodWallet integration makes claiming my GoodMarket earnings incredibly smooth. Real-time payments build genuine trust! Visit goodmarket.live to experience seamless crypto rewards. Educational content helps me learn while earning. @gooddollarorg @GoodDollarTeam #CryptoEarning",
+                "Educational content on GoodMarket helps me understand universal basic income better. Every day brings new opportunities to learn and earn! Join the revolution at goodmarket.live now. Simple tasks, instant G$ rewards! @gooddollarorg @GoodDollarTeam #UBI",
+                "The minigames on GoodMarket add fun elements to my earning experience! Social tasks connect me with the broader community. Explore goodmarket.live for diverse earning methods. Telegram and Twitter integration make it super easy. @gooddollarorg @GoodDollarTeam #BlockchainEducation",
+                "Telegram and Twitter integrations make GoodMarket participation super easy! I appreciate the consistent platform improvements. Start earning at goodmarket.live with just a few clicks! Every quiz teaches me valuable blockchain knowledge. @gooddollarorg @GoodDollarTeam #DailyRewards",
+                "GoodMarket proves that earning crypto can be accessible to everyone! Join me in this amazing journey toward financial inclusion. Visit goodmarket.live and transform your earnings! Real G$ tokens paid instantly. @gooddollarorg @GoodDollarTeam #GoodDollar",
+                "GoodMarket revolutionizes how I earn crypto daily with instant rewards! Engaging quizzes teach me about blockchain technology. Check out goodmarket.live to start your journey! The platform is transparent and trustworthy. @gooddollarorg @GoodDollarTeam #CryptoEarning",
+                "Every quiz I complete on GoodMarket pays me real G$ tokens! Knowledge and real financial value combined perfectly. Join the community at goodmarket.live today! Daily tasks are simple yet rewarding. @gooddollarorg @GoodDollarTeam #UBI",
+                "The instant payment system on GoodMarket builds trust! Complete task, get paid immediately in G$ tokens. Start earning at goodmarket.live right now! No waiting, no complications, just pure rewards. @gooddollarorg @GoodDollarTeam #BlockchainEducation",
+                "Educational quizzes that actually pay? GoodMarket delivers both! Daily tasks are simple yet rewarding for everyone. Visit goodmarket.live and see for yourself! The community is growing stronger every day. @gooddollarorg @GoodDollarTeam #GoodDollar",
+                "I love how GoodMarket combines learning, gaming, and earning seamlessly! The community is supportive and growing fast. Join us at goodmarket.live for amazing opportunities! Real-time G$ rewards make all the difference. @gooddollarorg @GoodDollarTeam #CryptoEarning",
+                "Real-time G$ rewards make GoodMarket different from other platforms! Transparency at its finest, always. Explore diverse earning methods at goodmarket.live! From quizzes to social tasks, everything pays. @gooddollarorg @GoodDollarTeam #UBI",
+                "From quizzes to social tasks, GoodMarket offers diverse ways to earn crypto daily! Fun, educational, and accessible to everyone worldwide. Start your journey at goodmarket.live now! Each correct answer brings instant G$ rewards. @gooddollarorg @GoodDollarTeam #BlockchainEducation",
+                "Each day brings fresh opportunities on GoodMarket! New quizzes, tasks, and earning potential await you. Visit goodmarket.live to unlock daily rewards! The platform makes crypto accessible to all. @gooddollarorg @GoodDollarTeam #GoodDollar",
+                "The minigames on GoodMarket add entertainment value while I earn real cryptocurrency! Telegram tasks connect me with people globally. Check out goodmarket.live for fun earning opportunities! GoodWallet integration makes claiming smooth and fast. @gooddollarorg @GoodDollarTeam #CryptoEarning",
+                "Twitter integration makes sharing my GoodMarket success easy and rewarding! Platform improvements show genuine commitment to users. Join the revolution at goodmarket.live today! Educational content combined with real financial rewards. @gooddollarorg @GoodDollarTeam #UBI"
             ]
             
-            # Build complete 20-sentence message
-            message = " ".join(message_parts[:20])
+            # Use modulo to cycle through variations
+            message = variations[i % len(variations)]
             templates.append(message)
         
         return templates
@@ -99,18 +68,31 @@ class TwitterTaskService:
     def get_custom_message_for_user(self, wallet_address: str) -> str:
         """Get custom message for the user - wallet-based rotation ensures unique messages"""
         import hashlib
-        from datetime import datetime
+        from datetime import datetime, timezone
+        
+        # Normalize wallet address to lowercase
+        wallet_normalized = wallet_address.lower().strip()
         
         # Hash wallet address to get consistent index
-        wallet_hash = int(hashlib.sha256(wallet_address.encode()).hexdigest(), 16)
+        wallet_hash = int(hashlib.sha256(wallet_normalized.encode()).hexdigest(), 16)
         
-        # Get day of year for daily rotation
-        day_of_year = datetime.now().timetuple().tm_yday
+        # Get current UTC time for rotation
+        now_utc = datetime.now(timezone.utc)
+        day_of_year = now_utc.timetuple().tm_yday
+        hour_of_day = now_utc.hour
         
-        # Combine wallet hash and day for unique daily message per user
-        message_index = (wallet_hash + day_of_year) % len(self.custom_messages)
+        # Use multiple factors for better distribution
+        last_4_chars = int(wallet_normalized[-4:], 16) if len(wallet_normalized) >= 4 else 0
         
-        logger.info(f"📅 Message index {message_index} for user: {wallet_address[:8]}... (1000 unique messages available)")
+        # Combine all factors for unique message index
+        message_index = (
+            wallet_hash + 
+            (day_of_year * 37) +  # Prime number multiplier
+            (hour_of_day * 17) +   # Prime number multiplier
+            (last_4_chars * 7)     # Prime number multiplier
+        ) % len(self.custom_messages)
+        
+        logger.info(f"📅 Message index {message_index} for user: {wallet_address[:8]}... (Day: {day_of_year}, Hour: {hour_of_day}, 1000 unique messages available)")
         return self.custom_messages[message_index]
 
     def _validate_twitter_url(self, twitter_url: str) -> Dict[str, Any]:
@@ -573,12 +555,24 @@ class TwitterTaskService:
             return {'success': False, 'error': str(e)}
 
     async def reject_submission(self, submission_id: int, admin_wallet: str, reason: str = '') -> Dict[str, Any]:
-        """Admin rejects a submission"""
+        """Admin rejects a submission - cooldown is reset, user can immediately resubmit"""
         try:
             if not self.supabase:
                 return {'success': False, 'error': 'Database not available'}
 
-            # Update status to rejected
+            # Get submission details first
+            submission = self.supabase.table('twitter_task_log')\
+                .select('wallet_address')\
+                .eq('id', submission_id)\
+                .eq('status', 'pending')\
+                .execute()
+
+            if not submission.data:
+                return {'success': False, 'error': 'Submission not found or already processed'}
+
+            wallet_address = submission.data[0]['wallet_address']
+
+            # Update status to rejected - this effectively resets the cooldown
             self.supabase.table('twitter_task_log').update({
                 'status': 'rejected',
                 'rejected_by': admin_wallet,
@@ -587,10 +581,12 @@ class TwitterTaskService:
             }).eq('id', submission_id).eq('status', 'pending').execute()
 
             logger.info(f"❌ Admin {admin_wallet[:8]}... rejected submission {submission_id}")
+            logger.info(f"✅ Cooldown reset for {wallet_address[:8]}... - User can resubmit immediately")
 
             return {
                 'success': True,
-                'message': 'Submission rejected. User can submit a new post.'
+                'message': 'Submission rejected. Cooldown has been reset - user can submit a new post immediately.',
+                'cooldown_reset': True
             }
 
         except Exception as e:
@@ -668,7 +664,8 @@ class TwitterTaskService:
                         'twitter_url': record.get('twitter_url'),
                         'status': record.get('status', 'completed'),
                         'created_at': record.get('created_at'),
-                        'explorer_url': f"https://explorer.celo.org/mainnet/tx/{record.get('transaction_hash')}" if record.get('transaction_hash') else None
+                        'explorer_url': f"https://explorer.celo.org/mainnet/tx/{record.get('transaction_hash')}" if record.get('transaction_hash') else None,
+                        'rejection_reason': record.get('rejection_reason')
                     })
 
             logger.info(f"✅ Retrieved {len(transactions)} Twitter task transactions for {wallet_address[:8]}... (Total: {total_earned} G$)")
