@@ -188,8 +188,27 @@ class NewsFeedService:
                     has_image = False
                     clean_image_url = None
 
-                # Format content with better spacing
-                content = article.get('content', '')
+                # Get raw content
+                raw_content = article.get('content', '')
+                
+                # Create excerpt (first 200 characters of plain text for better social media previews)
+                import re
+                # Remove HTML tags for excerpt
+                plain_text = re.sub(r'<[^>]+>', '', raw_content).strip()
+                # Get first 200 characters
+                excerpt = plain_text[:200].strip()
+                if len(plain_text) > 200:
+                    # Find last complete word
+                    last_space = excerpt.rfind(' ')
+                    if last_space > 100:  # Only break at word if we have enough content
+                        excerpt = excerpt[:last_space]
+                    excerpt += '...'
+                elif len(plain_text) > 0 and not excerpt.endswith('...'):
+                    # Add ellipsis if content was cut
+                    pass  # Don't add ellipsis if it's the full content
+                
+                # Format full content with better spacing (for article detail page)
+                content = raw_content
                 # Add paragraph breaks for double line breaks
                 content = content.replace('\n\n', '</p><p style="margin-top: 1rem;">')
                 # Single line breaks become <br> with spacing
@@ -201,7 +220,8 @@ class NewsFeedService:
                 formatted_article = {
                     **article,
                     'image_url': clean_image_url,  # Override with cleaned URL
-                    'content': content,  # Use formatted content with better spacing
+                    'content': content,  # Full formatted content
+                    'excerpt': excerpt,  # Short preview for feed
                     'category_display': self.categories.get(article.get('category', 'announcement'), '📰 News'),
                     'time_ago': self._format_time_ago(article.get('created_at')),
                     'priority_class': f"priority-{article.get('priority', 'medium')}",
@@ -241,11 +261,23 @@ class NewsFeedService:
             featured_processed = []
             for article in news_articles:
                 time_ago = self._format_time_ago(article.get('created_at'))
+                
+                # Create excerpt for featured news
+                import re
+                raw_content = article.get('content', '')
+                plain_text = re.sub(r'<[^>]+>', '', raw_content)
+                excerpt = plain_text[:150].strip()
+                if len(plain_text) > 150:
+                    last_space = excerpt.rfind(' ')
+                    if last_space > 100:
+                        excerpt = excerpt[:last_space]
+                    excerpt += '...'
 
                 featured_processed.append({
                     'id': article['id'],
                     'title': article['title'],
                     'content': article.get('content', ''),
+                    'excerpt': excerpt,  # Add excerpt for preview
                     'category': article['category'],
                     'category_display': self.categories.get(article['category'], article['category'].title()),
                     'author': article.get('author', 'GoodDollar Team'),
@@ -493,8 +525,21 @@ class NewsFeedService:
                     has_image = False
                     clean_image_url = None
 
+                # Get raw content
+                raw_content = article.get('content', '')
+                
+                # Create excerpt (first 200 characters of plain text)
+                import re
+                plain_text = re.sub(r'<[^>]+>', '', raw_content).strip()
+                excerpt = plain_text[:200].strip()
+                if len(plain_text) > 200:
+                    last_space = excerpt.rfind(' ')
+                    if last_space > 100:
+                        excerpt = excerpt[:last_space]
+                    excerpt += '...'
+
                 # Format content with better spacing
-                content = article.get('content', '')
+                content = raw_content
                 # Add paragraph breaks for double line breaks
                 content = content.replace('\n\n', '</p><p style="margin-top: 1rem;">')
                 # Single line breaks become <br> with spacing
@@ -507,6 +552,7 @@ class NewsFeedService:
                     **article,
                     'image_url': clean_image_url,
                     'content': content,
+                    'excerpt': excerpt,
                     'category_display': self.categories.get(article.get('category', 'announcement'), '📰 News'),
                     'time_ago': self._format_time_ago(article.get('created_at')),
                     'priority_class': f"priority-{article.get('priority', 'medium')}",
