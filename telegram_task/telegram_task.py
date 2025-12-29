@@ -60,7 +60,8 @@ _TELEGRAM_MESSAGES = _generate_telegram_messages()
 class TelegramTaskService:
     def __init__(self):
         self.supabase = get_supabase_client()
-        self.task_reward = 100.0  # 100 G$ reward
+        # Reward amount is now dynamic and fetched from the reward configuration service
+        # self.task_reward = 100.0  # 100 G$ reward - REMOVED, replaced by get_task_reward()
 
         # Use preloaded messages from module level (generated once at import)
         self.custom_messages = _TELEGRAM_MESSAGES
@@ -69,7 +70,7 @@ class TelegramTaskService:
         self.cooldown_hours = 24  # 24 hour cooldown
 
         logger.info("📱 Telegram Task Service initialized")
-        logger.info(f"💰 Reward: {self.task_reward} G$")
+        # logger.info(f"💰 Reward: {self.task_reward} G$") # REMOVED - dynamic reward
         logger.info(f"📢 Channel: t.me/{self.telegram_channel}")
         logger.info(f"⏰ Cooldown: {self.cooldown_hours} hours")
         logger.info(f"💬 Custom Messages: {len(self.custom_messages)} unique variations (20 sentences each, wallet-based rotation ensures unique messages per user)")
@@ -299,7 +300,7 @@ class TelegramTaskService:
                     logger.info(f"✅ Last submission was rejected - user can resubmit")
                     return {
                         'can_claim': True,
-                        'reward_amount': self.task_reward
+                        'reward_amount': self.get_task_reward() # Fetch dynamic reward
                     }
 
                 # If last claim was COMPLETED, cooldown is active
@@ -320,7 +321,7 @@ class TelegramTaskService:
 
             return {
                 'can_claim': True,
-                'reward_amount': self.task_reward
+                'reward_amount': self.get_task_reward() # Fetch dynamic reward
             }
 
         except Exception as e:
@@ -415,16 +416,17 @@ class TelegramTaskService:
                 try:
                     # Insert with NULL transaction_hash for pending submissions
                     # Transaction hash will be added when admin approves
+                    current_reward = self.get_task_reward() # Fetch dynamic reward
                     self.supabase.table('telegram_task_log').insert({
                         'wallet_address': wallet_address,
                         'telegram_url': telegram_url,
-                        'reward_amount': self.task_reward,
+                        'reward_amount': current_reward,
                         'status': 'pending',
                         'transaction_hash': None,  # Will be set after admin approval
                         'created_at': datetime.now(timezone.utc).isoformat()
                     }).execute()
 
-                    logger.info(f"✅ Telegram task submitted for approval: {self._mask_wallet(wallet_address)}")
+                    logger.info(f"✅ Telegram task submitted for approval: {self._mask_wallet(wallet_address)} with reward {current_reward} G$")
 
                     return {
                         'success': True,
@@ -466,6 +468,7 @@ class TelegramTaskService:
             sub_data = submission.data[0]
             wallet_address = sub_data['wallet_address']
             telegram_url = sub_data['telegram_url']
+            reward_amount = sub_data['reward_amount'] # Use the reward amount stored in the submission
 
             logger.info(f"✅ Admin {admin_wallet[:8]}... approving submission {submission_id}")
 
@@ -474,7 +477,7 @@ class TelegramTaskService:
 
             disbursement = telegram_blockchain_service.disburse_telegram_reward_sync(
                 wallet_address=wallet_address,
-                amount=self.task_reward
+                amount=reward_amount # Use the dynamic reward amount
             )
 
             if disbursement.get('success'):
@@ -486,12 +489,12 @@ class TelegramTaskService:
                     'approved_at': datetime.now(timezone.utc).isoformat()
                 }).eq('id', submission_id).execute()
 
-                logger.info(f"✅ Telegram task approved and disbursed: {self.task_reward} G$ to {self._mask_wallet(wallet_address)}")
+                logger.info(f"✅ Telegram task approved and disbursed: {reward_amount} G$ to {self._mask_wallet(wallet_address)}")
 
                 return {
                     'success': True,
                     'tx_hash': disbursement.get('tx_hash'),
-                    'message': f'Approved! {self.task_reward} G$ disbursed to user.'
+                    'message': f'Approved! {reward_amount} G$ disbursed to user.'
                 }
             else:
                 # Update status to failed if disbursement failed
@@ -582,7 +585,7 @@ class TelegramTaskService:
                 'total_claims': total_claims,
                 'can_claim_today': eligibility.get('can_claim', False),
                 'next_claim_time': eligibility.get('next_claim_time'),
-                'reward_amount': self.task_reward
+                'reward_amount': self.get_task_reward() # Fetch dynamic reward
             }
 
         except Exception as e:
@@ -656,6 +659,23 @@ class TelegramTaskService:
                 'total_count': 0,
                 'total_earned': 0
             }
+
+    def get_task_reward(self) -> float:
+        """
+        Fetches the current reward amount from the reward configuration service.
+        This ensures that the reward amount is dynamic and can be changed by admins
+        without code redeployment.
+        """
+        try:
+            from reward_config_service import RewardConfigService
+            reward_service = RewardConfigService()
+            reward_amount = reward_service.get_reward_amount('telegram_task')
+            logger.info(f"💰 Fetched dynamic reward amount for Telegram task: {reward_amount} G$")
+            return reward_amount
+        except Exception as e:
+            logger.error(f"❌ Failed to fetch dynamic reward amount: {e}. Falling back to default.")
+            # Fallback to a default value if fetching fails
+            return 100.0 # Default reward amount
 
 # Global instance
 telegram_task_service = TelegramTaskService()
