@@ -469,7 +469,7 @@ def get_recent_daily_tasks():
         logger.error(f"Traceback: {traceback.format_exc()}")
         error_response = jsonify({"success": False, "submissions": [], "error": str(e)})
         error_response.headers['Content-Type'] = 'application/json'
-        return error_response, 200
+        return error_response, 500
 
 @routes.route("/api/learn-earn-participants", methods=["GET"])
 def get_learn_earn_participants():
@@ -1266,6 +1266,52 @@ def get_admin_actions_log():
         })
     except Exception as e:
         logger.error(f"❌ Get admin actions log error: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@routes.route("/api/admin/reward-config", methods=["GET"])
+@admin_required
+def get_reward_config():
+    """Get all reward configurations (admin only)"""
+    try:
+        from reward_config_service import reward_config_service
+        
+        result = reward_config_service.get_all_rewards()
+        return jsonify(result)
+    except Exception as e:
+        logger.error(f"❌ Get reward config error: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@routes.route("/api/admin/reward-config", methods=["POST"])
+@admin_required
+def update_reward_config():
+    """Update reward configuration (admin only)"""
+    try:
+        from reward_config_service import reward_config_service
+        
+        data = request.json
+        task_type = data.get('task_type')
+        new_amount = float(data.get('reward_amount', 0))
+        admin_wallet = session.get('wallet')
+        
+        if not task_type or task_type not in ['telegram_task', 'twitter_task', 'facebook_task']:
+            return jsonify({"success": False, "error": "Invalid task type"}), 400
+        
+        result = reward_config_service.update_reward_amount(task_type, new_amount, admin_wallet)
+        
+        if result.get('success'):
+            # Log admin action
+            log_admin_action(
+                admin_wallet=admin_wallet,
+                action_type="update_reward_config",
+                action_details={
+                    "task_type": task_type,
+                    "new_amount": new_amount
+                }
+            )
+        
+        return jsonify(result)
+    except Exception as e:
+        logger.error(f"❌ Update reward config error: {e}")
         return jsonify({"success": False, "error": str(e)}), 500
 
 @routes.route("/api/admin/quiz-questions", methods=["GET"])
@@ -2754,7 +2800,7 @@ def add_module_link():
             try:
                 import requests
                 from bs4 import BeautifulSoup
-                
+
                 # Fetch webpage with comprehensive headers to avoid bot detection
                 logger.info(f"📥 Downloading webpage...")
                 headers = {
@@ -2770,34 +2816,34 @@ def add_module_link():
                     'Sec-Fetch-Site': 'none',
                     'Cache-Control': 'max-age=0',
                 }
-                
+
                 response = requests.get(url, timeout=15, headers=headers, allow_redirects=True)
                 response.raise_for_status()
                 logger.info(f"✅ Webpage downloaded successfully ({len(response.content)} bytes)")
-                
+
                 # Parse HTML
                 soup = BeautifulSoup(response.content, 'html.parser')
-                
+
                 # Remove script, style, and nav elements
                 for element in soup(['script', 'style', 'nav', 'footer', 'header', 'aside', 'iframe', 'noscript']):
                     element.decompose()
-                
+
                 # Extract main content (try common article containers, including Medium-specific)
                 main_content = (
-                    soup.find('article') or 
+                    soup.find('article') or
                     soup.find('div', class_='postArticle-content') or  # Medium specific
                     soup.find('section', class_='section--body') or  # Medium specific
-                    soup.find('main') or 
+                    soup.find('main') or
                     soup.find('div', class_='content') or
                     soup.find('div', class_='article') or
                     soup.find('body')
                 )
-                
+
                 if main_content:
                     logger.info(f"📄 Found main content container: {main_content.name}")
                     # Get text with basic HTML structure
                     scraped_html = ""
-                    
+
                     # Extract headings and paragraphs
                     for element in main_content.find_all(['h1', 'h2', 'h3', 'p', 'ul', 'ol']):
                         if element.name == 'h1':
@@ -2820,25 +2866,25 @@ def add_module_link():
                             for li in element.find_all('li', recursive=False):
                                 scraped_html += f"<li>{li.get_text().strip()}</li>\n"
                             scraped_html += "</ol>\n"
-                    
+
                     content = scraped_html.strip()
-                    
+
                     # Auto-calculate reading time (average 200 words per minute)
                     word_count = len(content.split())
                     reading_time_minutes = max(1, round(word_count / 200))
-                    
+
                     logger.info(f"✅ ✅ ✅ AUTO-SCRAPE SUCCESSFUL!")
                     logger.info(f"📊 Content: {len(content)} characters")
                     logger.info(f"📊 Words: {word_count}")
                     logger.info(f"⏰ Reading time: ~{reading_time_minutes} minutes")
                 else:
                     logger.warning(f"⚠️ Could not find main content in {url}")
-                    
+
             except Exception as scrape_error:
                 logger.error(f"❌ Auto-scrape error: {scrape_error}")
                 import traceback
                 logger.error(f"🔍 Traceback: {traceback.format_exc()}")
-                
+
                 # Provide helpful error message
                 error_msg = str(scrape_error)
                 if "403" in error_msg or "Forbidden" in error_msg:
@@ -2849,9 +2895,9 @@ def add_module_link():
                     error_msg = "Request timed out. Please try again or paste content manually."
                 else:
                     error_msg = f"Failed to scrape URL: {error_msg}"
-                
+
                 return jsonify({
-                    "success": False, 
+                    "success": False,
                     "error": error_msg
                 }), 400
 
