@@ -561,6 +561,12 @@
                         <span>Module Links</span>
                     </a>
                 </li>
+                <li class="menu-item">
+                    <a class="menu-link" onclick="showSection('reward-config')">
+                        <span class="menu-icon">💰</span>
+                        <span>Reward Config</span>
+                    </a>
+                </li>
             </ul>
         </aside>
 
@@ -1342,7 +1348,7 @@ CORRECT: C
                 <textarea id="newModuleLinkDescription" placeholder="Description (optional)" class="admin-input" rows="2"></textarea>
 
                 <div style="margin-bottom: 1rem; padding: 1rem; background: rgba(34, 197, 94, 0.15); border-radius: 8px; border-left: 3px solid #22c55e;">
-                    <div style="color: #86efac; font-weight: 700; margin-bottom: 0.5rem; font-size: 1.1rem;">
+                    <div style="color: #86efac; font-weight: 700; margin-top: 10px; margin-bottom: 0.5rem; font-size: 1.1rem;">
                         🤖 AUTO-SCRAPING ENABLED
                     </div>
                     <small style="display: block; color: rgba(241, 245, 249, 0.7); line-height: 1.6;">
@@ -1375,6 +1381,89 @@ OR manually enter HTML content here...
                 <div class="loading">
                     <div class="spinner"></div>
                     <p>Loading module links...</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Reward Configuration Section (NEW) -->
+    <section id="reward-config-section" class="section">
+        <div class="page-header">
+            <h1 class="page-title">💰 Reward Configuration</h1>
+            <p style="color: rgba(241, 245, 249, 0.7);">Manage reward amounts for social media tasks.</p>
+        </div>
+
+        <div class="content-box">
+            <h2>Task Rewards</h2>
+            <div id="reward-config-status" style="margin-bottom: 2rem;">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Loading reward configuration...</p>
+                </div>
+            </div>
+
+            <div id="reward-config-controls" style="display: none;">
+                <!-- Telegram Task Reward -->
+                <div style="margin-bottom: 2rem; padding: 1.5rem; background: rgba(255, 255, 255, 0.05); border-radius: 12px;">
+                    <h3 style="margin-bottom: 1rem; color: #00acee;">
+                        <span class="menu-icon">📱</span> Telegram Task Reward
+                    </h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+                        <div>
+                            <strong>Current Reward:</strong>
+                            <p id="current-telegram-reward" style="font-size: 1.5rem; color: #10b981; margin-top: 0.5rem;">Loading...</p>
+                            <small id="telegram-last-updated" class="text-muted"></small>
+                        </div>
+                        <div>
+                            <label class="form-label">New Reward Amount (G$)</label>
+                            <input type="number" id="telegram-reward-input" min="10" max="10000" step="10" class="form-control" placeholder="100">
+                        </div>
+                    </div>
+                    <button class="btn btn-primary" onclick="updateRewardConfig('telegram_task')" style="width: 100%; padding: 1rem; font-size: 1.1rem;">
+                        💾 Update Telegram Reward
+                    </button>
+                </div>
+
+                <!-- Twitter Task Reward -->
+                <div style="margin-bottom: 2rem; padding: 1.5rem; background: rgba(255, 255, 255, 0.05); border-radius: 12px;">
+                    <h3 style="margin-bottom: 1rem; color: #1DA1F2;">
+                        <span class="menu-icon">🐦</span> Twitter Task Reward
+                    </h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+                        <div>
+                            <strong>Current Reward:</strong>
+                            <p id="current-twitter-reward" style="font-size: 1.5rem; color: #10b981; margin-top: 0.5rem;">Loading...</p>
+                            <small id="twitter-last-updated" class="text-muted"></small>
+                        </div>
+                        <div>
+                            <label class="form-label">New Reward Amount (G$)</label>
+                            <input type="number" id="twitter-reward-input" min="10" max="10000" step="10" class="form-control" placeholder="100">
+                        </div>
+                    </div>
+                    <button class="btn btn-primary" onclick="updateRewardConfig('twitter_task')" style="width: 100%; padding: 1rem; font-size: 1.1rem;">
+                        💾 Update Twitter Reward
+                    </button>
+                </div>
+
+                <!-- Facebook Task Reward -->
+                <div style="margin-bottom: 2rem; padding: 1.5rem; background: rgba(255, 255, 255, 0.05); border-radius: 12px;">
+                    <h3 style="margin-bottom: 1rem; color: #1877F2;">
+                        <span class="menu-icon">📘</span> Facebook Task Reward
+                    </h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+                        <div>
+                            <strong>Current Reward:</strong>
+                            <p id="current-facebook-reward" style="font-size: 1.5rem; color: #10b981; margin-top: 0.5rem;">Loading...</p>
+                            <small id="facebook-last-updated" class="text-muted"></small>
+                        </div>
+                        <div>
+                            <label class="form-label">New Reward Amount (G$)</label>
+                            <input type="number" id="facebook-reward-input" min="10" max="10000" step="10" class="form-control" placeholder="100">
+                        </div>
+                    </div>
+                    <button class="btn btn-primary" onclick="updateRewardConfig('facebook_task')" style="width: 100%; padding: 1rem; font-size: 1.1rem;">
+                        💾 Update Facebook Reward
+                    </button>
                 </div>
             </div>
         </div>
@@ -1445,6 +1534,9 @@ OR manually enter HTML content here...
                     break;
                 case 'news-management':
                     loadNewsHistory();
+                    break;
+                case 'reward-config': // New case for reward config section
+                    loadRewardConfig();
                     break;
             }
         }
@@ -3198,7 +3290,7 @@ OR manually enter HTML content here...
 
         // Load section data on page load
         document.addEventListener('DOMContentLoaded', () => {
-            loadSectionData('overview');
+            showSection('overview'); // Default section
 
             // Add requirement image upload handlers
             const requirementImageFile = document.getElementById('requirementImageFile');
@@ -3536,14 +3628,14 @@ OR manually enter HTML content here...
                         ? '✅ Module link added successfully!\n🤖 Content auto-scraped from URL!'
                         : '✅ Module link added successfully!';
                     alert(successMsg);
-                    
+
                     document.getElementById('newModuleLinkTitle').value = '';
                     document.getElementById('newModuleLinkUrl').value = '';
                     document.getElementById('newModuleLinkDescription').value = '';
                     document.getElementById('newModuleLinkContent').value = '';
                     document.getElementById('newModuleLinkReadingTime').value = '5';
                     document.getElementById('newModuleLinkOrder').value = '1';
-                    
+
                     await loadModuleLinks();
                 } else {
                     alert('❌ Error: ' + (data.error || 'Unknown error'));
@@ -3558,6 +3650,123 @@ OR manually enter HTML content here...
                     submitBtn.textContent = '➕ Add Module Link';
                     submitBtn.style.background = '';
                 }
+            }
+        }
+    </script>
+    <script>
+        // Load reward configuration
+        async function loadRewardConfig() {
+            try {
+                const statusDiv = document.getElementById('reward-config-status');
+                const controlsDiv = document.getElementById('reward-config-controls');
+
+                const response = await fetch('/api/admin/reward-config');
+                const data = await response.json();
+
+                if (data.success && data.rewards) {
+                    // Display current rewards
+                    if (data.rewards.telegram_task) {
+                        document.getElementById('current-telegram-reward').textContent = 
+                            `${parseFloat(data.rewards.telegram_task.amount).toLocaleString()} G$`;
+                        document.getElementById('telegram-reward-input').value = 
+                            parseFloat(data.rewards.telegram_task.amount);
+                        if (data.rewards.telegram_task.last_updated_at) {
+                            document.getElementById('telegram-last-updated').textContent = 
+                                `Last updated: ${new Date(data.rewards.telegram_task.last_updated_at).toLocaleString()}`;
+                        }
+                    }
+
+                    if (data.rewards.twitter_task) {
+                        document.getElementById('current-twitter-reward').textContent = 
+                            `${parseFloat(data.rewards.twitter_task.amount).toLocaleString()} G$`;
+                        document.getElementById('twitter-reward-input').value = 
+                            parseFloat(data.rewards.twitter_task.amount);
+                        if (data.rewards.twitter_task.last_updated_at) {
+                            document.getElementById('twitter-last-updated').textContent = 
+                                `Last updated: ${new Date(data.rewards.twitter_task.last_updated_at).toLocaleString()}`;
+                        }
+                    }
+
+                    if (data.rewards.facebook_task) {
+                        document.getElementById('current-facebook-reward').textContent = 
+                            `${parseFloat(data.rewards.facebook_task.amount).toLocaleString()} G$`;
+                        document.getElementById('facebook-reward-input').value = 
+                            parseFloat(data.rewards.facebook_task.amount);
+                        if (data.rewards.facebook_task.last_updated_at) {
+                            document.getElementById('facebook-last-updated').textContent = 
+                                `Last updated: ${new Date(data.rewards.facebook_task.last_updated_at).toLocaleString()}`;
+                        }
+                    }
+
+                    statusDiv.style.display = 'none';
+                    controlsDiv.style.display = 'block';
+                } else {
+                    statusDiv.innerHTML = '<p style="color: #ef4444;">Failed to load reward configuration</p>';
+                }
+            } catch (error) {
+                console.error('Error loading reward config:', error);
+                document.getElementById('reward-config-status').innerHTML = 
+                    '<p style="color: #ef4444;">Error loading configuration</p>';
+            }
+        }
+
+        // Update reward configuration
+        async function updateRewardConfig(taskType) {
+            try {
+                let inputId, displayId, taskName;
+
+                if (taskType === 'telegram_task') {
+                    inputId = 'telegram-reward-input';
+                    displayId = 'current-telegram-reward';
+                    taskName = 'Telegram';
+                } else if (taskType === 'twitter_task') {
+                    inputId = 'twitter-reward-input';
+                    displayId = 'current-twitter-reward';
+                    taskName = 'Twitter';
+                } else if (taskType === 'facebook_task') {
+                    inputId = 'facebook-reward-input';
+                    displayId = 'current-facebook-reward';
+                    taskName = 'Facebook';
+                }
+
+                const newAmount = parseFloat(document.getElementById(inputId).value);
+
+                if (isNaN(newAmount) || newAmount < 10 || newAmount > 10000) {
+                    alert('Please enter a valid reward amount between 10 and 10,000 G$');
+                    return;
+                }
+
+                if (!confirm(`Update ${taskName} task reward to ${newAmount} G$?`)) {
+                    return;
+                }
+
+                const response = await fetch('/api/admin/reward-config', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        task_type: taskType,
+                        reward_amount: newAmount
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    alert(`✅ ${taskName} reward updated to ${newAmount} G$`);
+
+                    // Update display
+                    document.getElementById(displayId).textContent = `${newAmount.toLocaleString()} G$`;
+
+                    // Reload full config to update timestamps
+                    await loadRewardConfig();
+                } else {
+                    alert(`❌ Error: ${data.error}`);
+                }
+            } catch (error) {
+                console.error('Error updating reward:', error);
+                alert('Failed to update reward configuration');
             }
         }
     </script>
