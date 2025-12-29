@@ -9,7 +9,6 @@ logger = logging.getLogger(__name__)
 class TwitterTaskService:
     def __init__(self):
         self.supabase = get_supabase_client()
-        self.task_reward = 100.0  # 100 G$ reward
 
         # Custom messages for Twitter posts (keeps @GoodDollarTeam @gooddollarorg mentions)
         self.custom_messages = self._generate_custom_messages()
@@ -17,9 +16,14 @@ class TwitterTaskService:
         self.cooldown_hours = 24  # 24 hour cooldown
 
         logger.info("🐦 Twitter Task Service initialized")
-        logger.info(f"💰 Reward: {self.task_reward} G$")
         logger.info(f"⏰ Cooldown: {self.cooldown_hours} hours")
         logger.info(f"💬 Custom Messages: {len(self.custom_messages)} unique variations (5 sentences each with goodmarket.live, wallet-based rotation ensures unique messages per user)")
+        logger.info(f"💰 Rewards: Dynamic (loaded from admin configuration)")
+    
+    def get_task_reward(self) -> float:
+        """Get current reward amount from configuration"""
+        from reward_config_service import reward_config_service
+        return reward_config_service.get_reward_amount('twitter_task')
 
     def _generate_custom_messages(self):
         """Generate 1000 unique custom messages for Twitter (5 sentences each)"""
@@ -260,7 +264,7 @@ class TwitterTaskService:
 
             result = {
                 'can_claim': True,
-                'reward_amount': self.task_reward
+                'reward_amount': self.get_task_reward()
             }
             
             # Cache the result
@@ -411,10 +415,11 @@ class TwitterTaskService:
                         logger.info(f"   Reward: {self.task_reward} G$")
                         
                         # Insert with NULL transaction_hash for pending submissions
+                        current_reward = self.get_task_reward()
                         result = self.supabase.table('twitter_task_log').insert({
                             'wallet_address': wallet_address,
                             'twitter_url': twitter_url,
-                            'reward_amount': self.task_reward,
+                            'reward_amount': current_reward,
                             'status': 'pending',
                             'transaction_hash': None,
                             'created_at': datetime.now(timezone.utc).isoformat()
@@ -510,12 +515,12 @@ class TwitterTaskService:
 
             logger.info(f"✅ Admin {admin_wallet[:8]}... approving submission {submission_id}")
 
-            # Disburse reward
+            # Disburse reward (use the amount stored in the submission)
             from twitter_task.blockchain import twitter_blockchain_service
 
             disbursement = twitter_blockchain_service.disburse_twitter_reward_sync(
                 wallet_address=wallet_address,
-                amount=self.task_reward
+                amount=float(sub_data['reward_amount'])
             )
 
             if disbursement.get('success'):
@@ -618,7 +623,7 @@ class TwitterTaskService:
                 'total_claims': total_claims,
                 'can_claim_today': eligibility.get('can_claim', False),
                 'next_claim_time': eligibility.get('next_claim_time'),
-                'reward_amount': self.task_reward
+                'reward_amount': self.get_task_reward()
             }
 
         except Exception as e:
