@@ -237,6 +237,10 @@
             color: white;
             font-weight: 600;
             transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            font-family: inherit;
         }
 
         .share-btn:hover {
@@ -340,16 +344,16 @@
             <div class="share-section">
                 <h3 class="share-title">📤 Share this article</h3>
                 <div class="share-buttons">
-                    <a href="#" class="share-btn share-twitter" id="shareTwitter">
+                    <button type="button" class="share-btn share-twitter" id="shareTwitter">
                         🐦 Share on Twitter
-                    </a>
-                    <a href="#" class="share-btn share-facebook" id="shareFacebook">
+                    </button>
+                    <button type="button" class="share-btn share-facebook" id="shareFacebook">
                         👥 Share on Facebook
-                    </a>
-                    <a href="#" class="share-btn share-telegram" id="shareTelegram">
+                    </button>
+                    <button type="button" class="share-btn share-telegram" id="shareTelegram">
                         ✈️ Share on Telegram
-                    </a>
-                    <button class="share-btn share-copy" id="copyLink">
+                    </button>
+                    <button type="button" class="share-btn share-copy" id="copyLink">
                         📋 Copy Link
                     </button>
                 </div>
@@ -386,43 +390,125 @@
             console.log('✅ URLs processed and now clickable');
         }
 
-        // Make links clickable on page load
-        document.addEventListener('DOMContentLoaded', function() {
-            makeLinksClickable();
-        });
+        // Share buttons functionality
+        function initShareButtons() {
+            const articleUrl = {{ article_url|tojson }};
+            const articleTitle = {{ article.title|tojson }};
+            const articleText = {{ (article.excerpt if article.excerpt else (article.content|striptags)[:100])|tojson }};
 
-        // Share buttons
-        const articleUrl = "{{ article_url }}";
-        const articleTitle = "{{ article.title|striptags }}";
-        const articleText = "{{ (article.excerpt if article.excerpt else (article.content|striptags)[:100]) }}";
+            console.log('🔍 Initializing share buttons...');
+            console.log('Article URL:', articleUrl);
 
-        document.getElementById('shareTwitter').addEventListener('click', function(e) {
-            e.preventDefault();
-            const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(articleTitle)}&url=${encodeURIComponent(articleUrl)}`;
-            window.open(twitterUrl, '_blank', 'width=600,height=400');
-        });
+            // Twitter share
+            const twitterBtn = document.getElementById('shareTwitter');
+            console.log('Twitter button:', twitterBtn);
+            if (twitterBtn) {
+                twitterBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(articleTitle)}&url=${encodeURIComponent(articleUrl)}`;
+                    window.open(twitterUrl, '_blank', 'width=600,height=400');
+                    console.log('📤 Shared to Twitter');
+                });
+                console.log('✅ Twitter button listener attached');
+            } else {
+                console.error('❌ Twitter button not found!');
+            }
 
-        document.getElementById('shareFacebook').addEventListener('click', function(e) {
-            e.preventDefault();
-            const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(articleUrl)}`;
-            window.open(facebookUrl, '_blank', 'width=600,height=400');
-        });
+            // Facebook share
+            const facebookBtn = document.getElementById('shareFacebook');
+            console.log('Facebook button:', facebookBtn);
+            if (facebookBtn) {
+                facebookBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(articleUrl)}`;
+                    window.open(facebookUrl, '_blank', 'width=600,height=400');
+                    console.log('📤 Shared to Facebook');
+                });
+                console.log('✅ Facebook button listener attached');
+            } else {
+                console.error('❌ Facebook button not found!');
+            }
 
-        document.getElementById('shareTelegram').addEventListener('click', function(e) {
-            e.preventDefault();
-            const telegramUrl = `https://t.me/share/url?url=${encodeURIComponent(articleUrl)}&text=${encodeURIComponent(articleTitle)}`;
-            window.open(telegramUrl, '_blank', 'width=600,height=400');
-        });
+            // Telegram share
+            const telegramBtn = document.getElementById('shareTelegram');
+            console.log('Telegram button:', telegramBtn);
+            if (telegramBtn) {
+                telegramBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const telegramUrl = `https://t.me/share/url?url=${encodeURIComponent(articleUrl)}&text=${encodeURIComponent(articleTitle)}`;
+                    window.open(telegramUrl, '_blank', 'width=600,height=400');
+                    console.log('📤 Shared to Telegram');
+                });
+                console.log('✅ Telegram button listener attached');
+            } else {
+                console.error('❌ Telegram button not found!');
+            }
 
-        document.getElementById('copyLink').addEventListener('click', function() {
-            navigator.clipboard.writeText(articleUrl).then(function() {
-                const successMsg = document.getElementById('copySuccess');
-                successMsg.style.display = 'block';
+            // Copy link
+            const copyBtn = document.getElementById('copyLink');
+            console.log('Copy button:', copyBtn);
+            if (copyBtn) {
+                copyBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    console.log('📋 Copy button clicked');
+                    navigator.clipboard.writeText(articleUrl).then(function() {
+                        const successMsg = document.getElementById('copySuccess');
+                        if (successMsg) {
+                            successMsg.style.display = 'block';
+                            setTimeout(() => {
+                                successMsg.style.display = 'none';
+                            }, 3000);
+                        }
+                        console.log('✅ Link copied to clipboard');
+                    }).catch(function(err) {
+                        console.error('❌ Failed to copy link:', err);
+                        // Fallback for older browsers
+                        const textarea = document.createElement('textarea');
+                        textarea.value = articleUrl;
+                        textarea.style.position = 'fixed';
+                        textarea.style.opacity = '0';
+                        document.body.appendChild(textarea);
+                        textarea.select();
+                        try {
+                            document.execCommand('copy');
+                            const successMsg = document.getElementById('copySuccess');
+                            if (successMsg) {
+                                successMsg.style.display = 'block';
+                                setTimeout(() => {
+                                    successMsg.style.display = 'none';
+                                }, 3000);
+                            }
+                            console.log('✅ Link copied to clipboard (fallback)');
+                        } catch (err2) {
+                            console.error('❌ Fallback copy failed:', err2);
+                            alert('Failed to copy link. Please copy manually: ' + articleUrl);
+                        }
+                        document.body.removeChild(textarea);
+                    });
+                });
+                console.log('✅ Copy button listener attached');
+            } else {
+                console.error('❌ Copy button not found!');
+            }
+        }
+
+        // Initialize on page load
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', function() {
+                console.log('📄 DOM Content Loaded');
                 setTimeout(() => {
-                    successMsg.style.display = 'none';
-                }, 3000);
+                    makeLinksClickable();
+                    initShareButtons();
+                }, 100);
             });
-        });
+        } else {
+            // DOM already loaded
+            console.log('📄 DOM already loaded, initializing immediately');
+            setTimeout(() => {
+                makeLinksClickable();
+                initShareButtons();
+            }, 100);
+        }
     </script>
 </body>
 </html>
