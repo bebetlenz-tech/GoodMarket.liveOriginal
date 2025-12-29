@@ -499,7 +499,7 @@
                         <img src="{{ article.image_url }}" alt="{{ article.title }}" style="width: 100%; max-height: 400px; object-fit: cover; border-radius: 12px; cursor: pointer; display: block; margin: 0 auto;" onclick="window.open('{{ article.image_url }}', '_blank')" onerror="console.error('❌ Failed to load news image:', this.src); this.parentElement.remove();">
                     </div>
                     {% endif %}
-                    <p class="news-content">{{ article.content | safe }}</p>
+                    <p class="news-content" style="color: rgba(255, 255, 255, 0.85);">{{ article.excerpt }}</p>
                     <div class="news-footer">
                         <div style="display: flex; align-items: center; gap: 1rem;">
                             <div class="news-author">By {{ article.author }}</div>
@@ -761,7 +761,7 @@
                             <div class="news-author">By ${article.author}</div>
                             <div style="display: flex; align-items: center; gap: 0.3rem; color: rgba(255, 255, 255, 0.6); font-size: 0.85rem;">
                                 <span>👁️</span>
-                                <span>${article.view_count|default(0)} views</span>
+                                <span>${article.view_count || 0} views</span>
                             </div>
                         </div>
                         <div style="display: flex; gap: 0.5rem;">
@@ -802,13 +802,13 @@
                             <img src="${article.image_url}" alt="${article.title}" style="width: 100%; max-height: 400px; object-fit: cover; border-radius: 12px; cursor: pointer; display: block; margin: 0 auto;" onclick="window.open('${article.image_url}', '_blank')" onerror="console.error('❌ Featured image failed to load:', this.src); this.parentElement.remove();">
                         </div>
                         ` : ''}
-                        <p class="news-content">${content}</p>
+                        <p class="news-content" style="color: rgba(255, 255, 255, 0.85);"> ${article.excerpt} </p>
                         <div class="news-footer">
                             <div style="display: flex; align-items: center; gap: 1rem;">
                                 <div class="news-author">By ${article.author}</div>
                                 <div style="display: flex; align-items: center; gap: 0.3rem; color: rgba(255, 255, 255, 0.6); font-size: 0.85rem;">
                                     <span>👁️</span>
-                                    <span>${article.view_count|default(0)} views</span>
+                                    <span>${article.view_count || 0} views</span>
                                 </div>
                             </div>
                             <div style="display: flex; gap: 0.5rem;">
