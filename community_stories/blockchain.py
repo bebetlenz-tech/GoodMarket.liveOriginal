@@ -69,6 +69,19 @@ class CommunityStoriesBlockchain:
         try:
             logger.info(f"💰 Disbursing {amount} G$ to {recipient_wallet[:8]}... for submission {submission_id}")
             
+            # Check CELO balance for gas
+            celo_balance = self.w3.eth.get_balance(self.community_account.address)
+            celo_balance_formatted = celo_balance / (10 ** 18)
+            min_celo_required = 0.01  # 0.01 CELO minimum
+            
+            if celo_balance_formatted < min_celo_required:
+                logger.error(f"❌ Insufficient CELO for gas: {celo_balance_formatted} CELO < {min_celo_required} CELO")
+                return {
+                    'success': False,
+                    'error': f'Community wallet needs CELO for gas. Current: {celo_balance_formatted:.4f} CELO. Please fund {self.community_account.address} with at least 0.01 CELO.',
+                    'error_type': 'insufficient_gas'
+                }
+            
             # Validate recipient wallet
             if not recipient_wallet or not recipient_wallet.startswith('0x'):
                 logger.error(f"❌ Invalid recipient wallet: {recipient_wallet}")
@@ -161,9 +174,19 @@ class CommunityStoriesBlockchain:
                 
         except Exception as e:
             logger.error(f"❌ Disbursement error: {e}")
+            error_msg = str(e)
+            
+            # Check for specific error types
+            if 'insufficient funds' in error_msg.lower():
+                return {
+                    'success': False,
+                    'error': f'Insufficient CELO for gas fees. Please fund Community wallet {self.community_account.address} with at least 0.01 CELO.',
+                    'error_type': 'insufficient_gas'
+                }
+            
             return {
                 'success': False,
-                'error': str(e),
+                'error': error_msg,
                 'error_type': 'blockchain_error'
             }
 
