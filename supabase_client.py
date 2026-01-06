@@ -685,24 +685,30 @@ class SupabaseLogger:
             return {}
 
     def get_analytics_summary(self):
-        """Get summary analytics from Supabase"""
+        """Get comprehensive analytics summary from Supabase data"""
         try:
-            # Get total users
-            users_response = self.client.table("user_data").select("*").execute()
-            total_users = len(users_response.data) if users_response.data else 0
+            # Get total count of users using count query (more efficient)
+            count_response = self.client.table("user_data").select("*", count="exact").execute()
+            total_users = count_response.count if hasattr(count_response, 'count') else 0
 
-            # Get verified users
-            verified_response = self.client.table("user_data").select("*").eq("ubi_verified", True).execute()
-            verified_users = len(verified_response.data) if verified_response.data else 0
-
-            # Get total page views
-            total_page_views = 0
-            if users_response.data:
-                for user in users_response.data:
-                    total_page_views += user.get("total_page_views", 0)
+            # Get verified users count
+            verified_response = self.client.table("user_data").select("*", count="exact").eq("ubi_verified", True).execute()
+            verified_users = verified_response.count if hasattr(verified_response, 'count') else 0
 
             # Calculate verification rate
             verification_rate = f"{(verified_users / total_users * 100):.1f}%" if total_users > 0 else "0%"
+
+            # Get total page views by summing from all users
+            # Use aggregation query if available, otherwise fetch all and sum
+            try:
+                # Fetch all users to calculate total page views (we need the actual data for this)
+                all_users_response = self.client.table("user_data").select("total_page_views").execute()
+                total_page_views = sum(user.get("total_page_views", 0) for user in all_users_response.data) if all_users_response.data else 0
+            except Exception as pv_error:
+                logger.warning(f"⚠️ Could not calculate total page views: {pv_error}")
+                total_page_views = 0
+
+            logger.info(f"📊 Analytics Summary: {total_users} total users, {verified_users} verified ({verification_rate})")
 
             return {
                 "total_users": total_users,
@@ -712,7 +718,12 @@ class SupabaseLogger:
             }
         except Exception as e:
             logger.error(f"❌ Error getting analytics summary: {e}")
-            return {}
+            return {
+                "total_users": 0,
+                "verified_users": 0,
+                "total_page_views": 0,
+                "verification_rate": "0%"
+            }
 
     def get_ubi_statistics(self):
         """Get real UBI statistics from Supabase data"""
