@@ -17,16 +17,37 @@ def _generate_telegram_messages() -> List[str]:
 
     # All messages focus on GoodMarket and GoodDollar UBI
     custom_messages = [
-        "✨ Claiming my daily G$ UBI on GoodMarket! Simple quizzes, instant rewards. Join the movement at goodmarket.live and earn with me! @gooddollarorg",
-        "🎓 Interactive quizzes at goodmarket.live make learning about GoodDollar UBI fun and profitable! Instant G$ rewards appear in my GoodWallet! @gooddollarorg",
-        "💎 Supporting the GoodDollar ecosystem through goodmarket.live! Claim your daily UBI and learn about financial inclusion while earning G$. @gooddollarorg",
-        "⚡ Earning G$ tokens while supporting GoodDollar's mission! GoodMarket makes UBI accessible to everyone at goodmarket.live. Join us today! @gooddollarorg",
-        "🌟 I love how easy it is to claim GoodDollar UBI on goodmarket.live! Real G$ rewards for simple educational tasks. Start earning now! @gooddollarorg",
-        "🤝 The GoodDollar revolution is here at goodmarket.live! Earn G$ daily through quizzes and tasks while supporting universal basic income. @gooddollarorg",
-        "💰 Instant G$ payments for supporting the GoodDollar ecosystem! Join me at goodmarket.live and claim your daily UBI rewards today! @gooddollarorg",
-        "🎮 Learning about blockchain and GoodDollar UBI has never been this rewarding! Check out goodmarket.live and start earning G$ now. @gooddollarorg",
-        "📱 Claim your piece of the GoodDollar UBI pie at goodmarket.live! Simple tasks, real G$ rewards, and a global community waiting for you. @gooddollarorg",
-        "🌍 Join the global UBI movement with GoodDollar and GoodMarket! Earn G$ daily at goodmarket.live and support financial inclusion for all. @gooddollarorg"
+        "✨ Discover the future of financial inclusion with GoodMarket and GoodDollar UBI today!\n\n"
+        "Claiming my daily G$ UBI has never been easier or more rewarding than on this platform.\n\n"
+        "Every single day, I participate in simple educational quizzes that help me learn about blockchain.\n\n"
+        "The rewards are instant and appear directly in my wallet as soon as I complete the tasks.\n\n"
+        "I am proud to be part of a global movement that is redefining how we think about money.\n\n"
+        "GoodMarket provides a seamless experience for anyone looking to enter the world of crypto safely.\n\n"
+        "By using goodmarket.live, I am actively contributing to a more equitable financial system for all.\n\n"
+        "It is truly inspiring to see how technology can be used to empower communities across the globe.\n\n"
+        "The interface is user-friendly and perfect for both beginners and experienced crypto enthusiasts alike.\n\n"
+        "I highly recommend everyone to check out the amazing opportunities available at goodmarket.live now.\n\n"
+        "You can start earning G$ immediately while gaining valuable knowledge about the entire ecosystem.\n\n"
+        "Join thousands of others who are already benefiting from this innovative universal basic income model.\n\n"
+        "Let's build a better future together, one claim at a time, with the help of GoodDollarorg.\n\n"
+        "Don't miss out on your chance to be part of this revolutionary journey towards financial freedom.\n\n"
+        "Visit goodmarket.live today and start your earning journey with our supportive global community! 🚀",
+
+        "🎓 Learning about the GoodDollar ecosystem at goodmarket.live is an incredibly rewarding experience!\n\n"
+        "I enjoy how the platform combines education with real-world cryptocurrency earning opportunities daily.\n\n"
+        "The quizzes are well-designed and provide deep insights into the mission of universal basic income.\n\n"
+        "Every correct answer brings me closer to financial empowerment through instant G$ token rewards.\n\n"
+        "GoodMarket is truly a game-changer in the Web3 space, making complex concepts easy to understand.\n\n"
+        "I love the transparency and the community-driven approach that defines the entire GoodDollar project.\n\n"
+        "By visiting goodmarket.live, you can access a wealth of resources and start earning right away.\n\n"
+        "It's not just about the tokens; it's about being part of a meaningful global financial shift.\n\n"
+        "The platform is consistently updated with new tasks and ways to engage with the growing community.\n\n"
+        "I have found a sense of purpose and a new way to support financial inclusion through GoodMarket.\n\n"
+        "Sharing this opportunity with friends and family is my way of spreading the benefits of UBI.\n\n"
+        "The potential for growth within this ecosystem is immense, and I am excited to see what's next.\n\n"
+        "Join the revolution at goodmarket.live and see how easy it is to start your crypto journey today.\n\n"
+        "Your participation helps strengthen the network and brings us closer to a fairer world for everyone.\n\n"
+        "Start your education and earning path now at goodmarket.live and join the @gooddollarorg family! ✨"
     ]
 
     # Generate 1000 messages by cycling through the 20 base messages
