@@ -26,30 +26,56 @@ class TwitterTaskService:
         return reward_config_service.get_reward_amount('twitter_task')
 
     def _generate_custom_messages(self):
-        """Generate 1000 unique custom messages for Twitter (5 sentences each)"""
+        """Generate 1000 unique custom messages for Twitter (respecting character limits)"""
         import random
         
+        opening_phrases = [
+            "GoodMarket is more than tasks — it’s your gateway to learning & earning in the GoodDollar ecosystem.",
+            "Join the financial revolution with GoodMarket! Your portal to the GoodDollar universal basic income.",
+            "Unlock Web3 potential with GoodMarket, your bridge to GoodDollar UBI rewards.",
+            "Earn & learn! GoodMarket is the premier hub for the global GoodDollar community.",
+            "Step into the future of finance with GoodMarket! Connect directly to the GoodDollar ecosystem.",
+            "Empower yourself! Start your journey of earning & contributing to GoodDollar on GoodMarket today.",
+            "GoodMarket: Where education meets rewards in the thriving GoodDollar ecosystem. Start now!",
+            "Ready to earn G$? GoodMarket is your gateway to the GoodDollar universal basic income mission.",
+            "Discover new opportunities! GoodMarket is the ultimate portal for GoodDollar enthusiasts.",
+            "Join thousands earning G$ daily! GoodMarket is your gateway to the GoodDollar ecosystem."
+        ]
+
+        middle_phrases = [
+            "Visit goodmarket.live today to discover daily tasks & ways to earn G$ 💙",
+            "Go to goodmarket.live now to explore exciting tasks and start earning G$.",
+            "Check out goodmarket.live for daily opportunities to support the GoodDollar mission.",
+            "Go to goodmarket.live & complete simple tasks to earn real G$ rewards daily.",
+            "Access goodmarket.live to find ways to contribute & earn within our community.",
+            "Your journey starts at goodmarket.live – discover quizzes that reward you in G$.",
+            "Visit goodmarket.live & find out how easy it is to earn G$ while learning.",
+            "Explore goodmarket.live today and join the movement for a more equitable future.",
+            "Start your earning routine at goodmarket.live with fun educational tasks.",
+            "Navigate to goodmarket.live & unlock multiple pathways to earn G$ rewards."
+        ]
+
+        closing_phrases = [
+            "New to GoodDollar? Start today: https://goodmarket.live\nWallet: https://goodwallet.xyz/",
+            "Join the movement! Get started: https://goodmarket.live\nWallet: https://goodwallet.xyz/",
+            "Begin your crypto journey! Info: https://goodmarket.live\nWallet: https://goodwallet.xyz/",
+            "Don't wait to earn! Visit: https://goodmarket.live\nWallet: https://goodwallet.xyz/",
+            "Take the first step! Site: https://goodmarket.live\nWallet: https://goodwallet.xyz/",
+            "Your crypto future starts here: https://goodmarket.live\nWallet: https://goodwallet.xyz/",
+            "Start receiving UBI now: https://goodmarket.live\nWallet: https://goodwallet.xyz/",
+            "Empower your future! Visit: https://goodmarket.live\nWallet: https://goodwallet.xyz/",
+            "Joining is fast & simple: https://goodmarket.live\nWallet: https://goodwallet.xyz/",
+            "Be part of our community: https://goodmarket.live\nWallet: https://goodwallet.xyz/"
+        ]
+
         templates = []
-        
-        # Generate 1000 unique messages with 5 sentences each
         for i in range(1000):
-            # Create variations with focus on GoodMarket and GoodDollar UBI
-            # Keeping them concise for Twitter character limits
-            variations = [
-                "🚀 Claiming my daily G$ UBI on GoodMarket! Simple quizzes, instant rewards. Join the movement at goodmarket.live and earn with me! @gooddollarorg @GoodDollarTeam #GoodDollar #UBI",
-                "Knowledge is power and G$! Learning about Universal Basic Income while earning on goodmarket.live. Claim your daily GoodDollar now! @gooddollarorg @GoodDollarTeam #CryptoEarning #GoodDollar",
-                "Fastest way to earn G$ tokens? Quizzes on GoodMarket! Supporting GoodDollar's UBI initiative one task at a time. Start at goodmarket.live! @gooddollarorg @GoodDollarTeam #GoodDollar #UBI",
-                "I just claimed my GoodDollar UBI via goodmarket.live! Love how easy it is to learn and earn G$ daily. Join the global community today! @gooddollarorg @GoodDollarTeam #GoodDollar #Crypto",
-                "Earn G$ tokens while learning about financial inclusion! GoodMarket makes GoodDollar UBI accessible to everyone. Visit goodmarket.live! @gooddollarorg @GoodDollarTeam #GoodDollar #UBI",
-                "Daily G$ rewards are waiting for you at goodmarket.live! Support the GoodDollar ecosystem and earn UBI through simple tasks. Try it now! @gooddollarorg @GoodDollarTeam #GoodDollar #Earning",
-                "Building my G$ balance daily on GoodMarket! A perfect way to support GoodDollar UBI and learn about blockchain. Join at goodmarket.live! @gooddollarorg @GoodDollarTeam #GoodDollar #UBI",
-                "Instant G$ payments for simple educational tasks! GoodMarket is my go-to for claiming GoodDollar UBI rewards. Check goodmarket.live! @gooddollarorg @GoodDollarTeam #GoodDollar #Crypto",
-                "Want to be part of the GoodDollar UBI revolution? Start earning G$ today on goodmarket.live! Simple, fun, and genuinely rewarding. @gooddollarorg @GoodDollarTeam #GoodDollar #UBI",
-                "Claiming G$ has never been easier! GoodMarket brings the GoodDollar UBI experience to your fingertips at goodmarket.live. Join us now! @gooddollarorg @GoodDollarTeam #GoodDollar #CryptoEarning"
-            ]
+            s1 = opening_phrases[i % len(opening_phrases)]
+            s2 = middle_phrases[(i // 10) % len(middle_phrases)]
+            s3 = closing_phrases[(i // 100) % len(closing_phrases)]
             
-            # Use modulo to cycle through variations
-            message = variations[i % len(variations)]
+            # Twitter messages are shorter to fit limits
+            message = f"🐦 {s1} {s2}\n\n{s3} @gooddollarorg #GoodDollar"
             templates.append(message)
         
         return templates
