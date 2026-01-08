@@ -165,43 +165,52 @@ def upload_to_imgbb(file) -> dict:
             'name': file.filename or 'news_image'
         }
         
-        # Upload to ImgBB
-        response = requests.post(IMGBB_UPLOAD_URL, data=payload, timeout=30)
+        # Upload to ImgBB with retries
+        max_retries = 3
+        last_error = "Unknown error"
         
-        logger.info(f"📥 ImgBB Response: {response.status_code}")
-        
-        # Check response
-        if response.status_code != 200:
-            logger.error(f"❌ ImgBB Error: {response.text[:500]}")
-            return {
-                'success': False,
-                'error': f'ImgBB upload failed with status {response.status_code}'
-            }
-        
-        result = response.json()
-        
-        if result.get('success'):
-            image_url = result['data']['url']
-            logger.info(f"✅ Image uploaded: {image_url}")
-            return {
-                'success': True,
-                'url': image_url,
-                'delete_url': result['data'].get('delete_url'),
-                'display_url': result['data'].get('display_url')
-            }
-        else:
-            error_msg = result.get('error', {}).get('message', 'Unknown error')
-            logger.error(f"❌ ImgBB API error: {error_msg}")
-            return {
-                'success': False,
-                'error': f'Upload failed: {error_msg}'
-            }
+        for attempt in range(max_retries):
+            try:
+                logger.info(f"📤 Uploading to ImgBB (Attempt {attempt + 1}/{max_retries}): {file.filename} ({len(file_data)} bytes)")
+                
+                # Use a slightly longer timeout and better connection handling
+                response = requests.post(IMGBB_UPLOAD_URL, data=payload, timeout=60)
+                
+                logger.info(f"📥 ImgBB Response: {response.status_code}")
+                
+                if response.status_code == 200:
+                    result = response.json()
+                    if result.get('success'):
+                        image_url = result['data']['url']
+                        logger.info(f"✅ Image uploaded: {image_url}")
+                        return {
+                            'success': True,
+                            'url': image_url,
+                            'delete_url': result['data'].get('delete_url'),
+                            'display_url': result['data'].get('display_url')
+                        }
+                    else:
+                        last_error = result.get('error', {}).get('message', 'Unknown API error')
+                        logger.error(f"❌ ImgBB API error: {last_error}")
+                else:
+                    last_error = f"HTTP {response.status_code}"
+                    logger.error(f"❌ ImgBB HTTP error: {last_error}")
+                    
+            except requests.exceptions.Timeout:
+                last_error = "Upload timeout"
+                logger.warning(f"⚠️ Attempt {attempt + 1} timed out")
+            except Exception as e:
+                last_error = str(e)
+                logger.error(f"❌ Attempt {attempt + 1} failed: {e}")
             
-    except requests.exceptions.Timeout:
-        logger.error("❌ Upload timeout")
+            # Brief wait before retry if not the last attempt
+            if attempt < max_retries - 1:
+                import time
+                time.sleep(2)
+        
         return {
             'success': False,
-            'error': 'Upload timeout - please try again'
+            'error': f'Upload failed after {max_retries} attempts: {last_error}'
         }
     except Exception as e:
         logger.error(f"❌ Upload error: {e}")
