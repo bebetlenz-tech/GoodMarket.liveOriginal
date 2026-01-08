@@ -42,16 +42,16 @@ def _generate_telegram_messages() -> List[str]:
     ]
 
     closing_phrases = [
-        "New to GoodDollar? Start your journey today 👇\n👉 Create your GoodWallet here: https://goodwallet.xyz/",
-        "Ready to join the movement? Set up your wallet and start earning 👇\n👉 Get your GoodWallet: https://goodwallet.xyz/",
-        "Begin your crypto journey now! Everything you need is right here 👇\n👉 Sign up for GoodWallet: https://goodwallet.xyz/",
-        "Don't wait to start earning! Join the GoodDollar family today 👇\n👉 Create your GoodWallet: https://goodwallet.xyz/",
-        "Take the first step towards financial freedom! Get started here 👇\n👉 Secure your GoodWallet: https://goodwallet.xyz/",
-        "Your future in crypto starts today! Join the revolution 👇\n👉 Launch your GoodWallet: https://goodwallet.xyz/",
-        "Start receiving your universal basic income now! 👇\n👉 Register for GoodWallet: https://goodwallet.xyz/",
-        "Empower your financial future with GoodDollar! 👇\n👉 Get started with GoodWallet: https://goodwallet.xyz/",
-        "Joining is fast and simple! Start your journey here 👇\n👉 Claim your GoodWallet: https://goodwallet.xyz/",
-        "Be part of a global community! Your journey begins now 👇\n👉 Set up your GoodWallet: https://goodwallet.xyz/"
+        "New to GoodDollar? Start your journey today 👇\n👉 Create your GoodWallet here: goodwallet.xyz",
+        "Ready to join the movement? Set up your wallet and start earning 👇\n👉 Get your GoodWallet: goodwallet.xyz/",
+        "Begin your crypto journey now! Everything you need is right here 👇\n👉 Sign up for GoodWallet: goodwallet.xyz/",
+        "Don't wait to start earning! Join the GoodDollar family today 👇\n👉 Create your GoodWallet: goodwallet.xyz/",
+        "Take the first step towards financial freedom! Get started here 👇\n👉 Secure your GoodWallet: goodwallet.xyz/",
+        "Your future in crypto starts today! Join the revolution 👇\n👉 Launch your GoodWallet: goodwallet.xyz/",
+        "Start receiving your universal basic income now! 👇\n👉 Register for GoodWallet: goodwallet .xyz/",
+        "Empower your financial future with GoodDollar! 👇\n👉 Get started with GoodWallet: goodwallet .xyz/",
+        "Joining is fast and simple! Start your journey here 👇\n👉 Claim your GoodWallet: goodwallet .xyz/",
+        "Be part of a global community! Your journey begins now 👇\n👉 Set up your GoodWallet: goodwallet .xyz/"
     ]
 
     filler_sentences = [
