@@ -33,28 +33,19 @@ class TwitterTaskService:
         
         # Generate 1000 unique messages with 5 sentences each
         for i in range(1000):
-            # Create variations with 5 sentences each, including goodmarket.live
+            # Create variations with focus on GoodMarket and GoodDollar UBI
+            # Keeping them concise for Twitter character limits
             variations = [
-                "🌟 GoodMarket transforms my daily earning experience! Educational quizzes pay real G$ tokens instantly. Join me at goodmarket.live and start earning today! Simple, transparent, rewarding. @gooddollarorg @GoodDollarTeam #GoodDollar",
-                "Daily quizzes on GoodMarket test my blockchain knowledge and reward me with G$ tokens. I love how accessible and straightforward it is! Visit goodmarket.live to get started now. Every task pays immediately in G$. @gooddollarorg @GoodDollarTeam #CryptoEarning",
-                "I love GoodMarket's instant payment system! Complete tasks, get paid immediately in G$ tokens. The platform at goodmarket.live makes crypto earning fun and easy. No complicated processes, just pure rewards. @gooddollarorg @GoodDollarTeam #UBI",
-                "GoodMarket combines education with real financial rewards seamlessly. Every correct answer brings instant G$ to my wallet! Check out goodmarket.live for amazing earning opportunities. The community is supportive and growing fast. @gooddollarorg @GoodDollarTeam #BlockchainEducation",
-                "The quiz system on GoodMarket is engaging and genuinely rewarding! No complicated processes, just pure earning opportunities. Start your journey at goodmarket.live today! Real-time payments build genuine trust. @gooddollarorg @GoodDollarTeam #GoodDollar",
-                "GoodWallet integration makes claiming my GoodMarket earnings incredibly smooth. Real-time payments build genuine trust! Visit goodmarket.live to experience seamless crypto rewards. Educational content helps me learn while earning. @gooddollarorg @GoodDollarTeam #CryptoEarning",
-                "Educational content on GoodMarket helps me understand universal basic income better. Every day brings new opportunities to learn and earn! Join the revolution at goodmarket.live now. Simple tasks, instant G$ rewards! @gooddollarorg @GoodDollarTeam #UBI",
-                "The minigames on GoodMarket add fun elements to my earning experience! Social tasks connect me with the broader community. Explore goodmarket.live for diverse earning methods. Telegram and Twitter integration make it super easy. @gooddollarorg @GoodDollarTeam #BlockchainEducation",
-                "Telegram and Twitter integrations make GoodMarket participation super easy! I appreciate the consistent platform improvements. Start earning at goodmarket.live with just a few clicks! Every quiz teaches me valuable blockchain knowledge. @gooddollarorg @GoodDollarTeam #DailyRewards",
-                "GoodMarket proves that earning crypto can be accessible to everyone! Join me in this amazing journey toward financial inclusion. Visit goodmarket.live and transform your earnings! Real G$ tokens paid instantly. @gooddollarorg @GoodDollarTeam #GoodDollar",
-                "GoodMarket revolutionizes how I earn crypto daily with instant rewards! Engaging quizzes teach me about blockchain technology. Check out goodmarket.live to start your journey! The platform is transparent and trustworthy. @gooddollarorg @GoodDollarTeam #CryptoEarning",
-                "Every quiz I complete on GoodMarket pays me real G$ tokens! Knowledge and real financial value combined perfectly. Join the community at goodmarket.live today! Daily tasks are simple yet rewarding. @gooddollarorg @GoodDollarTeam #UBI",
-                "The instant payment system on GoodMarket builds trust! Complete task, get paid immediately in G$ tokens. Start earning at goodmarket.live right now! No waiting, no complications, just pure rewards. @gooddollarorg @GoodDollarTeam #BlockchainEducation",
-                "Educational quizzes that actually pay? GoodMarket delivers both! Daily tasks are simple yet rewarding for everyone. Visit goodmarket.live and see for yourself! The community is growing stronger every day. @gooddollarorg @GoodDollarTeam #GoodDollar",
-                "I love how GoodMarket combines learning, gaming, and earning seamlessly! The community is supportive and growing fast. Join us at goodmarket.live for amazing opportunities! Real-time G$ rewards make all the difference. @gooddollarorg @GoodDollarTeam #CryptoEarning",
-                "Real-time G$ rewards make GoodMarket different from other platforms! Transparency at its finest, always. Explore diverse earning methods at goodmarket.live! From quizzes to social tasks, everything pays. @gooddollarorg @GoodDollarTeam #UBI",
-                "From quizzes to social tasks, GoodMarket offers diverse ways to earn crypto daily! Fun, educational, and accessible to everyone worldwide. Start your journey at goodmarket.live now! Each correct answer brings instant G$ rewards. @gooddollarorg @GoodDollarTeam #BlockchainEducation",
-                "Each day brings fresh opportunities on GoodMarket! New quizzes, tasks, and earning potential await you. Visit goodmarket.live to unlock daily rewards! The platform makes crypto accessible to all. @gooddollarorg @GoodDollarTeam #GoodDollar",
-                "The minigames on GoodMarket add entertainment value while I earn real cryptocurrency! Telegram tasks connect me with people globally. Check out goodmarket.live for fun earning opportunities! GoodWallet integration makes claiming smooth and fast. @gooddollarorg @GoodDollarTeam #CryptoEarning",
-                "Twitter integration makes sharing my GoodMarket success easy and rewarding! Platform improvements show genuine commitment to users. Join the revolution at goodmarket.live today! Educational content combined with real financial rewards. @gooddollarorg @GoodDollarTeam #UBI"
+                "🚀 Claiming my daily G$ UBI on GoodMarket! Simple quizzes, instant rewards. Join the movement at goodmarket.live and earn with me! @gooddollarorg @GoodDollarTeam #GoodDollar #UBI",
+                "Knowledge is power and G$! Learning about Universal Basic Income while earning on goodmarket.live. Claim your daily GoodDollar now! @gooddollarorg @GoodDollarTeam #CryptoEarning #GoodDollar",
+                "Fastest way to earn G$ tokens? Quizzes on GoodMarket! Supporting GoodDollar's UBI initiative one task at a time. Start at goodmarket.live! @gooddollarorg @GoodDollarTeam #GoodDollar #UBI",
+                "I just claimed my GoodDollar UBI via goodmarket.live! Love how easy it is to learn and earn G$ daily. Join the global community today! @gooddollarorg @GoodDollarTeam #GoodDollar #Crypto",
+                "Earn G$ tokens while learning about financial inclusion! GoodMarket makes GoodDollar UBI accessible to everyone. Visit goodmarket.live! @gooddollarorg @GoodDollarTeam #GoodDollar #UBI",
+                "Daily G$ rewards are waiting for you at goodmarket.live! Support the GoodDollar ecosystem and earn UBI through simple tasks. Try it now! @gooddollarorg @GoodDollarTeam #GoodDollar #Earning",
+                "Building my G$ balance daily on GoodMarket! A perfect way to support GoodDollar UBI and learn about blockchain. Join at goodmarket.live! @gooddollarorg @GoodDollarTeam #GoodDollar #UBI",
+                "Instant G$ payments for simple educational tasks! GoodMarket is my go-to for claiming GoodDollar UBI rewards. Check goodmarket.live! @gooddollarorg @GoodDollarTeam #GoodDollar #Crypto",
+                "Want to be part of the GoodDollar UBI revolution? Start earning G$ today on goodmarket.live! Simple, fun, and genuinely rewarding. @gooddollarorg @GoodDollarTeam #GoodDollar #UBI",
+                "Claiming G$ has never been easier! GoodMarket brings the GoodDollar UBI experience to your fingertips at goodmarket.live. Join us now! @gooddollarorg @GoodDollarTeam #GoodDollar #CryptoEarning"
             ]
             
             # Use modulo to cycle through variations
