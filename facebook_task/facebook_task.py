@@ -25,28 +25,18 @@ class FacebookTaskService:
         import random
         messages = []
         
-        # All messages are 20-30 words - all include goodmarket.live
+        # All messages focus on GoodMarket and GoodDollar UBI
         custom_messages = [
-            "✨ My journey with GoodMarket at goodmarket.live has been incredibly rewarding! Learning about universal basic income while earning G$ - it's amazing! GoodWallet swapping is smooth! #GoodDollar",
-            "🎓 Interactive quizzes at goodmarket.live make learning about crypto fun and profitable! Instant rewards appear in my GoodWallet after every completed Learn & Earn task! #GoodDollar",
-            "💎 Everything at goodmarket.live is transparent - I can track every G$ I earn through Learn & Earn, Minigames, and Daily Tasks! GoodWallet integration is seamless! #GoodDollar",
-            "⚡ Tasks at goodmarket.live are simple, straightforward, and pay immediately upon completion! I love how transparent the entire GoodMarket reward system operates with GoodWallet! #GoodDollar",
-            "🌟 GoodWallet integration makes claiming my goodmarket.live earnings incredibly smooth! From signup to earning took me less than 5 minutes with GoodMarket's intuitive Learn & Earn platform! #GoodDollar",
-            "🤝 The GoodDollar community at goodmarket.live is welcoming and helpful! Each quiz teaches me something valuable about blockchain technology while earning G$ through GoodMarket! #GoodDollar",
-            "💰 Fast, reliable payments every single time at goodmarket.live! Every day brings new opportunities to learn and earn with GoodMarket's exciting tasks and GoodWallet swapping! #GoodDollar",
-            "🎮 The minigames at goodmarket.live add fun elements to the earning experience! Social tasks connect me with the broader GoodDollar community while earning G$ through GoodMarket! #GoodDollar",
-            "📱 Telegram and Twitter integrations at goodmarket.live make participation super easy! Regular updates bring new features and earning opportunities through GoodMarket's Learn & Earn daily! #GoodDollar",
-            "🌍 This platform at goodmarket.live democratizes access to cryptocurrency earnings! Experience true financial freedom with GoodDollar, GoodMarket tasks, and GoodWallet's powerful swapping features! #GoodDollar",
-            "🚀 GoodMarket at goodmarket.live revolutionizes how I earn cryptocurrency daily! Learn & Earn quizzes are engaging, minigames are fun, and GoodWallet makes swapping tokens effortless! #GoodDollar",
-            "📚 Educational content at goodmarket.live teaches blockchain while I earn real G$ tokens! GoodMarket's Daily Tasks are simple, and GoodWallet's swapping feature is incredibly user-friendly! #GoodDollar",
-            "✅ Claiming rewards at goodmarket.live is instant and hassle-free! GoodMarket offers Learn & Earn, Minigames, Daily Tasks - all paying directly to my GoodWallet for easy swapping! #GoodDollar",
-            "🎯 Simple tasks at goodmarket.live combined with educational content make earning cryptocurrency genuinely rewarding! GoodWallet integration with GoodMarket ensures smooth token swapping and management! #GoodDollar",
-            "💡 Daily quizzes at goodmarket.live test my knowledge and reward me instantly! GoodMarket's transparent system and GoodWallet's swapping features create the perfect earning ecosystem! #GoodDollar",
-            "🌈 Join the universal basic income revolution at goodmarket.live! GoodMarket provides Learn & Earn opportunities, engaging minigames, and GoodWallet handles all your token swapping needs! #GoodDollar",
-            "⭐ Earning crypto at goodmarket.live has never been this accessible! GoodMarket's Learn & Earn platform educates while you earn, and GoodWallet makes managing tokens simple! #GoodDollar",
-            "🔥 GoodMarket at goodmarket.live makes blockchain education profitable! Complete quizzes, play minigames, finish daily tasks - all rewards flow smoothly into GoodWallet for convenient swapping! #GoodDollar",
-            "🎊 Transparent reward system at goodmarket.live builds trust! GoodMarket offers multiple earning streams through Learn & Earn and tasks, while GoodWallet provides seamless token swapping! #GoodDollar",
-            "🌟 From learning to earning at goodmarket.live - everything flows perfectly! GoodMarket's educational quizzes reward knowledge, and GoodWallet's swapping feature maximizes your G$ value! #GoodDollar"
+            "✨ Claiming my daily G$ UBI on GoodMarket! Simple quizzes, instant rewards. Join the movement at goodmarket.live and earn with me! #GoodDollar #UBI",
+            "🎓 Interactive quizzes at goodmarket.live make learning about GoodDollar UBI fun and profitable! Instant G$ rewards appear in my GoodWallet! #GoodDollar #UBI",
+            "💎 Supporting the GoodDollar ecosystem through goodmarket.live! Claim your daily UBI and learn about financial inclusion while earning G$. #GoodDollar #UBI",
+            "⚡ Earning G$ tokens while supporting GoodDollar's mission! GoodMarket makes UBI accessible to everyone at goodmarket.live. Join us today! #GoodDollar #UBI",
+            "🌟 I love how easy it is to claim GoodDollar UBI on goodmarket.live! Real G$ rewards for simple educational tasks. Start earning now! #GoodDollar #UBI",
+            "🤝 The GoodDollar revolution is here at goodmarket.live! Earn G$ daily through quizzes and tasks while supporting universal basic income. #GoodDollar #UBI",
+            "💰 Instant G$ payments for supporting the GoodDollar ecosystem! Join me at goodmarket.live and claim your daily UBI rewards today! #GoodDollar #UBI",
+            "🎮 Learning about blockchain and GoodDollar UBI has never been this rewarding! Check out goodmarket.live and start earning G$ now. #GoodDollar #UBI",
+            "📱 Claim your piece of the GoodDollar UBI pie at goodmarket.live! Simple tasks, real G$ rewards, and a global community waiting for you. #GoodDollar #UBI",
+            "🌍 Join the global UBI movement with GoodDollar and GoodMarket! Earn G$ daily at goodmarket.live and support financial inclusion for all. #GoodDollar #UBI"
         ]
         
         # Generate 1000 messages by cycling through the 20 base messages
