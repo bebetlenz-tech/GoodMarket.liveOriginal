@@ -403,6 +403,9 @@ class TwitterTaskService:
                         
                         logger.info(f"📝 Submitting Twitter task (attempt {attempt + 1}/{max_retries})...")
                         logger.info(f"   URL: {twitter_url}")
+                        
+                        # Get dynamic reward for this specific submission
+                        current_reward = self.get_task_reward()
                         logger.info(f"   Reward: {current_reward} G$")
                         
                         # Insert with NULL transaction_hash for pending submissions
