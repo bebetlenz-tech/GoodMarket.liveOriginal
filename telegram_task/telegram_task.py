@@ -11,52 +11,78 @@ logger = logging.getLogger(__name__)
 _TELEGRAM_MESSAGES: List[str] = []
 
 def _generate_telegram_messages() -> List[str]:
-    """Generate 1000 unique custom messages for Telegram with varying word counts (9-20 words)"""
+    """Generate 1000 unique custom messages for Telegram (10 sentences each)"""
     import random
     messages = []
 
-    # All messages focus on GoodMarket and GoodDollar UBI
-    custom_messages = [
-        "✨ Discover the future of financial inclusion with GoodMarket and GoodDollar UBI today!\n\n"
-        "Claiming my daily G$ UBI has never been easier or more rewarding than on this platform.\n\n"
-        "Every single day, I participate in simple educational quizzes that help me learn about blockchain.\n\n"
-        "The rewards are instant and appear directly in my wallet as soon as I complete the tasks.\n\n"
-        "I am proud to be part of a global movement that is redefining how we think about money.\n\n"
-        "GoodMarket provides a seamless experience for anyone looking to enter the world of crypto safely.\n\n"
-        "By using goodmarket.live, I am actively contributing to a more equitable financial system for all.\n\n"
-        "It is truly inspiring to see how technology can be used to empower communities across the globe.\n\n"
-        "The interface is user-friendly and perfect for both beginners and experienced crypto enthusiasts alike.\n\n"
-        "I highly recommend everyone to check out the amazing opportunities available at goodmarket.live now.\n\n"
-        "You can start earning G$ immediately while gaining valuable knowledge about the entire ecosystem.\n\n"
-        "Join thousands of others who are already benefiting from this innovative universal basic income model.\n\n"
-        "Let's build a better future together, one claim at a time, with the help of GoodDollarorg.\n\n"
-        "Don't miss out on your chance to be part of this revolutionary journey towards financial freedom.\n\n"
-        "Visit goodmarket.live today and start your earning journey with our supportive global community! 🚀",
-
-        "🎓 Learning about the GoodDollar ecosystem at goodmarket.live is an incredibly rewarding experience!\n\n"
-        "I enjoy how the platform combines education with real-world cryptocurrency earning opportunities daily.\n\n"
-        "The quizzes are well-designed and provide deep insights into the mission of universal basic income.\n\n"
-        "Every correct answer brings me closer to financial empowerment through instant G$ token rewards.\n\n"
-        "GoodMarket is truly a game-changer in the Web3 space, making complex concepts easy to understand.\n\n"
-        "I love the transparency and the community-driven approach that defines the entire GoodDollar project.\n\n"
-        "By visiting goodmarket.live, you can access a wealth of resources and start earning right away.\n\n"
-        "It's not just about the tokens; it's about being part of a meaningful global financial shift.\n\n"
-        "The platform is consistently updated with new tasks and ways to engage with the growing community.\n\n"
-        "I have found a sense of purpose and a new way to support financial inclusion through GoodMarket.\n\n"
-        "Sharing this opportunity with friends and family is my way of spreading the benefits of UBI.\n\n"
-        "The potential for growth within this ecosystem is immense, and I am excited to see what's next.\n\n"
-        "Join the revolution at goodmarket.live and see how easy it is to start your crypto journey today.\n\n"
-        "Your participation helps strengthen the network and brings us closer to a fairer world for everyone.\n\n"
-        "Start your education and earning path now at goodmarket.live and join the @gooddollarorg family! ✨"
+    opening_phrases = [
+        "GoodMarket is more than tasks — it’s your gateway to learning, earning, and contributing to the GoodDollar ecosystem.",
+        "Join the financial revolution with GoodMarket! It's your personal gateway to the GoodDollar ecosystem.",
+        "Unlock the potential of Web3 with GoodMarket, your bridge to the GoodDollar universal basic income.",
+        "Experience a new way to earn and learn! GoodMarket is the premier hub for the GoodDollar community.",
+        "Step into the future of finance! GoodMarket connects you directly to the GoodDollar ecosystem.",
+        "Empower yourself with GoodMarket! Start your journey of earning and contributing to GoodDollar today.",
+        "GoodMarket: Where education meets rewards in the thriving GoodDollar ecosystem.",
+        "Ready to earn? GoodMarket is your official gateway to the GoodDollar universal basic income mission.",
+        "Discover a world of opportunities! GoodMarket is the ultimate portal for GoodDollar enthusiasts.",
+        "Join thousands earning G$ daily! GoodMarket is your essential gateway to the GoodDollar ecosystem."
     ]
 
-    # Generate 1000 messages by cycling through the 20 base messages
-    all_message_pools = [custom_messages]
+    middle_phrases = [
+        "Visit goodmarket.live today and discover daily tasks, learning opportunities, and ways to earn G$ 💙",
+        "Head over to goodmarket.live right now to explore exciting tasks and start your G$ earning journey.",
+        "Check out goodmarket.live and find a wealth of daily opportunities to support the GoodDollar mission.",
+        "Go to goodmarket.live and start completing simple tasks to earn real G$ rewards every single day.",
+        "Access goodmarket.live and dive into a variety of ways to contribute and earn within our community.",
+        "Your journey starts at goodmarket.live – discover interactive quizzes and tasks that reward you in G$.",
+        "Visit goodmarket.live to find out how easy it is to earn G$ while learning about financial inclusion.",
+        "Explore goodmarket.live today and join the movement for a more equitable global financial system.",
+        "Start your daily earning routine at goodmarket.live with our fun and educational task modules.",
+        "Navigate to goodmarket.live and unlock multiple pathways to earn G$ and support universal basic income."
+    ]
+
+    closing_phrases = [
+        "New to GoodDollar? Start your journey today 👇\n👉 Create your GoodWallet here: https://goodwallet.xyz/",
+        "Ready to join the movement? Set up your wallet and start earning 👇\n👉 Get your GoodWallet: https://goodwallet.xyz/",
+        "Begin your crypto journey now! Everything you need is right here 👇\n👉 Sign up for GoodWallet: https://goodwallet.xyz/",
+        "Don't wait to start earning! Join the GoodDollar family today 👇\n👉 Create your GoodWallet: https://goodwallet.xyz/",
+        "Take the first step towards financial freedom! Get started here 👇\n👉 Secure your GoodWallet: https://goodwallet.xyz/",
+        "Your future in crypto starts today! Join the revolution 👇\n👉 Launch your GoodWallet: https://goodwallet.xyz/",
+        "Start receiving your universal basic income now! 👇\n👉 Register for GoodWallet: https://goodwallet.xyz/",
+        "Empower your financial future with GoodDollar! 👇\n👉 Get started with GoodWallet: https://goodwallet.xyz/",
+        "Joining is fast and simple! Start your journey here 👇\n👉 Claim your GoodWallet: https://goodwallet.xyz/",
+        "Be part of a global community! Your journey begins now 👇\n👉 Set up your GoodWallet: https://goodwallet.xyz/"
+    ]
+
+    filler_sentences = [
+        "Every contribution you make helps strengthen the global universal basic income network.",
+        "Financial inclusion is a right, not a privilege, and we're building it together.",
+        "Learning about blockchain has never been this rewarding or this accessible for everyone.",
+        "Join a community of thousands dedicated to creating a fairer financial world for all.",
+        "Your daily G$ claim is just the beginning of what you can achieve in this ecosystem.",
+        "Interactive quizzes make it fun to learn while you grow your digital asset portfolio.",
+        "We are proud to support the mission of making crypto useful for real people everywhere.",
+        "The GoodDollar revolution is powered by users like you who believe in financial equity.",
+        "Stay active and keep earning as we expand the possibilities of decentralized finance.",
+        "Thank you for being a vital part of the most inclusive crypto project on the planet."
+    ]
 
     for i in range(1000):
-        # Cycle through all 20 custom messages
-        message_index = i % len(custom_messages)
-        messages.append(custom_messages[message_index])
+        # Pick sentences based on index to ensure variety
+        s1 = opening_phrases[i % len(opening_phrases)]
+        s2 = middle_phrases[(i // 10) % len(middle_phrases)]
+        
+        # Select 6 filler sentences to make it 10 sentences total (Opening + Middle + 6 fillers + 2 sentences in closing)
+        # Note: Closing phrase has 2 sentences.
+        fillers = []
+        for j in range(6):
+            fillers.append(filler_sentences[(i + j * 13) % len(filler_sentences)])
+        
+        closing = closing_phrases[(i // 100) % len(closing_phrases)]
+        
+        # Combine all parts with proper spacing
+        msg = f"✨ {s1}\n\n{s2}\n\n" + "\n\n".join(fillers) + f"\n\n{closing}"
+        messages.append(msg)
 
     return messages
 
