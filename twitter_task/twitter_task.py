@@ -412,10 +412,9 @@ class TwitterTaskService:
                         
                         logger.info(f"📝 Submitting Twitter task (attempt {attempt + 1}/{max_retries})...")
                         logger.info(f"   URL: {twitter_url}")
-                        logger.info(f"   Reward: {self.task_reward} G$")
+                        logger.info(f"   Reward: {current_reward} G$")
                         
                         # Insert with NULL transaction_hash for pending submissions
-                        current_reward = self.get_task_reward()
                         result = self.supabase.table('twitter_task_log').insert({
                             'wallet_address': wallet_address,
                             'twitter_url': twitter_url,
@@ -518,9 +517,10 @@ class TwitterTaskService:
             # Disburse reward (use the amount stored in the submission)
             from twitter_task.blockchain import twitter_blockchain_service
 
+            current_reward = float(sub_data['reward_amount'])
             disbursement = twitter_blockchain_service.disburse_twitter_reward_sync(
                 wallet_address=wallet_address,
-                amount=float(sub_data['reward_amount'])
+                amount=current_reward
             )
 
             if disbursement.get('success'):
@@ -532,12 +532,12 @@ class TwitterTaskService:
                     'approved_at': datetime.now(timezone.utc).isoformat()
                 }).eq('id', submission_id).execute()
 
-                logger.info(f"✅ Twitter task approved and disbursed: {self.task_reward} G$ to {self._mask_wallet(wallet_address)}")
+                logger.info(f"✅ Twitter task approved and disbursed: {current_reward} G$ to {self._mask_wallet(wallet_address)}")
 
                 return {
                     'success': True,
                     'tx_hash': disbursement.get('tx_hash'),
-                    'message': f'Approved! {self.task_reward} G$ disbursed to user.'
+                    'message': f'Approved! {current_reward} G$ disbursed to user.'
                 }
             else:
                 # Update status to failed if disbursement failed
