@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 _TELEGRAM_MESSAGES: List[str] = []
 
 def _generate_telegram_messages() -> List[str]:
-    """Generate 1000 unique custom messages for Telegram (4 sentences each)"""
+    """Generate 1000 unique custom messages for Telegram (3 sentences each)"""
     import random
     messages = []
 
@@ -42,46 +42,26 @@ def _generate_telegram_messages() -> List[str]:
     ]
 
     closing_phrases = [
-        "New to GoodDollar? Start your journey today 👇\n👉 Create your GoodWallet here: goodwallet .xyz",
-        "Ready to join the movement? Set up your wallet and start earning 👇\n👉 Get your GoodWallet: goodwallet .xyz/",
-        "Begin your crypto journey now! Everything you need is right here 👇\n👉 Sign up for GoodWallet: goodwallet .xyz/",
-        "Don't wait to start earning! Join the GoodDollar family today 👇\n👉 Create your GoodWallet: goodwallet.xyz/",
-        "Take the first step towards financial freedom! Get started here 👇\n👉 Secure your GoodWallet: goodwallet.xyz/",
-        "Your future in crypto starts today! Join the revolution 👇\n👉 Launch your GoodWallet: goodwallet.xyz/",
-        "Start receiving your universal basic income now! 👇\n👉 Register for GoodWallet: goodwallet .xyz/",
-        "Empower your financial future with GoodDollar! 👇\n👉 Get started with GoodWallet: goodwallet .xyz/",
-        "Joining is fast and simple! Start your journey here 👇\n👉 Claim your GoodWallet: goodwallet .xyz/",
-        "Be part of a global community! Your journey begins now 👇\n👉 Set up your GoodWallet: goodwallet .xyz/"
-    ]
-
-    filler_sentences = [
-        "Every contribution you make helps strengthen the global universal basic income network.",
-        "Financial inclusion is a right, not a privilege, and we're building it together.",
-        "Learning about blockchain has never been this rewarding or this accessible for everyone.",
-        "Join a community of thousands dedicated to creating a fairer financial world for all.",
-        "Your daily G$ claim is just the beginning of what you can achieve in this ecosystem.",
-        "Interactive quizzes make it fun to learn while you grow your digital asset portfolio.",
-        "We are proud to support the mission of making crypto useful for real people everywhere.",
-        "The GoodDollar revolution is powered by users like you who believe in financial equity.",
-        "Stay active and keep earning as we expand the possibilities of decentralized finance.",
-        "Thank you for being a vital part of the most inclusive crypto project on the planet."
+        "Create your GoodWallet here: https://goodwallet.xyz/",
+        "Get your GoodWallet: https://goodwallet.xyz/",
+        "Sign up for GoodWallet: https://goodwallet.xyz/",
+        "Create your GoodWallet: https://goodwallet.xyz/",
+        "Secure your GoodWallet: https://goodwallet.xyz/",
+        "Launch your GoodWallet: https://goodwallet.xyz/",
+        "Register for GoodWallet: https://goodwallet.xyz/",
+        "Get started with GoodWallet: https://goodwallet.xyz/",
+        "Claim your GoodWallet: https://goodwallet.xyz/",
+        "Set up your GoodWallet: https://goodwallet.xyz/"
     ]
 
     for i in range(1000):
         # Pick sentences based on index to ensure variety
         s1 = opening_phrases[i % len(opening_phrases)]
-        s2 = middle_phrases[(i // 4) % len(middle_phrases)]
+        s2 = middle_phrases[(i // 10) % len(middle_phrases)]
+        s3 = closing_phrases[(i // 100) % len(closing_phrases)]
         
-        # Select 6 filler sentences to make it 10 sentences total (Opening + Middle + 6 fillers + 2 sentences in closing)
-        # Note: Closing phrase has 2 sentences.
-        fillers = []
-        for j in range(6):
-            fillers.append(filler_sentences[(i + j * 13) % len(filler_sentences)])
-        
-        closing = closing_phrases[(i // 100) % len(closing_phrases)]
-        
-        # Combine all parts with proper spacing
-        msg = f"✨ {s1}\n\n{s2}\n\n" + "\n\n".join(fillers) + f"\n\n{closing}"
+        # Combine into 3 sentences
+        msg = f"✨ {s1}\n\n{s2}\n\n👉 {s3}"
         messages.append(msg)
 
     return messages
