@@ -42,16 +42,16 @@ def _generate_telegram_messages() -> List[str]:
     ]
 
     closing_phrases = [
-        "Create your GoodWallet here: https://goodwallet.xyz/",
-        "Get your GoodWallet: https://goodwallet.xyz/",
-        "Sign up for GoodWallet: https://goodwallet.xyz/",
-        "Create your GoodWallet: https://goodwallet.xyz/",
-        "Secure your GoodWallet: https://goodwallet.xyz/",
-        "Launch your GoodWallet: https://goodwallet.xyz/",
-        "Register for GoodWallet: https://goodwallet.xyz/",
-        "Get started with GoodWallet: https://goodwallet.xyz/",
-        "Claim your GoodWallet: https://goodwallet.xyz/",
-        "Set up your GoodWallet: https://goodwallet.xyz/"
+        "Create your GoodWallet here: goodwallet.xyz/",
+        "Get your GoodWallet: goodwallet.xyz/",
+        "Sign up for GoodWallet: goodwallet.xyz/",
+        "Create your GoodWallet: goodwallet.xyz/",
+        "Secure your GoodWallet: goodwallet.xyz/",
+        "Launch your GoodWallet: goodwallet.xyz/",
+        "Register for GoodWallet: goodwallet.xyz/",
+        "Get started with GoodWallet: goodwallet.xyz/",
+        "Claim your GoodWallet: goodwallet.xyz/",
+        "Set up your GoodWallet: goodwallet.xyz/"
     ]
 
     for i in range(1000):
