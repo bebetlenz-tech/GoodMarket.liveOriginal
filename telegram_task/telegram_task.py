@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 _TELEGRAM_MESSAGES: List[str] = []
 
 def _generate_telegram_messages() -> List[str]:
-    """Generate 1000 unique custom messages for Telegram (10 sentences each)"""
+    """Generate 1000 unique custom messages for Telegram (4 sentences each)"""
     import random
     messages = []
 
@@ -42,9 +42,9 @@ def _generate_telegram_messages() -> List[str]:
     ]
 
     closing_phrases = [
-        "New to GoodDollar? Start your journey today 👇\n👉 Create your GoodWallet here: goodwallet.xyz",
-        "Ready to join the movement? Set up your wallet and start earning 👇\n👉 Get your GoodWallet: goodwallet.xyz/",
-        "Begin your crypto journey now! Everything you need is right here 👇\n👉 Sign up for GoodWallet: goodwallet.xyz/",
+        "New to GoodDollar? Start your journey today 👇\n👉 Create your GoodWallet here: goodwallet .xyz",
+        "Ready to join the movement? Set up your wallet and start earning 👇\n👉 Get your GoodWallet: goodwallet .xyz/",
+        "Begin your crypto journey now! Everything you need is right here 👇\n👉 Sign up for GoodWallet: goodwallet .xyz/",
         "Don't wait to start earning! Join the GoodDollar family today 👇\n👉 Create your GoodWallet: goodwallet.xyz/",
         "Take the first step towards financial freedom! Get started here 👇\n👉 Secure your GoodWallet: goodwallet.xyz/",
         "Your future in crypto starts today! Join the revolution 👇\n👉 Launch your GoodWallet: goodwallet.xyz/",
@@ -70,7 +70,7 @@ def _generate_telegram_messages() -> List[str]:
     for i in range(1000):
         # Pick sentences based on index to ensure variety
         s1 = opening_phrases[i % len(opening_phrases)]
-        s2 = middle_phrases[(i // 10) % len(middle_phrases)]
+        s2 = middle_phrases[(i // 4) % len(middle_phrases)]
         
         # Select 6 filler sentences to make it 10 sentences total (Opening + Middle + 6 fillers + 2 sentences in closing)
         # Note: Closing phrase has 2 sentences.
