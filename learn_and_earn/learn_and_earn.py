@@ -655,9 +655,11 @@ class LearnEarnQuizManager:
         if not hasattr(self, '_quiz_sessions'):
             self._quiz_sessions = {}
 
+        quiz_session_id = str(quiz_session_id)
         session_data = self._quiz_sessions.get(quiz_session_id)
 
         if not session_data:
+            logger.error(f"❌ Session {quiz_session_id} not found in _quiz_sessions. Available: {list(self._quiz_sessions.keys())}")
             return {'valid': False, 'message': 'Quiz session expired or not found. Please start a new quiz.'}
 
         stored_questions = session_data.get('questions')
@@ -1223,20 +1225,33 @@ def submit_quiz(current_user):
         logger.info(f"📊 Questions count: {len(stored_questions) if stored_questions else 0}")
 
         # If session data is missing, try to retrieve from quiz_manager's temporary storage
-        if not stored_questions or stored_session_id != quiz_session_id:
-            logger.warning(f"⚠️ Session data missing or mismatch, trying quiz_manager storage...")
+        if not stored_questions or str(stored_session_id) != str(quiz_session_id):
+            logger.warning(f"⚠️ Session data missing or mismatch (Session: {stored_session_id}, Request: {quiz_session_id}), trying quiz_manager storage...")
 
             # Check if quiz_manager has the session
-            if hasattr(quiz_manager, '_quiz_sessions') and quiz_session_id in quiz_manager._quiz_sessions:
-                session_data = quiz_manager._quiz_sessions[quiz_session_id]
+            quiz_session_id_str = str(quiz_session_id)
+            if hasattr(quiz_manager, '_quiz_sessions') and quiz_session_id_str in quiz_manager._quiz_sessions:
+                session_data = quiz_manager._quiz_sessions[quiz_session_id_str]
                 stored_questions = session_data.get('questions')
-                logger.info(f"✅ Retrieved questions from quiz_manager: {len(stored_questions) if stored_questions else 0}")
+                logger.info(f"✅ Retrieved questions from quiz_manager for session {quiz_session_id_str}")
             else:
                 logger.error(f"❌ No questions found in session or quiz_manager for {current_user}")
-                return jsonify({
-                    'success': False,
-                    'message': 'Quiz session expired or not found. Please start a new quiz.',
-                    'feature_status': 'session_expired',
+                # Fallback: if session has questions and current_user matches, maybe it's just a session ID mismatch but valid session
+                if stored_questions and session.get('wallet') == current_user:
+                    logger.info(f"💡 Found questions in session for user {current_user}, proceeding despite ID mismatch")
+                else:
+                    return jsonify({
+                        'success': False,
+                        'message': 'Quiz session expired or not found. Please start a new quiz.',
+                        'feature_status': 'session_expired',
+                        'debug_info': {
+                            'has_questions': False,
+                            'session_id_match': str(stored_session_id) == str(quiz_session_id),
+                            'wallet': current_user,
+                            'session_id_provided': quiz_session_id,
+                            'session_id_stored': stored_session_id
+                        }
+                    }), 400
                     'debug_info': {
                         'has_questions': False,
                         'session_id_match': stored_session_id == quiz_session_id,
