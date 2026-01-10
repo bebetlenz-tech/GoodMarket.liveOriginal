@@ -711,6 +711,12 @@
                     </a>
                 </li>
                 <li class="menu-item">
+                    <a class="menu-link" onclick="showSection('wallet-maintenance-section')">
+                        <span class="menu-icon">👛</span>
+                        <span>Wallet Maintenance</span>
+                    </a>
+                </li>
+                <li class="menu-item">
                     <a class="menu-link" onclick="showSection('reward-config-section')">
                         <span class="menu-icon">💰</span>
                         <span>Reward Config</span>
@@ -1583,6 +1589,32 @@ OR manually enter HTML content here...
 
             <!-- Reward Configuration Section (NEW) -->
             <!-- Reward Config Section -->
+            <!-- Wallet Maintenance Section -->
+            <section id="wallet-maintenance-section" class="section">
+                <div class="page-header">
+                    <h1 class="page-title">👛 Wallet Connection Maintenance</h1>
+                    <p class="text-muted">Enable or disable the GoodDollar wallet connection feature.</p>
+                </div>
+
+                <div class="admin-section active">
+                    <div class="form-group">
+                        <label>Maintenance Status</label>
+                        <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+                            <span id="wallet-maintenance-status-badge" class="badge">Loading...</span>
+                        </div>
+                        <button id="toggle-wallet-maintenance-btn" class="admin-btn">
+                            Loading...
+                        </button>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="wallet-maintenance-message">Maintenance Message</label>
+                        <textarea id="wallet-maintenance-message" class="admin-input" rows="3" placeholder="Message to show when maintenance is on..."></textarea>
+                        <button onclick="updateWalletMaintenanceMessage()" class="admin-btn">Update Message</button>
+                    </div>
+                </div>
+            </section>
+
             <!-- Reward Config Section -->
             <section id="reward-config-section" class="section">
                 <div class="page-header">
@@ -4146,6 +4178,148 @@ OR manually enter HTML content here...
             }
         }
 
+        async function loadRewardConfig() {
+            try {
+                const response = await fetch('/api/admin/reward-config');
+                const data = await response.json();
+
+                const statusDiv = document.getElementById('reward-config-status');
+                const controlsDiv = document.getElementById('reward-config-controls');
+
+                if (data.success) {
+                    if (data.rewards.telegram_task) {
+                        document.getElementById('current-telegram-reward').textContent = 
+                            `${parseFloat(data.rewards.telegram_task.amount).toLocaleString()} G$`;
+                        document.getElementById('telegram-reward-input').value = 
+                            parseFloat(data.rewards.telegram_task.amount);
+                        if (data.rewards.telegram_task.last_updated_at) {
+                            document.getElementById('telegram-last-updated').textContent = 
+                                `Last updated: ${new Date(data.rewards.telegram_task.last_updated_at).toLocaleString()}`;
+                        }
+                    }
+
+                    if (data.rewards.twitter_task) {
+                        document.getElementById('current-twitter-reward').textContent = 
+                            `${parseFloat(data.rewards.twitter_task.amount).toLocaleString()} G$`;
+                        document.getElementById('twitter-reward-input').value = 
+                            parseFloat(data.rewards.twitter_task.amount);
+                        if (data.rewards.twitter_task.last_updated_at) {
+                            document.getElementById('twitter-last-updated').textContent = 
+                                `Last updated: ${new Date(data.rewards.twitter_task.last_updated_at).toLocaleString()}`;
+                        }
+                    }
+
+                    if (data.rewards.facebook_task) {
+                        document.getElementById('current-facebook-reward').textContent = 
+                            `${parseFloat(data.rewards.facebook_task.amount).toLocaleString()} G$`;
+                        document.getElementById('facebook-reward-input').value = 
+                            parseFloat(data.rewards.facebook_task.amount);
+                        if (data.rewards.facebook_task.last_updated_at) {
+                            document.getElementById('facebook-last-updated').textContent = 
+                                `Last updated: ${new Date(data.rewards.facebook_task.last_updated_at).toLocaleString()}`;
+                        }
+                    }
+
+                    statusDiv.style.display = 'none';
+                    controlsDiv.style.display = 'block';
+                } else {
+                    statusDiv.innerHTML = '<p style="color: #ef4444;">Failed to load reward configuration</p>';
+                }
+            } catch (error) {
+                console.error('Error loading reward config:', error);
+                document.getElementById('reward-config-status').innerHTML = 
+                    '<p style="color: #ef4444;">Error loading configuration</p>';
+            }
+        }
+
+        async function loadWalletMaintenanceStatus() {
+            try {
+                const response = await fetch('/api/admin/maintenance-status?feature=wallet_connection');
+                const data = await response.json();
+                
+                if (data.success) {
+                    const badge = document.getElementById('wallet-maintenance-status-badge');
+                    const btn = document.getElementById('toggle-wallet-maintenance-btn');
+                    const msgInput = document.getElementById('wallet-maintenance-message');
+                    
+                    if (data.is_maintenance) {
+                        badge.textContent = 'Maintenance ON';
+                        badge.className = 'badge bg-danger text-white';
+                        btn.textContent = 'Disable Maintenance';
+                        btn.classList.remove('danger');
+                        btn.classList.add('success');
+                    } else {
+                        badge.textContent = 'Maintenance OFF';
+                        badge.className = 'badge bg-success text-white';
+                        btn.textContent = 'Enable Maintenance';
+                        btn.classList.remove('success');
+                        btn.classList.add('danger');
+                    }
+                    
+                    msgInput.value = data.message || '';
+                    
+                    btn.onclick = () => toggleWalletMaintenance(!data.is_maintenance);
+                }
+            } catch (error) {
+                console.error('Error loading wallet maintenance status:', error);
+            }
+        }
+
+        async function toggleWalletMaintenance(enable) {
+            if (!confirm(`Are you sure you want to ${enable ? 'ENABLE' : 'DISABLE'} maintenance mode for wallet connections?`)) {
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/admin/maintenance-status', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        feature_name: 'wallet_connection',
+                        is_maintenance: enable,
+                        message: document.getElementById('wallet-maintenance-message').value
+                    })
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    alert(data.message);
+                    await loadWalletMaintenanceStatus();
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (error) {
+                console.error('Error toggling wallet maintenance:', error);
+                alert('Failed to update maintenance status');
+            }
+        }
+
+        async function updateWalletMaintenanceMessage() {
+            const message = document.getElementById('wallet-maintenance-message').value;
+            const isMaintenance = document.getElementById('wallet-maintenance-status-badge').textContent.includes('ON');
+            try {
+                const response = await fetch('/api/admin/maintenance-status', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        feature_name: 'wallet_connection',
+                        is_maintenance: isMaintenance,
+                        message: message
+                    })
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    alert('Maintenance message updated successfully');
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (error) {
+                console.error('Error updating maintenance message:', error);
+                alert('Failed to update message');
+            }
+        }
+
         async function updateRewardConfig(taskType) {
             try {
                 let inputId, displayId, taskName;
@@ -4202,6 +4376,16 @@ OR manually enter HTML content here...
                 alert('Failed to update reward configuration');
             }
         }
+
+        // Initialize admin dashboard
+        window.addEventListener('load', async () => {
+            try {
+                await loadRewardConfig();
+                await loadWalletMaintenanceStatus();
+            } catch (error) {
+                console.error('Error during initial load:', error);
+            }
+        });
     </script>
 </body>
 </html>
