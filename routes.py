@@ -695,6 +695,7 @@ def public_maintenance_status():
     result = maintenance_service.get_maintenance_status(feature)
     
     # If user is admin, they are exempt from maintenance
+    # Check session first, then check if address is in admin list
     wallet = session.get('wallet')
     if wallet:
         from supabase_client import is_admin
