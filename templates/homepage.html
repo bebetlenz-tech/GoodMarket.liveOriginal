@@ -943,22 +943,6 @@
         }
 
         async function connectWallet() {
-            // Check for maintenance mode first
-            try {
-                const maintenanceResponse = await fetch('/api/maintenance-status?feature=wallet_connection');
-                const maintenanceData = await maintenanceResponse.json();
-                
-                if (maintenanceData.success && maintenanceData.is_maintenance) {
-                    const statusDiv = document.getElementById('statusMessage');
-                    statusDiv.className = 'status-message error';
-                    statusDiv.textContent = maintenanceData.message || 'Wallet connection is currently under maintenance. Please try again later.';
-                    statusDiv.style.display = 'block';
-                    return;
-                }
-            } catch (err) {
-                console.error('Error checking maintenance status:', err);
-            }
-
             const walletAddress = document.getElementById('walletAddress').value.trim();
             const referralCode = document.getElementById('referralCode').value.trim();
             const statusDiv = document.getElementById('statusMessage');
@@ -968,6 +952,7 @@
             if (!walletAddress) {
                 statusDiv.className = 'status-message error';
                 statusDiv.textContent = 'Please enter your GoodDollar wallet address';
+                statusDiv.style.display = 'block';
                 return;
             }
 
@@ -975,7 +960,23 @@
             if (!walletAddress.startsWith('0x') || walletAddress.length !== 42) {
                 statusDiv.className = 'status-message error';
                 statusDiv.textContent = 'Invalid GoodDollar wallet address format';
+                statusDiv.style.display = 'block';
                 return;
+            }
+
+            // Check for maintenance mode first, passing the wallet address
+            try {
+                const maintenanceResponse = await fetch(`/api/maintenance-status?feature=wallet_connection&wallet=${walletAddress}`);
+                const maintenanceData = await maintenanceResponse.json();
+                
+                if (maintenanceData.success && maintenanceData.is_maintenance) {
+                    statusDiv.className = 'status-message error';
+                    statusDiv.textContent = maintenanceData.message || 'Wallet connection is currently under maintenance. Please try again later.';
+                    statusDiv.style.display = 'block';
+                    return;
+                }
+            } catch (err) {
+                console.error('Error checking maintenance status:', err);
             }
 
             // Show loading state
