@@ -943,6 +943,22 @@
         }
 
         async function connectWallet() {
+            // Check for maintenance mode first
+            try {
+                const maintenanceResponse = await fetch('/api/maintenance-status?feature=wallet_connection');
+                const maintenanceData = await maintenanceResponse.json();
+                
+                if (maintenanceData.success && maintenanceData.is_maintenance) {
+                    const statusDiv = document.getElementById('statusMessage');
+                    statusDiv.className = 'status-message error';
+                    statusDiv.textContent = maintenanceData.message || 'Wallet connection is currently under maintenance. Please try again later.';
+                    statusDiv.style.display = 'block';
+                    return;
+                }
+            } catch (err) {
+                console.error('Error checking maintenance status:', err);
+            }
+
             const walletAddress = document.getElementById('walletAddress').value.trim();
             const referralCode = document.getElementById('referralCode').value.trim();
             const statusDiv = document.getElementById('statusMessage');
