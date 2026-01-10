@@ -38,15 +38,33 @@ class MaintenanceService:
     def set_maintenance_status(self, feature_name: str, is_maintenance: bool, message: str, admin_wallet: str) -> dict:
         """Set maintenance status for a feature"""
         try:
-            result = self.supabase.table('maintenance_settings')\
-                .update({
-                    'is_maintenance': is_maintenance,
-                    'maintenance_message': message,
-                    'updated_by': admin_wallet,
-                    'updated_at': 'NOW()'
-                })\
+            # First, check if the record exists
+            check = self.supabase.table('maintenance_settings')\
+                .select('id')\
                 .eq('feature_name', feature_name)\
                 .execute()
+            
+            if not check.data:
+                # Insert if not exists
+                result = self.supabase.table('maintenance_settings')\
+                    .insert({
+                        'feature_name': feature_name,
+                        'is_maintenance': is_maintenance,
+                        'maintenance_message': message,
+                        'updated_by': admin_wallet
+                    })\
+                    .execute()
+            else:
+                # Update if exists
+                result = self.supabase.table('maintenance_settings')\
+                    .update({
+                        'is_maintenance': is_maintenance,
+                        'maintenance_message': message,
+                        'updated_by': admin_wallet,
+                        'updated_at': datetime.now().isoformat()
+                    })\
+                    .eq('feature_name', feature_name)\
+                    .execute()
 
             if result.data:
                 logger.info(f"✅ Maintenance mode {'enabled' if is_maintenance else 'disabled'} for {feature_name}")
