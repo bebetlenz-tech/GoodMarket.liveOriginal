@@ -667,6 +667,34 @@ def get_recent_community_stories():
         logger.error(f"❌ Error getting recent community stories: {e}")
         return jsonify({"success": False, "stories": []})
 
+@routes.route("/api/admin/maintenance-status", methods=["GET"])
+@admin_required
+def get_maintenance_status_api():
+    feature = request.args.get('feature', 'wallet_connection')
+    from maintenance_service import maintenance_service
+    result = maintenance_service.get_maintenance_status(feature)
+    return jsonify(result)
+
+@routes.route("/api/admin/maintenance-status", methods=["POST"])
+@admin_required
+def set_maintenance_status_api():
+    data = request.get_json()
+    feature_name = data.get('feature_name')
+    is_maintenance = data.get('is_maintenance')
+    message = data.get('message')
+    admin_wallet = session.get('wallet')
+    
+    from maintenance_service import maintenance_service
+    result = maintenance_service.set_maintenance_status(feature_name, is_maintenance, message, admin_wallet)
+    return jsonify(result)
+
+@routes.route("/api/maintenance-status", methods=["GET"])
+def public_maintenance_status():
+    feature = request.args.get('feature', 'wallet_connection')
+    from maintenance_service import maintenance_service
+    result = maintenance_service.get_maintenance_status(feature)
+    return jsonify(result)
+
 @routes.route("/")
 def index():
     """Main homepage with Connect Wallet style"""
