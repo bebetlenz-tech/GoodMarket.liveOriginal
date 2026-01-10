@@ -15,6 +15,12 @@ class MaintenanceService:
     def get_maintenance_status(self, feature_name: str) -> dict:
         """Get maintenance status for a feature"""
         try:
+            if not self.supabase:
+                self.supabase = get_supabase_client()
+            
+            if not self.supabase:
+                return {'success': True, 'is_maintenance': False, 'message': ''}
+
             result = self.supabase.table('maintenance_settings')\
                 .select('*')\
                 .eq('feature_name', feature_name)\
@@ -39,6 +45,12 @@ class MaintenanceService:
     def set_maintenance_status(self, feature_name: str, is_maintenance: bool, message: str, admin_wallet: str) -> dict:
         """Set maintenance status for a feature"""
         try:
+            if not self.supabase:
+                self.supabase = get_supabase_client()
+            
+            if not self.supabase:
+                return {'success': False, 'error': 'Database connection not available'}
+
             # First, check if the record exists
             check = self.supabase.table('maintenance_settings')\
                 .select('id')\
@@ -85,6 +97,12 @@ class MaintenanceService:
     def get_all_maintenance_settings(self) -> dict:
         """Get all maintenance settings"""
         try:
+            if not self.supabase:
+                self.supabase = get_supabase_client()
+                
+            if not self.supabase:
+                return {'success': False, 'settings': []}
+
             result = self.supabase.table('maintenance_settings')\
                 .select('*')\
                 .execute()
