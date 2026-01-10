@@ -1,5 +1,6 @@
 
 import logging
+import json
 from supabase_client import get_supabase_client
 
 logger = logging.getLogger(__name__)
@@ -62,9 +63,9 @@ class MaintenanceService:
                         'maintenance_message': message,
                         'updated_by': admin_wallet,
                         'updated_at': datetime.now().isoformat()
-                    })\
-                    .eq('feature_name', feature_name)\
-                    .execute()
+                    }) \
+                .eq('feature_name', feature_name) \
+                .execute()
 
             if result.data:
                 logger.info(f"✅ Maintenance mode {'enabled' if is_maintenance else 'disabled'} for {feature_name}")
