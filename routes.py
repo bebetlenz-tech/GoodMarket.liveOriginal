@@ -693,6 +693,14 @@ def public_maintenance_status():
     feature = request.args.get('feature', 'wallet_connection')
     from maintenance_service import maintenance_service
     result = maintenance_service.get_maintenance_status(feature)
+    
+    # If user is admin, they are exempt from maintenance
+    wallet = session.get('wallet')
+    if wallet:
+        from supabase_client import is_admin
+        if is_admin(wallet):
+            result['is_maintenance'] = False
+            
     return jsonify(result)
 
 @routes.route("/")
