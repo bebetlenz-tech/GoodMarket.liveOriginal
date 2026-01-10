@@ -691,16 +691,20 @@ def set_maintenance_status_api():
 @routes.route("/api/maintenance-status", methods=["GET"])
 def public_maintenance_status():
     feature = request.args.get('feature', 'wallet_connection')
+    wallet_address = request.args.get('wallet') # Get wallet from query param for exemption check
+    
     from maintenance_service import maintenance_service
     result = maintenance_service.get_maintenance_status(feature)
     
-    # If user is admin, they are exempt from maintenance
-    # Check session first, then check if address is in admin list
-    wallet = session.get('wallet')
-    if wallet:
+    # Check if the specific wallet provided is an admin
+    check_wallet = wallet_address or session.get('wallet')
+    
+    if check_wallet:
         from supabase_client import is_admin
-        if is_admin(wallet):
+        if is_admin(check_wallet):
+            logger.info(f"🛡️ Admin {check_wallet[:8]}... detected, bypassing maintenance for {feature}")
             result['is_maintenance'] = False
+            result['message'] = ""
             
     return jsonify(result)
 
