@@ -75,7 +75,7 @@ class TwitterTaskService:
             s3 = closing_phrases[(i // 100) % len(closing_phrases)]
             
             # Twitter messages are shorter to fit limits
-            message = f"🐦 {s1} {s2}\n\n{s3} @gooddollarorg #GoodDollarTeam"
+            message = f"🐦 {s1} {s2}\n\n{s3} @gooddollarorg @GoodDollarTeam"
             templates.append(message)
         
         return templates
