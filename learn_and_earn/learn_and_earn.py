@@ -1252,14 +1252,6 @@ def submit_quiz(current_user):
                             'session_id_stored': stored_session_id
                         }
                     }), 400
-                    'debug_info': {
-                        'has_questions': False,
-                        'session_id_match': stored_session_id == quiz_session_id,
-                        'wallet': current_user,
-                        'session_id_provided': quiz_session_id,
-                        'session_id_stored': stored_session_id
-                    }
-                }), 400
 
         # Validate and score quiz
         quiz_result = quiz_manager.validate_and_score_quiz(quiz_session_id, user_answers)
