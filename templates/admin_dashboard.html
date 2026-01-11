@@ -1531,10 +1531,12 @@ CORRECT: C
                 </div>
             </div>
 
-            <!-- Module Links Section (NEW) -->
-            <div class="admin-section" id="module-links-section" style="display: none;">
-                <h2>🔗 Module Links</h2>
-                <p>Manage the module links for the Learn & Earn section.</p>
+            <!-- Module Links Section -->
+            <section id="module-links-section" class="section">
+                <div class="page-header">
+                    <h1 class="page-title">🔗 Module Links</h1>
+                    <p style="color: rgba(241, 245, 249, 0.7);">Manage the module links for the Learn & Earn section.</p>
+                </div>
 
                 <div class="content-box">
                     <h2>Add New Module Link</h2>
@@ -1585,7 +1587,7 @@ OR manually enter HTML content here...
                         </div>
                     </div>
                 </div>
-            </div>
+            </section>
 
             <!-- Reward Configuration Section (NEW) -->
             <!-- Reward Config Section -->
@@ -1763,6 +1765,7 @@ OR manually enter HTML content here...
                 if (sectionId === 'community-stories-settings-section') loadCommunityStoriesSettings();
                 if (sectionId === 'insufficient-balance-section') loadInsufficientBalanceMessage();
                 if (sectionId === 'news-management-section') loadNewsHistory();
+                if (sectionId === 'module-links-section') loadModuleLinks();
             }
         }
 
@@ -2019,33 +2022,7 @@ OR manually enter HTML content here...
             loadAdminStats();
         });
 
-        function showSection(sectionId) {
-            // Hide all sections
-            document.querySelectorAll('.section').forEach(section => {
-                section.classList.remove('active');
-            });
-
-            // Remove active from all menu links
-            document.querySelectorAll('.menu-link').forEach(link => {
-                link.classList.remove('active');
-            });
-
-            // Show the selected section
-            const sectionToShow = document.getElementById(sectionId);
-            if (sectionToShow) {
-                sectionToShow.classList.add('active');
-            }
-
-            // Add active class to the clicked menu link
-            if (event && event.target) {
-                event.target.classList.add('active');
-            }
-
-            // Load data specific to the section
-            const sectionName = sectionId.replace('-section', '');
-            loadSectionData(sectionName);
-        }
-
+        // Note: showSection is defined earlier in the file - this loadSectionData is a helper
         function loadSectionData(sectionName) {
             switch(sectionName) {
                 case 'overview':
