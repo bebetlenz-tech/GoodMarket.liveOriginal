@@ -1449,12 +1449,23 @@
                 if (result.success) {
                     if (result.pending) {
                         // Submission is pending approval
-                        showNotification(`✅ Submission successful! Your ${selectedPlatform === 'twitter' ? 'Twitter' : 'Telegram'} post is waiting for admin approval.`, 'success');
+                        const platformDisplayName = selectedPlatform === 'twitter' ? 'Twitter' : selectedPlatform === 'telegram' ? 'Telegram' : 'Facebook';
+                        showNotification(`✅ Submission successful! Your ${platformDisplayName} post is waiting for admin approval.`, 'success');
                         closeDailyTaskModal();
 
-                        // Immediately update UI to show "Under Review" status with countdown
-                        const statusData = await checkDailyTaskStatus();
-                        updateDailyTaskUI(statusData);
+                        // IMMEDIATELY update UI to show "Under Review" status - no API call delay
+                        // Use lowercase selectedPlatform to match backend schema
+                        const immediateStatusData = {
+                            has_pending_submission: true,
+                            pending_platform: selectedPlatform,  // lowercase to match backend
+                            can_claim: false,
+                            show_claim_button: false,
+                            status_message: `Your ${platformDisplayName} submission is under review. You can only submit to ONE platform per day.`
+                        };
+                        updateDailyTaskUI(immediateStatusData);
+                        
+                        // Also refresh from API in background to sync any server-side changes
+                        checkDailyTaskStatus().then(updateDailyTaskUI);
                     } else {
                         // Immediate approval (if implemented)
                         showNotification(`🎉 Successfully earned 100 G$ from ${selectedPlatform === 'twitter' ? 'Twitter' : 'Telegram'} task!`, 'success');
@@ -1785,11 +1796,11 @@
                 const data = await response.json();
                 console.log('✅ Daily Task Status:', data);
 
-                // MODIFIED: Allow claim button to show even with pending submission
-                // User can submit to the OTHER platform while one is pending
+                // FIXED: Do NOT allow claim button when there's a pending submission
+                // User should only be able to submit to ONE platform per day
                 if (data.has_pending_submission) {
-                    data.show_claim_button = true;  // Still show button
-                    data.pending_message = `Your ${data.pending_platform} submission is under review. You can still submit to the other platform.`;
+                    data.show_claim_button = false;  // Hide button - cannot submit to other platforms
+                    data.pending_message = `Your ${data.pending_platform} submission is under review. You can only submit to ONE platform per day.`;
                 }
 
                 return data;
