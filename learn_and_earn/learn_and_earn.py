@@ -1030,9 +1030,9 @@ def start_quiz(current_user):
 
         logger.info(f"🧹 Cleared previous quiz session data for {current_user}")
 
-        # Check if LEARN_WALLET_PRIVATE_KEY is configured
-        if not learn_blockchain_service.learn_wallet_key:
-            logger.error(f"❌ LEARN_WALLET_PRIVATE_KEY not configured")
+        # Check if reward system is configured (safe check without exposing private key)
+        if not learn_blockchain_service.is_configured:
+            logger.error(f"❌ Reward system not configured")
             return jsonify({
                 'success': False,
                 'error': 'Learn wallet not configured',
@@ -1053,7 +1053,9 @@ def start_quiz(current_user):
 
         # Check if Learn wallet has sufficient balance (at least 2000 G$ for full quiz rewards)
         min_required_balance = quiz_manager.questions_per_quiz * quiz_manager.reward_per_correct
-        if learn_balance < min_required_balance:
+        # Use tolerance to avoid floating point precision issues (e.g., 1000.0 vs 1000.0000000000001)
+        balance_tolerance = 0.01  # Allow 0.01 G$ tolerance
+        if learn_balance < (min_required_balance - balance_tolerance):
             logger.warning(f"⚠️ Learn wallet balance too low: {learn_balance} < {min_required_balance}")
 
             # Get custom message from database
@@ -1310,9 +1312,9 @@ def submit_quiz(current_user):
             logger.info(f"💰 Reward amount: {reward_amount} G$")
             logger.info(f"📊 Quiz score: {score}/{total_questions} ({quiz_result_summary['score_percentage']}%)")
 
-            # Check if private key is configured before attempting disbursement
-            if not learn_blockchain_service.learn_wallet_key:
-                logger.error(f"❌ LEARN_WALLET_PRIVATE_KEY not configured - cannot disburse rewards")
+            # Check if reward system is configured before attempting disbursement
+            if not learn_blockchain_service.is_configured:
+                logger.error(f"❌ Reward system not configured - cannot disburse rewards")
                 error_message = "Learn & Earn wallet not configured. Please contact the GIMT team to set up the reward system."
                 transaction_hash = None
                 disbursement_success = False
