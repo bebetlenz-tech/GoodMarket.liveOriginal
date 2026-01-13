@@ -987,6 +987,7 @@
             <a href="/dashboard" class="nav-link">Dashboard</a>
             <a href="/overview" class="nav-link">Overview</a>
             <a href="/news" class="nav-link">News</a>
+            <a href="/forum" class="nav-link">Forum</a>
             <div class="inbox-icon" onclick="openInboxModal()" title="Unified Inbox">
                 📬
                 <div id="inboxBadge" class="inbox-badge" style="display: none;">0</div>
@@ -1463,7 +1464,7 @@
                             status_message: `Your ${platformDisplayName} submission is under review. You can only submit to ONE platform per day.`
                         };
                         updateDailyTaskUI(immediateStatusData);
-                        
+
                         // Also refresh from API in background to sync any server-side changes
                         checkDailyTaskStatus().then(updateDailyTaskUI);
                     } else {
