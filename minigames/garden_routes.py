@@ -1,11 +1,24 @@
 
 import logging
-from flask import Blueprint, request, jsonify, session
+from flask import Blueprint, request, jsonify, session, render_template, redirect
 from .garden_manager import garden_manager
 
 logger = logging.getLogger(__name__)
 
 garden_bp = Blueprint('garden', __name__, url_prefix='/minigames/garden')
+
+@garden_bp.route('/')
+def garden_home():
+    """Garden game home page"""
+    try:
+        wallet = session.get('wallet')
+        if not wallet or not session.get('verified'):
+            return redirect('/')
+        
+        return render_template('garden.html', wallet=wallet)
+    except Exception as e:
+        logger.error(f"❌ Error rendering garden home: {e}")
+        return redirect('/minigames')
 
 @garden_bp.route('/state')
 def get_garden_state():
