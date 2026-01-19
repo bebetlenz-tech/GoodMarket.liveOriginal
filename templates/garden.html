@@ -400,8 +400,10 @@
         }
 
         function updateStats() {
+            const harvestsToday = gardenState.harvests_today || 0;
+            const harvestsRemaining = gardenState.harvests_remaining || (10 - harvestsToday);
             document.getElementById('harvests-count').textContent =
-                `${gardenState.harvests_today} / ${gardenState.harvests_today + gardenState.harvests_remaining}`;
+                `${harvestsToday} / ${harvestsToday + harvestsRemaining}`;
 
             // Update balance information with explicit number conversion
             if (gardenState.balance) {
