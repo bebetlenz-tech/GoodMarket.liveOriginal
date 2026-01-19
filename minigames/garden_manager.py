@@ -17,6 +17,19 @@ class GardenManager:
     def get_garden_state(self, wallet_address: str) -> dict:
         """Get complete garden state for a user"""
         try:
+            if not self.supabase:
+                return {
+                    'success': True,
+                    'plots': [],
+                    'harvests_today': 0,
+                    'ai_helpers': [],
+                    'balance': {
+                        'total_earned': 0.0,
+                        'total_withdrawn': 0.0,
+                        'available_balance': 0.0
+                    }
+                }
+
             # Get plots
             plots_response = self.supabase.table('garden_plots')\
                 .select('*')\
@@ -58,6 +71,12 @@ class GardenManager:
     def get_garden_balance(self, wallet_address: str) -> dict:
         """Get user's garden balance"""
         try:
+            if not self.supabase:
+                return {
+                    'total_earned': 0.0,
+                    'total_withdrawn': 0.0,
+                    'available_balance': 0.0
+                }
             response = self.supabase.table('garden_balance')\
                 .select('*')\
                 .eq('wallet_address', wallet_address)\
