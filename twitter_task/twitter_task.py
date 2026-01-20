@@ -30,16 +30,16 @@ class TwitterTaskService:
         import random
         
         opening_phrases = [
-            "GoodMarket is more than tasks — it’s your gateway to learning & earning in the GoodDollar ecosystem.",
-            "Join the financial revolution with GoodMarket! Your portal to the GoodDollar universal basic income.",
-            "Unlock Web3 potential with GoodMarket, your bridge to GoodDollar UBI rewards.",
-            "Earn & learn! GoodMarket is the premier hub for the global GoodDollar community.",
-            "Step into the future of finance with GoodMarket! Connect directly to the GoodDollar ecosystem.",
-            "Empower yourself! Start your journey of earning & contributing to GoodDollar on GoodMarket today.",
-            "GoodMarket: Where education meets rewards in the thriving GoodDollar ecosystem. Start now!",
-            "Ready to earn G$? GoodMarket is your gateway to the GoodDollar universal basic income mission.",
-            "Discover new opportunities! GoodMarket is the ultimate portal for GoodDollar enthusiasts.",
-            "Join thousands earning G$ daily! GoodMarket is your gateway to the GoodDollar ecosystem."
+            "GoodMarket is more than tasks in the GoodDollar ecosystem.",
+            "Join the financial revolution with GoodMarket.",
+            "Unlock Web3 potential with GoodMarket.",
+            "Earn & learn.",
+            "Step into the future of finance with GoodMarket.",
+            "Start your journey in GoodDollar on GoodMarket today.",
+            "Where education meets rewards in the thriving GoodDollar ecosystem.!",
+            "Ready to earn G$?.",
+            "Discover new opportunities.",
+            "Join thousands earning G$ daily."
         ]
 
         middle_phrases = [
@@ -56,16 +56,16 @@ class TwitterTaskService:
         ]
 
         closing_phrases = [
-            "New to GoodDollar? Start today: https://goodmarket.live\nWallet: https://goodwallet.xyz/",
-            "Join the movement! Get started: https://goodmarket.live\nWallet: https://goodwallet.xyz/",
-            "Begin your crypto journey! Info: https://goodmarket.live\nWallet: https://goodwallet.xyz/",
-            "Don't wait to earn! Visit: https://goodmarket.live\nWallet: https://goodwallet.xyz/",
-            "Take the first step! Site: https://goodmarket.live\nWallet: https://goodwallet.xyz/",
-            "Your crypto future starts here: https://goodmarket.live\nWallet: https://goodwallet.xyz/",
-            "Start receiving UBI now: https://goodmarket.live\nWallet: https://goodwallet.xyz/",
-            "Empower your future! Visit: https://goodmarket.live\nWallet: https://goodwallet.xyz/",
-            "Joining is fast & simple: https://goodmarket.live\nWallet: https://goodwallet.xyz/",
-            "Be part of our community: https://goodmarket.live\nWallet: https://goodwallet.xyz/"
+            "New to GoodDollar? Start today: https://goodmarket.live",
+            "Join the movement! Get started: https://goodmarket.live",
+            "Begin your crypto journey! Info: https://goodmarket.live",
+            "Don't wait to earn! Visit: https://goodmarket.live",
+            "Take the first step! Site: https://goodmarket.live",
+            "Your crypto future starts here: https://goodmarket.live",
+            "Start receiving UBI now: https://goodmarket.live",
+            "Empower your future! Visit: https://goodmarket.live",
+            "Joining is fast & simple: https://goodmarket.live",
+            "Be part of our community: https://goodmarket.live",
         ]
 
         templates = []
