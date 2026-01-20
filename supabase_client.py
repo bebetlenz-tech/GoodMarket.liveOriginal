@@ -730,19 +730,19 @@ class SupabaseLogger:
         try:
             from datetime import datetime, timedelta
 
-            # Get verified users count
-            verified_response = self.client.table("user_data").select("*").eq("ubi_verified", True).execute()
-            total_verified = len(verified_response.data) if verified_response.data else 0
+            # Get total verified users count more efficiently
+            verified_response = self.client.table("user_data").select("*", count="exact").eq("ubi_verified", True).execute()
+            total_verified = verified_response.count if hasattr(verified_response, 'count') else (len(verified_response.data) if verified_response.data else 0)
 
             # Get today's logins as proxy for active claims
             today = datetime.now().strftime("%Y-%m-%d")
-            today_sessions = self.client.table("user_sessions").select("*").gte("timestamp", today).execute()
-            daily_activity = len(today_sessions.data) if today_sessions.data else 0
+            today_sessions_response = self.client.table("user_sessions").select("*", count="exact").gte("timestamp", today).execute()
+            daily_activity = today_sessions_response.count if hasattr(today_sessions_response, 'count') else (len(today_sessions_response.data) if today_sessions_response.data else 0)
 
             # Calculate growth (compare with week ago)
             week_ago = (datetime.now() - timedelta(days=7)).strftime("%Y-%m-%d")
-            week_sessions = self.client.table("user_sessions").select("*").gte("timestamp", week_ago).execute()
-            weekly_activity = len(week_sessions.data) if week_sessions.data else 0
+            week_sessions_response = self.client.table("user_sessions").select("*", count="exact").gte("timestamp", week_ago).execute()
+            weekly_activity = week_sessions_response.count if hasattr(week_sessions_response, 'count') else (len(week_sessions_response.data) if week_sessions_response.data else 0)
 
             growth_rate = f"+{((daily_activity / max(weekly_activity/7, 1) - 1) * 100):.0f}% this week" if weekly_activity > 0 else "New platform"
 
