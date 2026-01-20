@@ -40,15 +40,15 @@ class FacebookTaskService:
 
         middle_phrases = [
             "Visit goodmarket.live today and discover daily tasks, learning opportunities, and ways to earn G$ 💙",
-            "Head over to goodmarket.live right now to explore exciting tasks and start your G$ earning journey.",
-            "Check out goodmarket.live and find a wealth of daily opportunities to support the GoodDollar mission.",
-            "Go to goodmarket.live and start completing simple tasks to earn real G$ rewards every single day.",
-            "Access goodmarket.live and dive into a variety of ways to contribute and earn within our community.",
-            "Your journey starts at goodmarket.live – discover interactive quizzes and tasks that reward you in G$.",
-            "Visit goodmarket.live to find out how easy it is to earn G$ while learning about financial inclusion.",
-            "Explore goodmarket.live today and join the movement for a more equitable global financial system.",
-            "Start your daily earning routine at goodmarket.live with our fun and educational task modules.",
-            "Navigate to goodmarket.live and unlock multiple pathways to earn G$ and support universal basic income."
+            "Head over to https://goodmarket.live right now to explore exciting tasks and start your G$ earning journey.",
+            "Check out https://goodmarket.live and find a wealth of daily opportunities to support the GoodDollar mission.",
+            "Go to https://goodmarket.live and start completing simple tasks to earn real G$ rewards every single day.",
+            "Access https://goodmarket.live and dive into a variety of ways to contribute and earn within our community.",
+            "Your journey starts at https://goodmarket.live – discover interactive quizzes and tasks that reward you in G$.",
+            "Visit https://goodmarket.live to find out how easy it is to earn G$ while learning about financial inclusion.",
+            "Explore https://goodmarket.live today and join the movement for a more equitable global financial system.",
+            "Start your daily earning routine at https://goodmarket.live with our fun and educational task modules.",
+            "Navigate to https://goodmarket.live and unlock multiple pathways to earn G$ and support universal basic income."
         ]
 
         closing_phrases = [
