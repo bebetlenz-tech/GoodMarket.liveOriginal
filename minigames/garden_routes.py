@@ -1,377 +1,250 @@
 
-import os
 import logging
-from datetime import datetime, timedelta, timezone
-from supabase_client import get_supabase_client
-from .garden_blockchain import garden_blockchain_service
+from flask import Blueprint, request, jsonify, session, render_template, redirect
+from .garden_manager import garden_manager
 
 logger = logging.getLogger(__name__)
 
-class GardenManager:
-    """Manage Garden minigame state and operations"""
+garden_bp = Blueprint('garden', __name__, url_prefix='/minigames/garden')
 
-    def __init__(self):
-        self.supabase = get_supabase_client()
-        logger.info("🌱 Garden Manager initialized")
+@garden_bp.route('/')
+def garden_home():
+    """Garden game home page"""
+    try:
+        wallet = session.get('wallet')
+        if not wallet or not session.get('verified'):
+            return redirect('/')
+        
+        return render_template('garden.html', wallet=wallet)
+    except Exception as e:
+        logger.error(f"❌ Error rendering garden home: {e}")
+        return redirect('/minigames')
 
-    def get_garden_state(self, wallet_address: str) -> dict:
-        """Get complete garden state for a user"""
+@garden_bp.route('/state')
+def get_garden_state():
+    """Get user's garden state"""
+    try:
+        wallet = session.get('wallet')
+        if not wallet or not session.get('verified'):
+            return jsonify({'success': False, 'error': 'Not authenticated'}), 401
+        
+        result = garden_manager.get_garden_state(wallet)
+        
+        # Log balance info for debugging
+        if result.get('success') and result.get('balance'):
+            logger.info(f"🌾 Garden state for {wallet[:8]}... - Balance: {result['balance']}")
+        
+        return jsonify(result)
+        
+    except Exception as e:
+        logger.error(f"❌ Error getting garden state: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@garden_bp.route('/balance')
+def get_balance():
+    """Get user's garden balance"""
+    try:
+        wallet = session.get('wallet')
+        if not wallet or not session.get('verified'):
+            return jsonify({'success': False, 'error': 'Not authenticated'}), 401
+        
+        balance = garden_manager.get_garden_balance(wallet)
+        return jsonify({
+            'success': True,
+            'balance': balance
+        })
+        
+    except Exception as e:
+        logger.error(f"❌ Error getting garden balance: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@garden_bp.route('/withdraw', methods=['POST'])
+def withdraw_balance():
+    """Withdraw garden balance to user's wallet"""
+    try:
+        wallet = session.get('wallet')
+        if not wallet or not session.get('verified'):
+            return jsonify({'success': False, 'error': 'Not authenticated'}), 401
+        
+        import asyncio
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
         try:
-            if not self.supabase:
-                return {
-                    'success': True,
-                    'plots': [],
-                    'harvests_today': 0,
-                    'ai_helpers': [],
-                    'balance': {
-                        'total_earned': 0.0,
-                        'total_withdrawn': 0.0,
-                        'available_balance': 0.0
-                    }
-                }
-
-            # Get plots
-            plots_response = self.supabase.table('garden_plots')\
-                .select('*')\
-                .eq('wallet_address', wallet_address)\
-                .execute()
-
-            # Get today's harvests
-            today = datetime.now(timezone.utc).date().isoformat()
-            harvests_response = self.supabase.table('garden_harvests')\
-                .select('*')\
-                .eq('wallet_address', wallet_address)\
-                .eq('harvest_date', today)\
-                .execute()
-
-            # Get AI helpers
-            helpers_response = self.supabase.table('garden_ai_helpers')\
-                .select('*')\
-                .eq('wallet_address', wallet_address)\
-                .eq('active', True)\
-                .execute()
-
-            # Get balance
-            balance = self.get_garden_balance(wallet_address)
-
-            harvests_today = harvests_response.data[0]['harvests_today'] if harvests_response.data else 0
-
-            return {
-                'success': True,
-                'plots': plots_response.data or [],
-                'harvests_today': harvests_today,
-                'ai_helpers': helpers_response.data or [],
-                'balance': balance
-            }
-
-        except Exception as e:
-            logger.error(f"❌ Error getting garden state: {e}")
-            return {'success': False, 'error': str(e)}
-
-    def get_garden_balance(self, wallet_address: str) -> dict:
-        """Get user's garden balance"""
-        try:
-            if not self.supabase:
-                return {
-                    'total_earned': 0.0,
-                    'total_withdrawn': 0.0,
-                    'available_balance': 0.0
-                }
-            response = self.supabase.table('garden_balance')\
-                .select('*')\
-                .eq('wallet_address', wallet_address)\
-                .execute()
-
-            if response.data:
-                balance_data = response.data[0]
-                return {
-                    'total_earned': float(balance_data['total_earned']),
-                    'total_withdrawn': float(balance_data['total_withdrawn']),
-                    'available_balance': float(balance_data['available_balance'])
-                }
-            else:
-                return {
-                    'total_earned': 0.0,
-                    'total_withdrawn': 0.0,
-                    'available_balance': 0.0
-                }
-
-        except Exception as e:
-            logger.error(f"❌ Error getting garden balance: {e}")
-            return {
-                'total_earned': 0.0,
-                'total_withdrawn': 0.0,
-                'available_balance': 0.0
-            }
-
-    async def withdraw_garden_balance(self, wallet_address: str) -> dict:
-        """Withdraw garden balance to user's wallet"""
-        try:
-            balance = self.get_garden_balance(wallet_address)
-            available = balance['available_balance']
-
-            if available < 200:
-                return {
-                    'success': False,
-                    'error': 'Minimum withdrawal is 200 G$',
-                    'available_balance': available
-                }
-
-            # Disburse via blockchain
-            result = await garden_blockchain_service.disburse_garden_reward(
-                wallet_address,
-                available
+            result = loop.run_until_complete(
+                garden_manager.withdraw_garden_balance(wallet)
             )
+        finally:
+            loop.close()
+        
+        return jsonify(result)
+        
+    except Exception as e:
+        logger.error(f"❌ Error withdrawing garden balance: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
 
-            if result['success']:
-                # Update balance in database
-                now = datetime.now(timezone.utc).isoformat()
-                self.supabase.table('garden_balance')\
-                    .update({
-                        'total_withdrawn': balance['total_withdrawn'] + available,
-                        'available_balance': 0.0,
-                        'updated_at': now
-                    })\
-                    .eq('wallet_address', wallet_address)\
-                    .execute()
+@garden_bp.route('/plant', methods=['POST'])
+def plant_crop():
+    """Plant a crop"""
+    try:
+        wallet = session.get('wallet')
+        if not wallet or not session.get('verified'):
+            return jsonify({'success': False, 'error': 'Not authenticated'}), 401
+        
+        data = request.json
+        plot_id = data.get('plot_id')
+        crop_type = data.get('crop_type')
+        
+        if plot_id is None or not crop_type:
+            return jsonify({'success': False, 'error': 'Missing plot_id or crop_type'}), 400
+        
+        result = garden_manager.plant_crop(wallet, plot_id, crop_type)
+        return jsonify(result)
+        
+    except Exception as e:
+        logger.error(f"❌ Error planting crop: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
 
-                logger.info(f"✅ Garden withdrawal successful: {available} G$ to {wallet_address[:8]}...")
+@garden_bp.route('/harvest', methods=['POST'])
+def harvest_crop():
+    """Harvest a crop"""
+    try:
+        wallet = session.get('wallet')
+        if not wallet or not session.get('verified'):
+            return jsonify({'success': False, 'error': 'Not authenticated'}), 401
+        
+        data = request.json
+        plot_id = data.get('plot_id')
+        
+        if plot_id is None:
+            return jsonify({'success': False, 'error': 'Missing plot_id'}), 400
+        
+        result = garden_manager.harvest_crop(wallet, plot_id)
+        return jsonify(result)
+        
+    except Exception as e:
+        logger.error(f"❌ Error harvesting crop: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
 
-                return {
-                    'success': True,
-                    'amount': available,
-                    'tx_hash': result['tx_hash'],
-                    'message': f'Successfully withdrew {available} G$!'
-                }
-            else:
-                return result
+@garden_bp.route('/hire-helper', methods=['POST'])
+def hire_helper():
+    """Hire an AI helper"""
+    try:
+        wallet = session.get('wallet')
+        if not wallet or not session.get('verified'):
+            return jsonify({'success': False, 'error': 'Not authenticated'}), 401
+        
+        data = request.json
+        helper_type = data.get('helper_type')
+        
+        if not helper_type:
+            return jsonify({'success': False, 'error': 'Missing helper_type'}), 400
+        
+        result = garden_manager.hire_ai_helper(wallet, helper_type)
+        return jsonify(result)
+        
+    except Exception as e:
+        logger.error(f"❌ Error hiring helper: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
 
-        except Exception as e:
-            logger.error(f"❌ Error withdrawing garden balance: {e}")
-            return {'success': False, 'error': str(e)}
-
-    def plant_crop(self, wallet_address: str, plot_id: int, crop_type: str) -> dict:
-        """Plant a crop on a plot"""
-        try:
-            now = datetime.now(timezone.utc).isoformat()
-
-            # Check if plot exists
-            existing = self.supabase.table('garden_plots')\
-                .select('*')\
-                .eq('wallet_address', wallet_address)\
-                .eq('plot_id', plot_id)\
-                .execute()
-
-            if existing.data and existing.data[0]['status'] != 'empty':
-                return {'success': False, 'error': 'Plot is not empty'}
-
-            # Plant crop
-            if existing.data:
-                self.supabase.table('garden_plots')\
-                    .update({
-                        'crop_type': crop_type,
-                        'planted_at': now,
-                        'growth_percent': 0,
-                        'status': 'growing',
-                        'updated_at': now
-                    })\
-                    .eq('wallet_address', wallet_address)\
-                    .eq('plot_id', plot_id)\
-                    .execute()
-            else:
-                self.supabase.table('garden_plots')\
-                    .insert({
-                        'wallet_address': wallet_address,
-                        'plot_id': plot_id,
-                        'crop_type': crop_type,
-                        'planted_at': now,
-                        'growth_percent': 0,
-                        'status': 'growing'
-                    })\
-                    .execute()
-
-            logger.info(f"🌱 Planted {crop_type} on plot {plot_id} for {wallet_address[:8]}...")
-
-            return {
-                'success': True,
-                'message': f'Successfully planted {crop_type}!'
-            }
-
-        except Exception as e:
-            logger.error(f"❌ Error planting crop: {e}")
-            return {'success': False, 'error': str(e)}
-
-    def harvest_crop(self, wallet_address: str, plot_id: int) -> dict:
-        """Harvest a crop from a plot"""
-        try:
-            # Check daily harvest limit
-            today = datetime.now(timezone.utc).date().isoformat()
-            harvests_response = self.supabase.table('garden_harvests')\
-                .select('*')\
-                .eq('wallet_address', wallet_address)\
-                .eq('harvest_date', today)\
-                .execute()
-
-            harvests_today = harvests_response.data[0]['harvests_today'] if harvests_response.data else 0
-
-            if harvests_today >= 5:
-                return {
-                    'success': False,
-                    'error': 'Daily harvest limit reached (5/5)'
-                }
-
-            # Get plot
-            plot_response = self.supabase.table('garden_plots')\
-                .select('*')\
-                .eq('wallet_address', wallet_address)\
-                .eq('plot_id', plot_id)\
-                .execute()
-
-            if not plot_response.data:
-                return {'success': False, 'error': 'Plot not found'}
-
-            plot = plot_response.data[0]
-
-            if plot['status'] != 'growing':
-                return {'success': False, 'error': 'No crop to harvest'}
-
-            # Calculate growth
-            planted_at = datetime.fromisoformat(plot['planted_at'].replace('Z', '+00:00'))
-            now = datetime.now(timezone.utc)
-            time_elapsed = (now - planted_at).total_seconds()
-            growth_time = 60  # 1 minute growth time
-            growth_percent = min(100, (time_elapsed / growth_time) * 100)
-
-            if growth_percent < 100:
-                return {
-                    'success': False,
-                    'error': f'Crop not ready yet ({int(growth_percent)}% grown)'
-                }
-
-            # Award reward
-            reward = 50.0  # 50 G$ per harvest
-
-            # Update harvest count
-            now_iso = now.isoformat()
-            if harvests_response.data:
-                self.supabase.table('garden_harvests')\
-                    .update({
-                        'harvests_today': harvests_today + 1,
-                        'total_earned': float(harvests_response.data[0]['total_earned']) + reward
-                    })\
-                    .eq('wallet_address', wallet_address)\
-                    .eq('harvest_date', today)\
-                    .execute()
-            else:
-                self.supabase.table('garden_harvests')\
-                    .insert({
-                        'wallet_address': wallet_address,
-                        'harvest_date': today,
-                        'harvests_today': 1,
-                        'total_earned': reward
-                    })\
-                    .execute()
-
-            # Update balance
-            balance = self.get_garden_balance(wallet_address)
-            new_total = balance['total_earned'] + reward
-            new_available = balance['available_balance'] + reward
-
-            balance_response = self.supabase.table('garden_balance')\
-                .select('*')\
-                .eq('wallet_address', wallet_address)\
-                .execute()
-
-            if balance_response.data:
-                self.supabase.table('garden_balance')\
-                    .update({
-                        'total_earned': new_total,
-                        'available_balance': new_available,
-                        'updated_at': now_iso
-                    })\
-                    .eq('wallet_address', wallet_address)\
-                    .execute()
-            else:
-                self.supabase.table('garden_balance')\
-                    .insert({
-                        'wallet_address': wallet_address,
-                        'total_earned': new_total,
-                        'total_withdrawn': 0.0,
-                        'available_balance': new_available
-                    })\
-                    .execute()
-
-            # Record transaction
-            self.supabase.table('minigames_transactions')\
-                .insert({
-                    'wallet_address': wallet_address,
-                    'transaction_type': 'garden_harvest',
-                    'reward_amount': reward,
-                    'transaction_date': now_iso
-                })\
-                .execute()
-
-            # Clear plot
-            self.supabase.table('garden_plots')\
+@garden_bp.route('/sync-balance', methods=['POST'])
+def sync_balance():
+    """Manually sync balance from minigames_transactions (for fixing existing users)"""
+    try:
+        wallet = session.get('wallet')
+        if not wallet or not session.get('verified'):
+            return jsonify({'success': False, 'error': 'Not authenticated'}), 401
+        
+        from supabase_client import get_supabase_client
+        supabase = get_supabase_client()
+        
+        # Get all garden harvest transactions for this user
+        transactions = supabase.table('minigames_transactions')\
+            .select('*')\
+            .eq('wallet_address', wallet)\
+            .eq('transaction_type', 'garden_harvest')\
+            .execute()
+        
+        if not transactions.data:
+            return jsonify({'success': False, 'error': 'No harvest history found'}), 404
+        
+        # Calculate total from transactions
+        total_earned = sum(float(tx['reward_amount']) for tx in transactions.data)
+        
+        # Get current balance
+        balance = garden_manager.get_garden_balance(wallet)
+        
+        # Update or create balance record
+        from datetime import datetime, timezone
+        now = datetime.now(timezone.utc).isoformat()
+        
+        if balance['total_earned'] > 0:
+            # Update existing
+            supabase.table('garden_balance')\
                 .update({
-                    'crop_type': None,
-                    'planted_at': None,
-                    'growth_percent': 0,
-                    'status': 'empty',
-                    'updated_at': now_iso
+                    'total_earned': total_earned,
+                    'available_balance': total_earned - balance['total_withdrawn'],
+                    'updated_at': now
                 })\
-                .eq('wallet_address', wallet_address)\
-                .eq('plot_id', plot_id)\
+                .eq('wallet_address', wallet)\
                 .execute()
+        else:
+            # Create new
+            supabase.table('garden_balance').insert({
+                'wallet_address': wallet,
+                'total_earned': total_earned,
+                'available_balance': total_earned,
+                'total_withdrawn': 0,
+                'last_harvest_at': now,
+                'created_at': now,
+                'updated_at': now
+            }).execute()
+        
+        logger.info(f"✅ Synced balance for {wallet[:8]}... - Total: {total_earned} G$")
+        
+        return jsonify({
+            'success': True,
+            'message': f'Balance synced! Total earned: {total_earned} G$',
+            'total_earned': total_earned,
+            'available_balance': total_earned
+        })
+        
+    except Exception as e:
+        logger.error(f"❌ Error syncing balance: {e}")
+        import traceback
+        logger.error(f"❌ Traceback: {traceback.format_exc()}")
+        return jsonify({'success': False, 'error': str(e)}), 500
 
-            logger.info(f"🌾 Harvested plot {plot_id} for {wallet_address[:8]}... - Reward: {reward} G$")
-
-            return {
-                'success': True,
-                'message': f'Harvested {plot["crop_type"]}! Earned {reward} G$',
-                'reward': reward,
-                'harvests_today': harvests_today + 1
-            }
-
-        except Exception as e:
-            logger.error(f"❌ Error harvesting crop: {e}")
-            return {'success': False, 'error': str(e)}
-
-    def hire_ai_helper(self, wallet_address: str, helper_type: str) -> dict:
-        """Hire an AI helper"""
-        try:
-            # Check if already hired
-            existing = self.supabase.table('garden_ai_helpers')\
-                .select('*')\
-                .eq('wallet_address', wallet_address)\
-                .eq('helper_type', helper_type)\
-                .execute()
-
-            if existing.data:
-                return {'success': False, 'error': 'Helper already hired'}
-
-            # Hire helper
-            now = datetime.now(timezone.utc).isoformat()
-            self.supabase.table('garden_ai_helpers')\
-                .insert({
-                    'wallet_address': wallet_address,
-                    'helper_type': helper_type,
-                    'hired_at': now,
-                    'active': True
-                })\
-                .execute()
-
-            logger.info(f"🤖 Hired {helper_type} for {wallet_address[:8]}...")
-
-            return {
-                'success': True,
-                'message': f'Successfully hired {helper_type}!'
-            }
-
-        except Exception as e:
-            logger.error(f"❌ Error hiring helper: {e}")
-            return {'success': False, 'error': str(e)}
-
-
-# Global instance
-garden_manager = GardenManager()
+@garden_bp.route('/withdrawal-history')
+def get_withdrawal_history():
+    """Get user's garden withdrawal history"""
+    try:
+        wallet = session.get('wallet')
+        if not wallet or not session.get('verified'):
+            return jsonify({'success': False, 'error': 'Not authenticated'}), 401
+        
+        from supabase_client import get_supabase_client
+        supabase = get_supabase_client()
+        
+        # Get withdrawal history - fixed table name
+        withdrawals = supabase.table('garden_withdrawals')\
+            .select('*')\
+            .eq('wallet_address', wallet)\
+            .order('created_at', desc=True)\
+            .limit(50)\
+            .execute()
+        
+        # Return success even if no withdrawals (empty array is valid)
+        return jsonify({
+            'success': True,
+            'withdrawals': withdrawals.data or []
+        })
+        
+    except Exception as e:
+        logger.error(f"❌ Error getting withdrawal history: {e}")
+        # Return success with empty array on error (user-friendly)
+        logger.warning(f"⚠️ Returning empty withdrawal history due to error")
+        return jsonify({
+            'success': True,
+            'withdrawals': [],
+            'warning': 'Could not load withdrawal history'
+        }), 200
