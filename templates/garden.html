@@ -328,6 +328,9 @@
         async function loadGardenState() {
             try {
                 const response = await fetch('/minigames/garden/state');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
                 const data = await response.json();
 
                 if (data.success) {
@@ -336,9 +339,14 @@
                     updateStats();
                 } else {
                     console.error('❌ Garden state loading failed:', data.error);
+                    showNotification('Error loading garden: ' + data.error, 'error');
                 }
             } catch (error) {
                 console.error('❌ Error loading garden:', error);
+                const totalEarnedEl = document.getElementById('total-earned');
+                const availableBalanceEl = document.getElementById('available-balance');
+                if (totalEarnedEl) totalEarnedEl.textContent = '0.00 G$';
+                if (availableBalanceEl) availableBalanceEl.textContent = '0.00 G$';
             }
         }
 
@@ -393,48 +401,50 @@
 
         function updateStats() {
             const harvestsToday = gardenState.harvests_today || 0;
-            const harvestsRemaining = gardenState.harvests_remaining || (10 - harvestsToday);
-            document.getElementById('harvests-count').textContent =
-                `${harvestsToday} / ${harvestsToday + harvestsRemaining}`;
+            const harvestsRemaining = Math.max(0, 10 - harvestsToday);
+            
+            const harvestsCountEl = document.getElementById('harvests-count');
+            if (harvestsCountEl) {
+                harvestsCountEl.textContent = `${harvestsToday} / 10`;
+            }
 
             // Update balance information with explicit number conversion
             if (gardenState.balance) {
+                // IMPORTANT: Use available_balance directly from the API response
                 const totalEarned = parseFloat(gardenState.balance.total_earned) || 0;
                 const availableBalance = parseFloat(gardenState.balance.available_balance) || 0;
 
-                console.log('🌾 Garden Balance Update:', {
-                    total_earned: totalEarned,
-                    available_balance: availableBalance,
-                    raw_balance: gardenState.balance,
-                    harvests_today: gardenState.harvests_today
-                });
-
-                document.getElementById('total-earned').textContent = `${totalEarned.toFixed(2)} G$`;
-                document.getElementById('available-balance').textContent = `${availableBalance.toFixed(2)} G$`;
+                const totalEarnedEl = document.getElementById('total-earned');
+                const availableBalanceEl = document.getElementById('available-balance');
+                
+                console.log('💰 UI Update - Available Balance:', availableBalance);
+                
+                if (totalEarnedEl) totalEarnedEl.textContent = `${totalEarned.toFixed(2)} G$`;
+                if (availableBalanceEl) availableBalanceEl.textContent = `${availableBalance.toFixed(2)} G$`;
 
                 // Show sync button if user has harvests but balance is 0
                 const syncBtn = document.getElementById('sync-btn');
-                if (gardenState.harvests_today > 0 && totalEarned === 0) {
-                    syncBtn.style.display = 'inline-block';
-                } else {
-                    syncBtn.style.display = 'none';
+                if (syncBtn) {
+                    if (harvestsToday > 0 && totalEarned === 0) {
+                        syncBtn.style.display = 'inline-block';
+                    } else {
+                        syncBtn.style.display = 'none';
+                    }
                 }
 
                 // Enable/disable withdraw button
                 const withdrawBtn = document.getElementById('withdraw-btn');
-                if (availableBalance >= 200) {
-                    withdrawBtn.disabled = false;
-                    withdrawBtn.style.opacity = '1';
-                    withdrawBtn.style.cursor = 'pointer';
-                } else {
-                    withdrawBtn.disabled = true;
-                    withdrawBtn.style.opacity = '0.5';
-                    withdrawBtn.style.cursor = 'not-allowed';
+                if (withdrawBtn) {
+                    if (availableBalance >= 200) {
+                        withdrawBtn.disabled = false;
+                        withdrawBtn.style.opacity = '1';
+                        withdrawBtn.style.cursor = 'pointer';
+                    } else {
+                        withdrawBtn.disabled = true;
+                        withdrawBtn.style.opacity = '0.5';
+                        withdrawBtn.style.cursor = 'not-allowed';
+                    }
                 }
-            } else {
-                console.warn('⚠️ No balance data in garden state');
-                document.getElementById('total-earned').textContent = '0.00 G$';
-                document.getElementById('available-balance').textContent = '0.00 G$';
             }
         }
 
