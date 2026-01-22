@@ -330,28 +330,20 @@
                 const response = await fetch('/minigames/garden/state');
                 const data = await response.json();
 
-                console.log('🌱 Garden State Response:', data);
-
                 if (data.success) {
                     gardenState = data;
-                    console.log('🌱 Garden State Loaded:', {
-                        harvests_today: gardenState.harvests_today,
-                        balance: gardenState.balance
-                    });
                     renderGarden();
                     updateStats();
                 } else {
                     console.error('❌ Garden state loading failed:', data.error);
-                    document.getElementById('total-earned').textContent = '0.00 G$';
-                    document.getElementById('available-balance').textContent = '0.00 G$';
-                    showNotification('Error loading garden state: ' + data.error, 'error');
                 }
             } catch (error) {
                 console.error('❌ Error loading garden:', error);
-                document.getElementById('total-earned').textContent = '0.00 G$';
-                document.getElementById('available-balance').textContent = '0.00 G$';
             }
         }
+
+        // Add auto-refresh every 5 seconds for real-time data
+        setInterval(loadGardenState, 5000);
 
         function renderGarden() {
             const grid = document.getElementById('garden-grid');
