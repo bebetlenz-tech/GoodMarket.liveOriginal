@@ -253,7 +253,12 @@ class GardenManager:
                 }
 
             # Award reward
-            reward = 50.0  # 50 G$ per harvest
+            crop_rewards = {
+                'tomato': 5.0,
+                'corn': 25.0,
+                'carrot': 150.0
+            }
+            reward = float(crop_rewards.get(plot.get('crop_type', 'tomato').lower(), 50.0))
 
             # Update harvest count
             now_iso = now.isoformat()
