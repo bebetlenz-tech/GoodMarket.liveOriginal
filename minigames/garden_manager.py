@@ -69,7 +69,7 @@ class GardenManager:
             return {'success': False, 'error': str(e)}
 
     def get_garden_balance(self, wallet_address: str) -> dict:
-        """Get user's garden balance"""
+        """Get user's garden balance from Supabase (forced real-time)"""
         try:
             if not self.supabase:
                 return {
@@ -77,19 +77,23 @@ class GardenManager:
                     'total_withdrawn': 0.0,
                     'available_balance': 0.0
                 }
+            
+            # Query the database
             response = self.supabase.table('garden_balance')\
                 .select('*')\
                 .eq('wallet_address', wallet_address)\
                 .execute()
 
-            if response.data:
+            if response.data and len(response.data) > 0:
                 balance_data = response.data[0]
+                logger.info(f"💰 Supabase Balance Found for {wallet_address[:8]}: {balance_data['available_balance']}")
                 return {
-                    'total_earned': float(balance_data['total_earned']),
-                    'total_withdrawn': float(balance_data['total_withdrawn']),
-                    'available_balance': float(balance_data['available_balance'])
+                    'total_earned': float(balance_data.get('total_earned', 0)),
+                    'total_withdrawn': float(balance_data.get('total_withdrawn', 0)),
+                    'available_balance': float(balance_data.get('available_balance', 0))
                 }
             else:
+                logger.warning(f"⚠️ No balance record in Supabase for {wallet_address[:8]}")
                 return {
                     'total_earned': 0.0,
                     'total_withdrawn': 0.0,
