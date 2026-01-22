@@ -339,19 +339,14 @@
                     updateStats();
                 } else {
                     console.error('❌ Garden state loading failed:', data.error);
-                    showNotification('Error loading garden: ' + data.error, 'error');
                 }
             } catch (error) {
                 console.error('❌ Error loading garden:', error);
-                const totalEarnedEl = document.getElementById('total-earned');
-                const availableBalanceEl = document.getElementById('available-balance');
-                if (totalEarnedEl) totalEarnedEl.textContent = '0.00 G$';
-                if (availableBalanceEl) availableBalanceEl.textContent = '0.00 G$';
             }
         }
 
-        // Add auto-refresh every 5 seconds for real-time data
-        setInterval(loadGardenState, 5000);
+        // Add auto-refresh every 1 second for real-time countdown
+        setInterval(loadGardenState, 1000);
 
         function renderGarden() {
             const grid = document.getElementById('garden-grid');
@@ -382,6 +377,23 @@
                     const cropType = plot.crop_type ? plot.crop_type.toLowerCase() : 'tomato';
                     const growth = plot.growth_percent || 0;
                     
+                    // Calculate remaining time
+                    const startTime = new Date(plot.planted_at).getTime();
+                    const now = new Date().getTime();
+                    const cropConfig = gardenState.available_crops[plot.crop_type];
+                    const totalTimeMs = (cropConfig ? cropConfig.growth_time_minutes : 10) * 60 * 1000;
+                    const elapsedMs = now - startTime;
+                    const remainingMs = Math.max(0, totalTimeMs - elapsedMs);
+                    
+                    let timeString = '';
+                    if (growth < 100 && remainingMs > 0) {
+                        const mins = Math.floor(remainingMs / 60000);
+                        const secs = Math.floor((remainingMs % 60000) / 1000);
+                        timeString = `<div class="timer" style="font-family: monospace; color: #fbbf24; font-weight: bold; margin-top: 0.5rem;">
+                            ⏳ ${mins}:${secs.toString().padStart(2, '0')}
+                        </div>`;
+                    }
+
                     let emoji = '🌱';
                     if (growth >= 100) {
                         if (cropType === 'tomato') emoji = '🍅';
@@ -399,6 +411,7 @@
                         <div style="font-size: 0.9rem; margin-top: 0.5rem;">
                             <strong>${cropType.charAt(0).toUpperCase() + cropType.slice(1)}</strong><br>
                             ${Math.floor(growth)}% grown
+                            ${timeString}
                         </div>
                         ${growth >= 100 ? '<button class="btn btn-harvest" onclick="harvestPlot(' + i + ')" style="margin-top: 1rem; width: 100%;">🌾 Harvest</button>' : ''}
                     `;
