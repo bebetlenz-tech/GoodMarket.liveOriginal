@@ -357,12 +357,17 @@
             const grid = document.getElementById('garden-grid');
             const aiFarmer = document.getElementById('ai-farmer');
 
+            if (!grid) {
+                console.error('❌ Garden grid not found!');
+                return;
+            }
+
             // Clear existing plots
             grid.innerHTML = '';
 
             // Show AI farmer if user has helpers
             if (gardenState.ai_helpers && gardenState.ai_helpers.length > 0) {
-                aiFarmer.style.display = 'block';
+                if (aiFarmer) aiFarmer.style.display = 'block';
             }
 
             // Create 6 plots
@@ -370,33 +375,52 @@
                 const plot = gardenState.plots.find(p => p.plot_id === i);
                 const plotDiv = document.createElement('div');
                 plotDiv.className = 'garden-plot';
-                plotDiv.onclick = () => handlePlotClick(i);
+                plotDiv.dataset.plotId = i;
 
                 if (plot && plot.status === 'growing') {
-                    const cropConfig = gardenState.available_crops[plot.crop_type];
+                    // Normalize crop type for CSS classes and emoji
+                    const cropType = plot.crop_type ? plot.crop_type.toLowerCase() : 'tomato';
                     const growth = plot.growth_percent || 0;
+                    
+                    let emoji = '🌱';
+                    if (growth >= 100) {
+                        if (cropType === 'tomato') emoji = '🍅';
+                        else if (cropType === 'corn') emoji = '🌽';
+                        else if (cropType === 'carrot') emoji = '🥕';
+                    } else if (growth > 50) {
+                        emoji = '🌿';
+                    }
 
                     plotDiv.innerHTML = `
-                        <div class="plot-crop">${cropConfig.name.split(' ')[0]}</div>
+                        <div class="plot-crop">${emoji}</div>
                         <div class="progress-bar">
                             <div class="progress-fill" style="width: ${growth}%"></div>
                         </div>
-                        <div>${Math.floor(growth)}% grown</div>
-                        ${growth >= 100 ? '<button class="btn btn-harvest" onclick="harvestPlot(' + i + ')">🌾 Harvest</button>' : ''}
+                        <div style="font-size: 0.9rem; margin-top: 0.5rem;">
+                            <strong>${cropType.charAt(0).toUpperCase() + cropType.slice(1)}</strong><br>
+                            ${Math.floor(growth)}% grown
+                        </div>
+                        ${growth >= 100 ? '<button class="btn btn-harvest" onclick="harvestPlot(' + i + ')" style="margin-top: 1rem; width: 100%;">🌾 Harvest</button>' : ''}
                     `;
+                    
+                    if (growth >= 100) {
+                        plotDiv.classList.add('ready');
+                    }
                 } else {
                     plotDiv.innerHTML = `
-                        <div class="plot-crop">🌱</div>
-                        <div>Empty Plot</div>
-                        <button class="btn btn-plant" onclick="showPlantMenu(${i})">Plant Crop</button>
+                        <div class="plot-crop" style="opacity: 0.5;">🌱</div>
+                        <div style="margin-bottom: 1rem;">Empty Plot</div>
+                        <button class="btn btn-plant" onclick="showPlantMenu(${i})" style="width: 100%;">Plant Crop</button>
                     `;
                 }
 
                 grid.appendChild(plotDiv);
             }
 
-            // Re-add AI farmer
-            grid.appendChild(aiFarmer);
+            // Re-add AI farmer if it exists
+            if (aiFarmer) {
+                grid.appendChild(aiFarmer);
+            }
         }
 
         function updateStats() {
