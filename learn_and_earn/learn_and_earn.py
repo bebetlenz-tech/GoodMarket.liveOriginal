@@ -1023,12 +1023,8 @@ def start_quiz(current_user):
     try:
         logger.info(f"🎯 Starting quiz for user: {current_user}")
 
-        # Clear any existing quiz session data for fresh start
-        session.pop('quiz_questions', None)
-        session.pop('quiz_session_id', None)
-        session.pop('quiz_started_at', None)
-
-        logger.info(f"🧹 Cleared previous quiz session data for {current_user}")
+        # NOTE: Session clearing moved to AFTER validation passes
+        # This prevents losing valid quiz session if validation fails
 
         # Check if reward system is configured (safe check without exposing private key)
         if not learn_blockchain_service.is_configured:
@@ -1148,6 +1144,13 @@ def start_quiz(current_user):
                 valid_module_links.append(link)
 
         logger.info(f"📚 {len(valid_module_links)} module links with valid content will be shown")
+
+        # Clear any existing quiz session data ONLY after all validations pass
+        # This prevents losing a valid quiz session if validation fails
+        session.pop('quiz_questions', None)
+        session.pop('quiz_session_id', None)
+        session.pop('quiz_started_at', None)
+        logger.info(f"🧹 Cleared previous quiz session data for {current_user}")
 
         # Create quiz session
         quiz_session = quiz_manager.create_quiz_session(current_user, questions)
