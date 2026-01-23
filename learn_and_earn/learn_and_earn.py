@@ -634,32 +634,117 @@ class LearnEarnQuizManager:
             return []
 
     def create_quiz_session(self, user_wallet, questions):
-        """Creates a new quiz session and stores it temporarily."""
-        session_id = f"QUIZ_SESSION_{user_wallet.lower()}_{random.randint(1000, 9999)}"
+        """Creates a new quiz session and stores it in database for production reliability."""
+        import json
+        session_id = f"QUIZ_SESSION_{user_wallet.lower()}_{random.randint(1000, 9999)}_{int(datetime.utcnow().timestamp())}"
 
-        # Store session data in a temporary storage instead of Flask session
-        if not hasattr(self, '_quiz_sessions'):
-            self._quiz_sessions = {}
+        # Store session data in database for production reliability (works with multiple workers)
+        try:
+            from supabase_client import get_supabase_client, safe_supabase_operation
+            supabase = get_supabase_client()
+            
+            if supabase:
+                # Delete any old sessions for this user (cleanup)
+                safe_supabase_operation(
+                    lambda: supabase.table('quiz_sessions').delete().eq('wallet_address', user_wallet.lower()).execute(),
+                    fallback_result=None,
+                    operation_name="cleanup old quiz sessions"
+                )
+                
+                # Insert new session
+                session_data = {
+                    'session_id': session_id,
+                    'wallet_address': user_wallet.lower(),
+                    'questions': json.dumps(questions),
+                    'started_at': datetime.utcnow().isoformat() + 'Z',
+                    'expires_at': (datetime.utcnow() + timedelta(hours=1)).isoformat() + 'Z'
+                }
+                
+                result = safe_supabase_operation(
+                    lambda: supabase.table('quiz_sessions').insert(session_data).execute(),
+                    fallback_result=None,
+                    operation_name="create quiz session in database"
+                )
+                
+                if result:
+                    logger.info(f"✅ Created quiz session in database: {session_id} for {user_wallet}")
+                else:
+                    logger.warning(f"⚠️ Failed to store session in database, using in-memory fallback")
+                    # Fallback to in-memory
+                    if not hasattr(self, '_quiz_sessions'):
+                        self._quiz_sessions = {}
+                    self._quiz_sessions[session_id] = {
+                        'questions': questions,
+                        'wallet': user_wallet,
+                        'started_at': datetime.utcnow().isoformat() + 'Z'
+                    }
+            else:
+                # Fallback to in-memory if no database
+                if not hasattr(self, '_quiz_sessions'):
+                    self._quiz_sessions = {}
+                self._quiz_sessions[session_id] = {
+                    'questions': questions,
+                    'wallet': user_wallet,
+                    'started_at': datetime.utcnow().isoformat() + 'Z'
+                }
+                logger.info(f"✅ Created quiz session in memory: {session_id} for {user_wallet}")
+        except Exception as e:
+            logger.error(f"❌ Error creating quiz session: {e}")
+            # Fallback to in-memory
+            if not hasattr(self, '_quiz_sessions'):
+                self._quiz_sessions = {}
+            self._quiz_sessions[session_id] = {
+                'questions': questions,
+                'wallet': user_wallet,
+                'started_at': datetime.utcnow().isoformat() + 'Z'
+            }
 
-        self._quiz_sessions[session_id] = {
-            'questions': questions,
-            'wallet': user_wallet,
-            'started_at': datetime.utcnow().isoformat() + 'Z'
-        }
-
-        logger.info(f"✅ Created quiz session: {session_id} for {user_wallet}")
         return {'session_id': session_id}
 
     def validate_and_score_quiz(self, quiz_session_id, user_answers):
         """Validates quiz session, scores answers, and returns the result."""
+        import json
+        
         if not hasattr(self, '_quiz_sessions'):
             self._quiz_sessions = {}
 
         quiz_session_id = str(quiz_session_id)
         session_data = self._quiz_sessions.get(quiz_session_id)
 
+        # If not in memory, try to get from database (production reliability)
         if not session_data:
-            logger.error(f"❌ Session {quiz_session_id} not found in _quiz_sessions. Available: {list(self._quiz_sessions.keys())}")
+            logger.info(f"🔍 Session not in memory, checking database for: {quiz_session_id}")
+            try:
+                from supabase_client import get_supabase_client, safe_supabase_operation
+                supabase = get_supabase_client()
+                
+                if supabase:
+                    result = safe_supabase_operation(
+                        lambda: supabase.table('quiz_sessions').select('*').eq('session_id', quiz_session_id).execute(),
+                        fallback_result=None,
+                        operation_name="get quiz session from database"
+                    )
+                    
+                    if result and result.data and len(result.data) > 0:
+                        db_session = result.data[0]
+                        session_data = {
+                            'questions': json.loads(db_session['questions']),
+                            'wallet': db_session['wallet_address'],
+                            'started_at': db_session['started_at']
+                        }
+                        logger.info(f"✅ Retrieved session from database: {quiz_session_id}")
+                        
+                        # Clean up from database after retrieval
+                        safe_supabase_operation(
+                            lambda: supabase.table('quiz_sessions').delete().eq('session_id', quiz_session_id).execute(),
+                            fallback_result=None,
+                            operation_name="cleanup quiz session from database"
+                        )
+            except Exception as e:
+                logger.error(f"❌ Error retrieving session from database: {e}")
+
+        if not session_data:
+            logger.error(f"❌ Session {quiz_session_id} not found in memory or database")
             return {'valid': False, 'message': 'Quiz session expired or not found. Please start a new quiz.'}
 
         stored_questions = session_data.get('questions')
