@@ -3407,6 +3407,7 @@ OR manually enter HTML content here...
                 const data = await response.json();
 
                 const contentDiv = document.getElementById('dailyTasksContent');
+                if (!contentDiv) return;
 
                 if (data.success) {
                     const telegramTasks = data.telegram_tasks || [];
@@ -3429,9 +3430,56 @@ OR manually enter HTML content here...
                                 <strong style="color: #fbbf24;">⏳ ${totalPending} pending submission(s) waiting for review</strong>
                             </div>
                         `;
+                        
+                        // Helper function for rendering task rows
+                        const renderTaskRows = (tasks, platform) => {
+                            return tasks.map(task => `
+                                <tr>
+                                    <td><small>${task.wallet_address.substring(0, 10)}...</small></td>
+                                    <td>${platform}</td>
+                                    <td><a href="${task.screenshot_url || task.tweet_url}" target="_blank" style="color: #6366f1;">View Link</a></td>
+                                    <td>${new Date(task.created_at).toLocaleString()}</td>
+                                    <td>
+                                        <div style="display: flex; gap: 0.5rem;">
+                                            <button onclick="approveDailyTask('${task.id}', '${platform.toLowerCase()}')" class="btn btn-primary" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;">Approve</button>
+                                            <button onclick="rejectDailyTask('${task.id}', '${platform.toLowerCase()}')" class="btn btn-danger" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;">Reject</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            `).join('');
+                        };
 
-                        if (facebookTasks.length > 0) {
-                            html += `
+                        html += `
+                            <div class="table-responsive">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>User</th>
+                                            <th>Platform</th>
+                                            <th>Link</th>
+                                            <th>Submitted At</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${renderTaskRows(telegramTasks, 'Telegram')}
+                                        ${renderTaskRows(twitterTasks, 'Twitter')}
+                                        ${renderTaskRows(facebookTasks, 'Facebook')}
+                                    </tbody>
+                                </table>
+                            </div>
+                        `;
+                    }
+                    contentDiv.innerHTML = html;
+                } else {
+                    contentDiv.innerHTML = `<p style="color: #ef4444;">Error: ${data.error}</p>`;
+                }
+            } catch (error) {
+                console.error('Error loading pending daily tasks:', error);
+                const contentDiv = document.getElementById('dailyTasksContent');
+                if (contentDiv) contentDiv.innerHTML = '<p style="color: #ef4444;">Failed to fetch daily tasks</p>';
+            }
+        }
                                 <h3 style="color: #1877f2; margin-top: 2rem; margin-bottom: 1rem;">📘 Facebook Tasks (${facebookTasks.length})</h3>
                                 <table>
                                     <thead>
@@ -3694,46 +3742,62 @@ OR manually enter HTML content here...
                 const response = await fetch('/community-stories/api/admin/notifications');
                 const data = await response.json();
                 
-                const section = document.getElementById('community-stories-notifications');
-                if (!section) {
-                    console.error('❌ Community stories notifications container not found!');
-                    return;
-                }
+                const container = document.getElementById('community-stories-notifications');
+                if (!container) return;
 
                 if (data.success) {
-                    let html = `<h3>Pending Submissions (${data.count})</h3>`;
-                    
-                    if (data.notifications.length === 0) {
-                        html += '<p>No pending submissions at this time.</p>';
+                    if (!data.notifications || data.notifications.length === 0) {
+                        container.innerHTML = '<p>No pending submissions at this time.</p>';
                     } else {
-                        html += '<div style="display: grid; gap: 1rem;">';
-                        data.notifications.forEach(notif => {
-                            const sub = notif.community_stories_submissions;
+                        let html = `
+                            <div style="margin-bottom: 1rem; padding: 0.75rem; background: rgba(251, 191, 36, 0.1); border-left: 4px solid #fbbf24; border-radius: 8px;">
+                                <strong style="color: #fbbf24;">📬 You have ${data.count} pending submission(s) waiting for review</strong>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Submission ID</th>
+                                            <th>User Wallet</th>
+                                            <th>Tweet Link / Screenshot</th>
+                                            <th>Submitted At</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                        `;
+                        
+                        data.notifications.forEach(n => {
+                            const sub = n.community_stories_submissions;
                             html += `
-                                <div style="padding: 1rem; background: rgba(255,255,255,0.05); border-radius: 12px; border: 1px solid rgba(99,102,241,0.3);">
-                                    <div style="display: flex; justify-content: space-between; align-items: start;">
-                                        <div>
-                                            <strong>ID: ${sub.submission_id}</strong><br>
-                                            <span style="font-size: 0.8rem; color: rgba(241,245,249,0.6);">Wallet: ${sub.wallet_address}</span><br>
-                                            <a href="${sub.storage_path}" target="_blank" style="color: #6366f1;">View Screenshot</a>
-                                        </div>
+                                <tr id="submission-row-${sub.submission_id}">
+                                    <td style="font-family: monospace;">${sub.submission_id}</td>
+                                    <td style="font-family: monospace;">${sub.wallet_address.substring(0,8)}...</td>
+                                    <td>
+                                        <a href="${sub.storage_path}" target="_blank" style="color: #6366f1;">View Screenshot</a>
+                                    </td>
+                                    <td>${new Date(sub.created_at).toLocaleString()}</td>
+                                    <td>
                                         <div style="display: flex; gap: 0.5rem;">
-                                            <button onclick="approveSubmission('${sub.submission_id}', 'low')" class="btn btn-primary" style="background: #6366f1; font-size: 0.8rem;">Approve Low</button>
-                                            <button onclick="approveSubmission('${sub.submission_id}', 'high')" class="btn btn-primary" style="background: #10b981; font-size: 0.8rem;">Approve High</button>
-                                            <button onclick="rejectSubmission('${sub.submission_id}')" class="btn btn-danger" style="font-size: 0.8rem;">Reject</button>
+                                            <button onclick="approveSubmission('${sub.submission_id}', 'low')" class="btn btn-primary" style="background: #6366f1; padding: 0.25rem 0.5rem; font-size: 0.8rem;">Approve Low</button>
+                                            <button onclick="approveSubmission('${sub.submission_id}', 'high')" class="btn btn-primary" style="background: #10b981; padding: 0.25rem 0.5rem; font-size: 0.8rem;">Approve High</button>
+                                            <button onclick="rejectSubmission('${sub.submission_id}')" class="btn btn-danger" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;">Reject</button>
                                         </div>
-                                    </div>
-                                </div>
+                                    </td>
+                                </tr>
                             `;
                         });
-                        html += '</div>';
+                        
+                        html += '</tbody></table></div>';
+                        container.innerHTML = html;
                     }
-                    section.innerHTML = html;
                 } else {
-                    section.innerHTML = `<p style="color: #ef4444;">Error loading stories: ${data.error}</p>`;
+                    container.innerHTML = `<p style="color: #ef4444;">Error loading stories: ${data.error}</p>`;
                 }
             } catch (error) {
                 console.error('Error loading community stories:', error);
+                const container = document.getElementById('community-stories-notifications');
+                if (container) container.innerHTML = '<p style="color: #ef4444;">Failed to fetch submissions</p>';
             }
         }
 
