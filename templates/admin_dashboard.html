@@ -3172,32 +3172,32 @@ OR manually enter HTML content here...
 
         async function loadCommunityStoriesSettings() {
             try {
-                const response = await fetch('/api/admin/community-stories-settings');
+                const response = await fetch('/community-stories/api/config');
                 const data = await response.json();
 
                 const statusDiv = document.getElementById('community-stories-settings-status');
                 const controlsDiv = document.getElementById('community-stories-settings-controls');
 
                 if (data.success) {
-                    const settings = data.settings;
+                    const config = data.config;
 
-                    document.getElementById('current-low-reward').textContent = settings.low_reward.toLocaleString() + ' G$';
-                    document.getElementById('current-high-reward').textContent = settings.high_reward.toLocaleString() + ' G$';
-                    document.getElementById('current-window-startDay').textContent = settings.window_start_day + 'th';
-                    document.getElementById('current-window-end').textContent = settings.window_end_day + 'th';
-                    document.getElementById('current-mentions').textContent = settings.required_mentions;
+                    document.getElementById('current-low-reward').textContent = config.rewards.low.toLocaleString() + ' G$';
+                    document.getElementById('current-high-reward').textContent = config.rewards.high.toLocaleString() + ' G$';
+                    document.getElementById('current-window-start').textContent = config.window.start_day + 'th';
+                    document.getElementById('current-window-end').textContent = config.window.end_day + 'th';
+                    document.getElementById('current-mentions').textContent = config.requirements.mentions.join(' ');
 
-                    document.getElementById('low-reward').value = settings.low_reward;
-                    document.getElementById('high-reward').value = settings.high_reward;
-                    document.getElementById('required-mentions').value = settings.required_mentions;
-                    document.getElementById('window-start-day').value = settings.window_start_day;
-                    document.getElementById('window-end-day').value = settings.window_end_day;
-                    document.getElementById('community-stories-message').value = settings.message || '';
+                    document.getElementById('low-reward').value = config.rewards.low;
+                    document.getElementById('high-reward').value = config.rewards.high;
+                    document.getElementById('required-mentions').value = config.requirements.mentions.join(' ');
+                    document.getElementById('window-start-day').value = config.window.start_day;
+                    document.getElementById('window-end-day').value = config.window.end_day;
+                    document.getElementById('community-stories-message').value = config.description || '';
 
                     statusDiv.style.display = 'none';
                     controlsDiv.style.display = 'block';
                 } else {
-                    statusDiv.innerHTML = '<p style="color: #ef4444;">Error loading settings</p>';
+                    statusDiv.innerHTML = '<p style="color: #ef4444;">Error loading settings: ' + (data.error || 'Unknown error') + '</p>';
                 }
             } catch (error) {
                 console.error('Error loading Community Stories settings:', error);
@@ -3221,6 +3221,34 @@ OR manually enter HTML content here...
 
                 if (startDay < 1 || startDay > 31 || endDay < 1 || endDay > 31) {
                     alert('⚠️ Days must be between 1 and 31');
+                    return;
+                }
+
+                const response = await fetch('/community-stories/api/admin/update-settings', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        low_reward: lowReward,
+                        high_reward: highReward,
+                        required_mentions: mentions.split(' '),
+                        window_start_day: startDay,
+                        window_end_day: endDay,
+                        message: message
+                    })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    alert('✅ Settings updated successfully!');
+                    loadCommunityStoriesSettings();
+                } else {
+                    alert('❌ Update failed: ' + data.error);
+                }
+            } catch (error) {
+                console.error('Error updating settings:', error);
+                alert('❌ Error updating settings');
+            }
+        }
                     return;
                 }
 
@@ -3604,7 +3632,56 @@ OR manually enter HTML content here...
         });
 
         async function loadCommunityStories() {
-            console.log('Loading community stories...');
+            try {
+                const response = await fetch('/community-stories/api/admin/notifications');
+                const data = await response.json();
+                
+                const section = document.getElementById('community-stories-section');
+                if (!section) return;
+
+                if (data.success) {
+                    let html = `<h2>Pending Submissions (${data.count})</h2>`;
+                    
+                    if (data.notifications.length === 0) {
+                        html += '<p>No pending submissions at this time.</p>';
+                    } else {
+                        html += '<div style="display: grid; gap: 1rem;">';
+                        data.notifications.forEach(notif => {
+                            const sub = notif.community_stories_submissions;
+                            html += `
+                                <div style="padding: 1rem; background: rgba(255,255,255,0.05); border-radius: 12px; border: 1px solid rgba(99,102,241,0.3);">
+                                    <div style="display: flex; justify-content: space-between; align-items: start;">
+                                        <div>
+                                            <strong>ID: ${sub.submission_id}</strong><br>
+                                            <span style="font-size: 0.8rem; color: rgba(241,245,249,0.6);">Wallet: ${sub.wallet_address}</span><br>
+                                            <a href="${sub.storage_path}" target="_blank" style="color: #6366f1;">View Screenshot</a>
+                                        </div>
+                                        <div style="display: flex; gap: 0.5rem;">
+                                            <button onclick="approveSubmission('${sub.submission_id}', 'low')" class="btn btn-primary" style="background: #6366f1; font-size: 0.8rem;">Approve Low</button>
+                                            <button onclick="approveSubmission('${sub.submission_id}', 'high')" class="btn btn-primary" style="background: #10b981; font-size: 0.8rem;">Approve High</button>
+                                            <button onclick="rejectSubmission('${sub.submission_id}')" class="btn btn-danger" style="font-size: 0.8rem;">Reject</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                        html += '</div>';
+                    }
+                    section.innerHTML = `
+                        <div class="page-header">
+                            <h1 class="page-title">🌟 Community Stories</h1>
+                            <p style="color: rgba(241, 245, 249, 0.7);">Review and approve community story submissions</p>
+                        </div>
+                        <div class="content-box">
+                            ${html}
+                        </div>
+                    `;
+                } else {
+                    section.innerHTML = `<p style="color: #ef4444;">Error loading stories: ${data.error}</p>`;
+                }
+            } catch (error) {
+                console.error('Error loading community stories:', error);
+            }
         }
 
         function updateBroadcastPreview() {
