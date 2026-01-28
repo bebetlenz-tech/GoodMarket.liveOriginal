@@ -766,12 +766,31 @@
                 </div>
             </section>
 
-            <!-- Community Stories Section -->
             <section id="community-stories-section" class="section">
                 <div class="page-header">
                     <h1 class="page-title">🌟 Community Stories</h1>
                     <p style="color: rgba(241, 245, 249, 0.7);">Review and manage story submissions</p>
                 </div>
+
+                <div class="content-box" style="margin-bottom: 2rem;">
+                    <div id="community-stories-notifications">
+                        <div class="loading">
+                            <div class="spinner"></div>
+                            <p>Loading pending submissions...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="content-box">
+                    <h2>Recent Actions</h2>
+                    <div id="community-stories-history">
+                        <div class="loading">
+                            <div class="spinner"></div>
+                            <p>Loading recent actions...</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
 
                 <!-- Screenshot Upload Section -->
                 <div class="content-box">
@@ -2032,7 +2051,7 @@ OR manually enter HTML content here...
                     loadUsers();
                     break;
                 case 'community-stories':
-                    loadCommunityStoriesNotifications();
+                    loadCommunityStories();
                     loadCommunityStoriesHistory();
                     loadRecentRequirementImages();
                     break;
@@ -3007,24 +3026,63 @@ OR manually enter HTML content here...
             try {
                 const response = await fetch('/community-stories/api/admin/history');
                 const data = await response.json();
+                
+                const section = document.getElementById('community-stories-history');
+                if (!section) {
+                    console.error('❌ Community stories history container not found!');
+                    return;
+                }
 
-                if (data.success && data.history.length > 0) {
-                    const historyHtml = `
-                        <div style="margin-bottom: 1rem; padding: 0.75rem; background: rgba(16, 185, 129, 0.1); border-left: 4px solid #10b981; border-radius: 8px;">
-                            <strong style="color: #10b981;">✅ ${data.count} submission(s) processed</strong>
-                        </div>
-                        <table>
-                            <thead>
+                if (data.success) {
+                    if (data.history.length === 0) {
+                        section.innerHTML = '<p>No processed submissions yet.</p>';
+                    } else {
+                        let html = `
+                            <div style="margin-bottom: 1rem; padding: 0.75rem; background: rgba(16, 185, 129, 0.1); border-left: 4px solid #10b981; border-radius: 8px;">
+                                <strong style="color: #10b981;">✅ ${data.count} submission(s) processed</strong>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Submission ID</th>
+                                            <th>User</th>
+                                            <th>Status</th>
+                                            <th>Amount</th>
+                                            <th>Reviewed At</th>
+                                            <th>TX Hash</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                        `;
+                        
+                        data.history.forEach(item => {
+                            html += `
                                 <tr>
-                                    <th>Submission ID</th>
-                                    <th>User</th>
-                                    <th>Status</th>
-                                    <th>Amount</th>
-                                    <th>Reviewed By</th>
-                                    <th>Reviewed At</th>
-                                    <th>TX Hash</th>
+                                    <td>${item.submission_id}</td>
+                                    <td><small>${item.wallet_address}</small></td>
+                                    <td><span class="badge badge-${item.status.includes('approved') ? 'success' : 'danger'}">${item.status}</span></td>
+                                    <td>${item.reward_amount} G$</td>
+                                    <td>${new Date(item.reviewed_at).toLocaleString()}</td>
+                                    <td><small>${item.tx_hash ? item.tx_hash.substring(0, 10) + '...' : 'N/A'}</small></td>
                                 </tr>
-                            </thead>
+                            `;
+                        });
+                        
+                        html += `
+                                    </tbody>
+                                </table>
+                            </div>
+                        `;
+                        section.innerHTML = html;
+                    }
+                } else {
+                    section.innerHTML = `<p style="color: #ef4444;">Error: ${data.error}</p>`;
+                }
+            } catch (error) {
+                console.error('Error loading community stories history:', error);
+            }
+        }
                             <tbody>
                                 ${data.history.map(h => {
                                     let statusBadge = '';
@@ -3636,11 +3694,14 @@ OR manually enter HTML content here...
                 const response = await fetch('/community-stories/api/admin/notifications');
                 const data = await response.json();
                 
-                const section = document.getElementById('community-stories-section');
-                if (!section) return;
+                const section = document.getElementById('community-stories-notifications');
+                if (!section) {
+                    console.error('❌ Community stories notifications container not found!');
+                    return;
+                }
 
                 if (data.success) {
-                    let html = `<h2>Pending Submissions (${data.count})</h2>`;
+                    let html = `<h3>Pending Submissions (${data.count})</h3>`;
                     
                     if (data.notifications.length === 0) {
                         html += '<p>No pending submissions at this time.</p>';
@@ -3667,15 +3728,7 @@ OR manually enter HTML content here...
                         });
                         html += '</div>';
                     }
-                    section.innerHTML = `
-                        <div class="page-header">
-                            <h1 class="page-title">🌟 Community Stories</h1>
-                            <p style="color: rgba(241, 245, 249, 0.7);">Review and approve community story submissions</p>
-                        </div>
-                        <div class="content-box">
-                            ${html}
-                        </div>
-                    `;
+                    section.innerHTML = html;
                 } else {
                     section.innerHTML = `<p style="color: #ef4444;">Error loading stories: ${data.error}</p>`;
                 }
