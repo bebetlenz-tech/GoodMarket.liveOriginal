@@ -227,6 +227,65 @@ def submit_screenshot():
         logger.error(f"🔍 Traceback: {traceback.format_exc()}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
+@community_stories_bp.route('/api/admin/update-settings', methods=['POST'])
+def update_settings():
+    """Update Community Stories configuration (admin only)"""
+    try:
+        wallet = session.get('wallet')
+        if not wallet or not session.get('verified'):
+            return jsonify({'success': False, 'error': 'Not authenticated'}), 401
+
+        from supabase_client import is_admin
+        if not is_admin(wallet):
+            return jsonify({'success': False, 'error': 'Admin access required'}), 403
+
+        data = request.get_json()
+        
+        # Validate data
+        low_reward = data.get('low_reward')
+        high_reward = data.get('high_reward')
+        required_mentions = data.get('required_mentions')
+        window_start_day = data.get('window_start_day')
+        window_end_day = data.get('window_end_day')
+        message = data.get('message')
+
+        if not all([low_reward, high_reward, required_mentions, window_start_day, window_end_day]):
+            return jsonify({'success': False, 'error': 'Missing required fields'}), 400
+
+        # Save to database (maintenance_settings table is used for dynamic config)
+        from supabase_client import get_supabase_client
+        supabase = get_supabase_client()
+        
+        import json
+        config_json = json.dumps({
+            'low_reward': low_reward,
+            'high_reward': high_reward,
+            'required_mentions': required_mentions,
+            'window_start_day': window_start_day,
+            'window_end_day': window_end_day
+        })
+
+        # Update or insert config
+        supabase.table('maintenance_settings').upsert({
+            'feature_name': 'community_stories_config',
+            'custom_message': config_json,
+            'is_enabled': True
+        }, on_conflict='feature_name').execute()
+
+        # Update message
+        if message:
+            supabase.table('maintenance_settings').upsert({
+                'feature_name': 'community_stories_message',
+                'custom_message': message,
+                'is_enabled': True
+            }, on_conflict='feature_name').execute()
+
+        return jsonify({'success': True, 'message': 'Settings updated successfully'})
+
+    except Exception as e:
+        logger.error(f"❌ Error updating settings: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
 @community_stories_bp.route('/api/admin/notifications', methods=['GET'])
 def get_admin_notifications():
     """Get admin notifications (admin only)"""
