@@ -711,12 +711,6 @@
                     </a>
                 </li>
                 <li class="menu-item">
-                    <a class="menu-link" onclick="showSection('wallet-maintenance-section')">
-                        <span class="menu-icon">👛</span>
-                        <span>Wallet Maintenance</span>
-                    </a>
-                </li>
-                <li class="menu-item">
                     <a class="menu-link" onclick="showSection('reward-config-section')">
                         <span class="menu-icon">💰</span>
                         <span>Reward Config</span>
@@ -766,31 +760,12 @@
                 </div>
             </section>
 
+            <!-- Community Stories Section -->
             <section id="community-stories-section" class="section">
                 <div class="page-header">
                     <h1 class="page-title">🌟 Community Stories</h1>
                     <p style="color: rgba(241, 245, 249, 0.7);">Review and manage story submissions</p>
                 </div>
-
-                <div class="content-box" style="margin-bottom: 2rem;">
-                    <div id="community-stories-notifications">
-                        <div class="loading">
-                            <div class="spinner"></div>
-                            <p>Loading pending submissions...</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="content-box">
-                    <h2>Recent Actions</h2>
-                    <div id="community-stories-history">
-                        <div class="loading">
-                            <div class="spinner"></div>
-                            <p>Loading recent actions...</p>
-                        </div>
-                    </div>
-                </div>
-            </section>
 
                 <!-- Screenshot Upload Section -->
                 <div class="content-box">
@@ -1550,12 +1525,10 @@ CORRECT: C
                 </div>
             </div>
 
-            <!-- Module Links Section -->
-            <section id="module-links-section" class="section">
-                <div class="page-header">
-                    <h1 class="page-title">🔗 Module Links</h1>
-                    <p style="color: rgba(241, 245, 249, 0.7);">Manage the module links for the Learn & Earn section.</p>
-                </div>
+            <!-- Module Links Section (NEW) -->
+            <div class="admin-section" id="module-links-section" style="display: none;">
+                <h2>🔗 Module Links</h2>
+                <p>Manage the module links for the Learn & Earn section.</p>
 
                 <div class="content-box">
                     <h2>Add New Module Link</h2>
@@ -1606,250 +1579,14 @@ OR manually enter HTML content here...
                         </div>
                     </div>
                 </div>
-            </section>
+            </div>
 
             <!-- Reward Configuration Section (NEW) -->
-            <!-- Reward Config Section -->
-            <!-- Wallet Maintenance Section -->
-            <section id="wallet-maintenance-section" class="section">
-                <div class="page-header">
-                    <h1 class="page-title">👛 Wallet Connection Maintenance</h1>
-                    <p class="text-muted">Enable or disable the GoodDollar wallet connection feature.</p>
-                </div>
-
-                <div class="admin-section active">
-                    <div class="form-group">
-                        <label>Maintenance Status</label>
-                        <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
-                            <span id="wallet-maintenance-status-badge" class="badge">Loading...</span>
-                        </div>
-                        <button id="toggle-wallet-maintenance-btn" class="admin-btn">
-                            Loading...
-                        </button>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="wallet-maintenance-message">Maintenance Message</label>
-                        <textarea id="wallet-maintenance-message" class="admin-input" rows="3" placeholder="Message to show when maintenance is on..."></textarea>
-                        <button onclick="updateWalletMaintenanceMessage()" class="admin-btn">Update Message</button>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Reward Config Section -->
-            <section id="reward-config-section" class="section">
-                <div class="page-header">
-                    <h1 class="page-title">💰 Reward Configuration</h1>
-                    <p style="color: rgba(241, 245, 249, 0.7);">Manage reward amounts for social media tasks</p>
-                </div>
+            <div class="admin-section" id="reward-config-section" style="display: none;">
+                <h2>💰 Reward Configuration</h2>
+                <p>Manage reward amounts for social media tasks.</p>
 
                 <div class="content-box">
-                    <h2>Current Reward Settings</h2>
-                    <div id="reward-config-status">
-                        <div class="loading">
-                            <div class="spinner"></div>
-                            <p>Loading reward configuration...</p>
-                        </div>
-                    </div>
-                    
-                    <div id="reward-config-controls" style="display: none;">
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; margin-top: 1rem;">
-                            <!-- Twitter Card -->
-                            <div style="padding: 1.5rem; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 12px;">
-                                <h3 style="color: #3b82f6; display: flex; align-items: center; gap: 0.5rem;">
-                                    <span>🐦</span> Twitter Task
-                                </h3>
-                                <div style="margin: 1rem 0;">
-                                    <label class="form-label">Reward Amount (G$)</label>
-                                    <input type="number" id="reward-twitter_task" class="form-control" min="10" max="10000">
-                                </div>
-                                <button class="btn btn-primary w-100" onclick="updateReward('twitter_task')">💾 Update Twitter Reward</button>
-                            </div>
-
-                            <!-- Telegram Card -->
-                            <div style="padding: 1.5rem; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(0, 172, 238, 0.3); border-radius: 12px;">
-                                <h3 style="color: #00acee; display: flex; align-items: center; gap: 0.5rem;">
-                                    <span>📱</span> Telegram Task
-                                </h3>
-                                <div style="margin: 1rem 0;">
-                                    <label class="form-label">Reward Amount (G$)</label>
-                                    <input type="number" id="reward-telegram_task" class="form-control" min="10" max="10000">
-                                </div>
-                                <button class="btn btn-primary w-100" onclick="updateReward('telegram_task')" style="background: linear-gradient(135deg, #6366f1, #a855f7);">💾 Update Telegram Reward</button>
-                            </div>
-
-                            <!-- Facebook Card -->
-                            <div style="padding: 1.5rem; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(24, 119, 242, 0.3); border-radius: 12px;">
-                                <h3 style="color: #1877f2; display: flex; align-items: center; gap: 0.5rem;">
-                                    <span>📘</span> Facebook Task
-                                </h3>
-                                <div style="margin: 1rem 0;">
-                                    <label class="form-label">Reward Amount (G$)</label>
-                                    <input type="number" id="reward-facebook_task" class="form-control" min="10" max="10000">
-                                </div>
-                                <button class="btn btn-primary w-100" onclick="updateReward('facebook_task')" style="background: #1877f2;">💾 Update Facebook Reward</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <script>
-                async function loadRewardConfig() {
-                    const statusDiv = document.getElementById('reward-config-status');
-                    const controlsDiv = document.getElementById('reward-config-controls');
-                    
-                    try {
-                        const response = await fetch('/api/admin/reward-config');
-                        const data = await response.json();
-                        
-                        if (data.success) {
-                            data.rewards.forEach(reward => {
-                                const input = document.getElementById(`reward-${reward.task_type}`);
-                                if (input) input.value = reward.reward_amount;
-                            });
-                            statusDiv.style.display = 'none';
-                            controlsDiv.style.display = 'block';
-                        } else {
-                            statusDiv.innerHTML = `<p style="color: #ef4444;">❌ Error: ${data.error}</p>`;
-                        }
-                    } catch (error) {
-                        statusDiv.innerHTML = `<p style="color: #ef4444;">❌ Connection error</p>`;
-                    }
-                }
-
-                async function updateReward(taskType) {
-                    const amount = document.getElementById(`reward-${taskType}`).value;
-                    if (!amount || amount < 10) {
-                        alert('⚠️ Minimum 10 G$');
-                        return;
-                    }
-                    
-                    try {
-                        const response = await fetch('/api/admin/reward-config', {
-                            method: 'POST',
-                            headers: {'Content-Type': 'application/json'},
-                            body: JSON.stringify({ task_type: taskType, reward_amount: amount })
-                        });
-                        const data = await response.json();
-                        if (data.success) {
-                            alert('✅ Reward updated!');
-                            loadRewardConfig();
-                        } else {
-                            alert('❌ ' + data.error);
-                        }
-                    } catch (error) {
-                        alert('❌ Error updating reward');
-                    }
-                }
-            </script>
-        </main>
-    </div>
-
-    <script>
-        function showSection(sectionId) {
-            // Hide all sections
-            document.querySelectorAll('.section').forEach(section => {
-                section.style.display = 'none';
-                section.classList.remove('active');
-            });
-            
-            // Deactivate all links
-            document.querySelectorAll('.menu-link').forEach(link => {
-                link.classList.remove('active');
-            });
-            
-            // Show target section
-            const targetSection = document.getElementById(sectionId);
-            if (targetSection) {
-                targetSection.style.display = 'block';
-                targetSection.classList.add('active');
-                
-                // Find and activate the link
-                document.querySelectorAll('.menu-link').forEach(link => {
-                    if (link.getAttribute('onclick') && link.getAttribute('onclick').includes(sectionId)) {
-                        link.classList.add('active');
-                    }
-                });
-
-                // Load data for the section
-                if (sectionId === 'reward-config-section') loadRewardConfig();
-                if (sectionId === 'overview-section') loadAdminStats();
-                if (sectionId === 'users-section') loadUsers();
-                if (sectionId === 'daily-tasks-section') loadPendingDailyTasks();
-                if (sectionId === 'quiz-section') loadQuestions();
-                if (sectionId === 'maintenance-section') loadMaintenanceStatus();
-                if (sectionId === 'minigames-maintenance-section') loadMinigamesMaintenance();
-                if (sectionId === 'quiz-settings-section') loadQuizSettings();
-                if (sectionId === 'community-stories-settings-section') loadCommunityStoriesSettings();
-                if (sectionId === 'insufficient-balance-section') loadInsufficientBalanceMessage();
-                if (sectionId === 'news-management-section') loadNewsHistory();
-                if (sectionId === 'module-links-section') loadModuleLinks();
-            }
-        }
-
-        async function loadRewardConfig() {
-            const statusDiv = document.getElementById('reward-config-status');
-            const controlsDiv = document.getElementById('reward-config-controls');
-            
-            try {
-                const response = await fetch('/api/admin/reward-config');
-                const data = await response.json();
-                
-                if (data.success) {
-                    const rewards = data.rewards;
-                    rewards.forEach(reward => {
-                        const input = document.getElementById(`reward-${reward.task_type}`);
-                        if (input) {
-                            input.value = reward.reward_amount;
-                        }
-                    });
-                    
-                    statusDiv.style.display = 'none';
-                    controlsDiv.style.display = 'block';
-                } else {
-                    statusDiv.innerHTML = `<p style="color: #ef4444;">❌ Error: ${data.error}</p>`;
-                }
-            } catch (error) {
-                console.error('Error loading rewards:', error);
-                statusDiv.innerHTML = `<p style="color: #ef4444;">❌ Connection error loading rewards</p>`;
-            }
-        }
-
-        async function updateReward(taskType) {
-            const amount = document.getElementById(`reward-${taskType}`).value;
-            
-            if (!amount || amount < 10) {
-                alert('⚠️ Please enter a valid amount (minimum 10 G$)');
-                return;
-            }
-            
-            try {
-                const response = await fetch('/api/admin/reward-config', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({
-                        task_type: taskType,
-                        reward_amount: amount
-                    })
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    alert(`✅ ${taskType.replace('_', ' ')} reward updated!`);
-                    loadRewardConfig();
-                } else {
-                    alert(`❌ Error: ${data.error}`);
-                }
-            } catch (error) {
-                console.error('Error updating reward:', error);
-                alert('❌ Connection error while updating reward');
-            }
-        }
-    </script>
-</body>
-</html>
                     <h2>Task Rewards</h2>
                     <div id="reward-config-status" style="margin-bottom: 2rem;">
                         <div class="loading">
@@ -2041,7 +1778,33 @@ OR manually enter HTML content here...
             loadAdminStats();
         });
 
-        // Note: showSection is defined earlier in the file - this loadSectionData is a helper
+        function showSection(sectionId) {
+            // Hide all sections
+            document.querySelectorAll('.section').forEach(section => {
+                section.classList.remove('active');
+            });
+
+            // Remove active from all menu links
+            document.querySelectorAll('.menu-link').forEach(link => {
+                link.classList.remove('active');
+            });
+
+            // Show the selected section
+            const sectionToShow = document.getElementById(sectionId);
+            if (sectionToShow) {
+                sectionToShow.classList.add('active');
+            }
+
+            // Add active class to the clicked menu link
+            if (event && event.target) {
+                event.target.classList.add('active');
+            }
+
+            // Load data specific to the section
+            const sectionName = sectionId.replace('-section', '');
+            loadSectionData(sectionName);
+        }
+
         function loadSectionData(sectionName) {
             switch(sectionName) {
                 case 'overview':
@@ -2051,7 +1814,7 @@ OR manually enter HTML content here...
                     loadUsers();
                     break;
                 case 'community-stories':
-                    loadCommunityStories();
+                    loadCommunityStoriesNotifications();
                     loadCommunityStoriesHistory();
                     loadRecentRequirementImages();
                     break;
@@ -3026,63 +2789,24 @@ OR manually enter HTML content here...
             try {
                 const response = await fetch('/community-stories/api/admin/history');
                 const data = await response.json();
-                
-                const section = document.getElementById('community-stories-history');
-                if (!section) {
-                    console.error('❌ Community stories history container not found!');
-                    return;
-                }
 
-                if (data.success) {
-                    if (data.history.length === 0) {
-                        section.innerHTML = '<p>No processed submissions yet.</p>';
-                    } else {
-                        let html = `
-                            <div style="margin-bottom: 1rem; padding: 0.75rem; background: rgba(16, 185, 129, 0.1); border-left: 4px solid #10b981; border-radius: 8px;">
-                                <strong style="color: #10b981;">✅ ${data.count} submission(s) processed</strong>
-                            </div>
-                            <div class="table-responsive">
-                                <table class="table">
-                                    <thead>
-                                        <tr>
-                                            <th>Submission ID</th>
-                                            <th>User</th>
-                                            <th>Status</th>
-                                            <th>Amount</th>
-                                            <th>Reviewed At</th>
-                                            <th>TX Hash</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                        `;
-                        
-                        data.history.forEach(item => {
-                            html += `
+                if (data.success && data.history.length > 0) {
+                    const historyHtml = `
+                        <div style="margin-bottom: 1rem; padding: 0.75rem; background: rgba(16, 185, 129, 0.1); border-left: 4px solid #10b981; border-radius: 8px;">
+                            <strong style="color: #10b981;">✅ ${data.count} submission(s) processed</strong>
+                        </div>
+                        <table>
+                            <thead>
                                 <tr>
-                                    <td>${item.submission_id}</td>
-                                    <td><small>${item.wallet_address}</small></td>
-                                    <td><span class="badge badge-${item.status.includes('approved') ? 'success' : 'danger'}">${item.status}</span></td>
-                                    <td>${item.reward_amount} G$</td>
-                                    <td>${new Date(item.reviewed_at).toLocaleString()}</td>
-                                    <td><small>${item.tx_hash ? item.tx_hash.substring(0, 10) + '...' : 'N/A'}</small></td>
+                                    <th>Submission ID</th>
+                                    <th>User</th>
+                                    <th>Status</th>
+                                    <th>Amount</th>
+                                    <th>Reviewed By</th>
+                                    <th>Reviewed At</th>
+                                    <th>TX Hash</th>
                                 </tr>
-                            `;
-                        });
-                        
-                        html += `
-                                    </tbody>
-                                </table>
-                            </div>
-                        `;
-                        section.innerHTML = html;
-                    }
-                } else {
-                    section.innerHTML = `<p style="color: #ef4444;">Error: ${data.error}</p>`;
-                }
-            } catch (error) {
-                console.error('Error loading community stories history:', error);
-            }
-        }
+                            </thead>
                             <tbody>
                                 ${data.history.map(h => {
                                     let statusBadge = '';
@@ -3230,32 +2954,32 @@ OR manually enter HTML content here...
 
         async function loadCommunityStoriesSettings() {
             try {
-                const response = await fetch('/community-stories/api/config');
+                const response = await fetch('/api/admin/community-stories-settings');
                 const data = await response.json();
 
                 const statusDiv = document.getElementById('community-stories-settings-status');
                 const controlsDiv = document.getElementById('community-stories-settings-controls');
 
                 if (data.success) {
-                    const config = data.config;
+                    const settings = data.settings;
 
-                    document.getElementById('current-low-reward').textContent = config.rewards.low.toLocaleString() + ' G$';
-                    document.getElementById('current-high-reward').textContent = config.rewards.high.toLocaleString() + ' G$';
-                    document.getElementById('current-window-start').textContent = config.window.start_day + 'th';
-                    document.getElementById('current-window-end').textContent = config.window.end_day + 'th';
-                    document.getElementById('current-mentions').textContent = config.requirements.mentions.join(' ');
+                    document.getElementById('current-low-reward').textContent = settings.low_reward.toLocaleString() + ' G$';
+                    document.getElementById('current-high-reward').textContent = settings.high_reward.toLocaleString() + ' G$';
+                    document.getElementById('current-window-startDay').textContent = settings.window_start_day + 'th';
+                    document.getElementById('current-window-end').textContent = settings.window_end_day + 'th';
+                    document.getElementById('current-mentions').textContent = settings.required_mentions;
 
-                    document.getElementById('low-reward').value = config.rewards.low;
-                    document.getElementById('high-reward').value = config.rewards.high;
-                    document.getElementById('required-mentions').value = config.requirements.mentions.join(' ');
-                    document.getElementById('window-start-day').value = config.window.start_day;
-                    document.getElementById('window-end-day').value = config.window.end_day;
-                    document.getElementById('community-stories-message').value = config.description || '';
+                    document.getElementById('low-reward').value = settings.low_reward;
+                    document.getElementById('high-reward').value = settings.high_reward;
+                    document.getElementById('required-mentions').value = settings.required_mentions;
+                    document.getElementById('window-start-day').value = settings.window_start_day;
+                    document.getElementById('window-end-day').value = settings.window_end_day;
+                    document.getElementById('community-stories-message').value = settings.message || '';
 
                     statusDiv.style.display = 'none';
                     controlsDiv.style.display = 'block';
                 } else {
-                    statusDiv.innerHTML = '<p style="color: #ef4444;">Error loading settings: ' + (data.error || 'Unknown error') + '</p>';
+                    statusDiv.innerHTML = '<p style="color: #ef4444;">Error loading settings</p>';
                 }
             } catch (error) {
                 console.error('Error loading Community Stories settings:', error);
@@ -3279,34 +3003,6 @@ OR manually enter HTML content here...
 
                 if (startDay < 1 || startDay > 31 || endDay < 1 || endDay > 31) {
                     alert('⚠️ Days must be between 1 and 31');
-                    return;
-                }
-
-                const response = await fetch('/community-stories/api/admin/update-settings', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({
-                        low_reward: lowReward,
-                        high_reward: highReward,
-                        required_mentions: mentions.split(' '),
-                        window_start_day: startDay,
-                        window_end_day: endDay,
-                        message: message
-                    })
-                });
-
-                const data = await response.json();
-                if (data.success) {
-                    alert('✅ Settings updated successfully!');
-                    loadCommunityStoriesSettings();
-                } else {
-                    alert('❌ Update failed: ' + data.error);
-                }
-            } catch (error) {
-                console.error('Error updating settings:', error);
-                alert('❌ Error updating settings');
-            }
-        }
                     return;
                 }
 
@@ -3407,7 +3103,6 @@ OR manually enter HTML content here...
                 const data = await response.json();
 
                 const contentDiv = document.getElementById('dailyTasksContent');
-                if (!contentDiv) return;
 
                 if (data.success) {
                     const telegramTasks = data.telegram_tasks || [];
@@ -3430,56 +3125,9 @@ OR manually enter HTML content here...
                                 <strong style="color: #fbbf24;">⏳ ${totalPending} pending submission(s) waiting for review</strong>
                             </div>
                         `;
-                        
-                        // Helper function for rendering task rows
-                        const renderTaskRows = (tasks, platform) => {
-                            return tasks.map(task => `
-                                <tr>
-                                    <td><small>${task.wallet_address.substring(0, 10)}...</small></td>
-                                    <td>${platform}</td>
-                                    <td><a href="${task.screenshot_url || task.tweet_url}" target="_blank" style="color: #6366f1;">View Link</a></td>
-                                    <td>${new Date(task.created_at).toLocaleString()}</td>
-                                    <td>
-                                        <div style="display: flex; gap: 0.5rem;">
-                                            <button onclick="approveDailyTask('${task.id}', '${platform.toLowerCase()}')" class="btn btn-primary" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;">Approve</button>
-                                            <button onclick="rejectDailyTask('${task.id}', '${platform.toLowerCase()}')" class="btn btn-danger" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;">Reject</button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            `).join('');
-                        };
 
-                        html += `
-                            <div class="table-responsive">
-                                <table class="table">
-                                    <thead>
-                                        <tr>
-                                            <th>User</th>
-                                            <th>Platform</th>
-                                            <th>Link</th>
-                                            <th>Submitted At</th>
-                                            <th>Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        ${renderTaskRows(telegramTasks, 'Telegram')}
-                                        ${renderTaskRows(twitterTasks, 'Twitter')}
-                                        ${renderTaskRows(facebookTasks, 'Facebook')}
-                                    </tbody>
-                                </table>
-                            </div>
-                        `;
-                    }
-                    contentDiv.innerHTML = html;
-                } else {
-                    contentDiv.innerHTML = `<p style="color: #ef4444;">Error: ${data.error}</p>`;
-                }
-            } catch (error) {
-                console.error('Error loading pending daily tasks:', error);
-                const contentDiv = document.getElementById('dailyTasksContent');
-                if (contentDiv) contentDiv.innerHTML = '<p style="color: #ef4444;">Failed to fetch daily tasks</p>';
-            }
-        }
+                        if (facebookTasks.length > 0) {
+                            html += `
                                 <h3 style="color: #1877f2; margin-top: 2rem; margin-bottom: 1rem;">📘 Facebook Tasks (${facebookTasks.length})</h3>
                                 <table>
                                     <thead>
@@ -3738,67 +3386,7 @@ OR manually enter HTML content here...
         });
 
         async function loadCommunityStories() {
-            try {
-                const response = await fetch('/community-stories/api/admin/notifications');
-                const data = await response.json();
-                
-                const container = document.getElementById('community-stories-notifications');
-                if (!container) return;
-
-                if (data.success) {
-                    if (!data.notifications || data.notifications.length === 0) {
-                        container.innerHTML = '<p>No pending submissions at this time.</p>';
-                    } else {
-                        let html = `
-                            <div style="margin-bottom: 1rem; padding: 0.75rem; background: rgba(251, 191, 36, 0.1); border-left: 4px solid #fbbf24; border-radius: 8px;">
-                                <strong style="color: #fbbf24;">📬 You have ${data.count} pending submission(s) waiting for review</strong>
-                            </div>
-                            <div class="table-responsive">
-                                <table class="table">
-                                    <thead>
-                                        <tr>
-                                            <th>Submission ID</th>
-                                            <th>User Wallet</th>
-                                            <th>Tweet Link / Screenshot</th>
-                                            <th>Submitted At</th>
-                                            <th>Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                        `;
-                        
-                        data.notifications.forEach(n => {
-                            const sub = n.community_stories_submissions;
-                            html += `
-                                <tr id="submission-row-${sub.submission_id}">
-                                    <td style="font-family: monospace;">${sub.submission_id}</td>
-                                    <td style="font-family: monospace;">${sub.wallet_address.substring(0,8)}...</td>
-                                    <td>
-                                        <a href="${sub.storage_path}" target="_blank" style="color: #6366f1;">View Screenshot</a>
-                                    </td>
-                                    <td>${new Date(sub.created_at).toLocaleString()}</td>
-                                    <td>
-                                        <div style="display: flex; gap: 0.5rem;">
-                                            <button onclick="approveSubmission('${sub.submission_id}', 'low')" class="btn btn-primary" style="background: #6366f1; padding: 0.25rem 0.5rem; font-size: 0.8rem;">Approve Low</button>
-                                            <button onclick="approveSubmission('${sub.submission_id}', 'high')" class="btn btn-primary" style="background: #10b981; padding: 0.25rem 0.5rem; font-size: 0.8rem;">Approve High</button>
-                                            <button onclick="rejectSubmission('${sub.submission_id}')" class="btn btn-danger" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;">Reject</button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            `;
-                        });
-                        
-                        html += '</tbody></table></div>';
-                        container.innerHTML = html;
-                    }
-                } else {
-                    container.innerHTML = `<p style="color: #ef4444;">Error loading stories: ${data.error}</p>`;
-                }
-            } catch (error) {
-                console.error('Error loading community stories:', error);
-                const container = document.getElementById('community-stories-notifications');
-                if (container) container.innerHTML = '<p style="color: #ef4444;">Failed to fetch submissions</p>';
-            }
+            console.log('Loading community stories...');
         }
 
         function updateBroadcastPreview() {
@@ -4349,148 +3937,6 @@ OR manually enter HTML content here...
             }
         }
 
-        async function loadRewardConfig() {
-            try {
-                const response = await fetch('/api/admin/reward-config');
-                const data = await response.json();
-
-                const statusDiv = document.getElementById('reward-config-status');
-                const controlsDiv = document.getElementById('reward-config-controls');
-
-                if (data.success) {
-                    if (data.rewards.telegram_task) {
-                        document.getElementById('current-telegram-reward').textContent = 
-                            `${parseFloat(data.rewards.telegram_task.amount).toLocaleString()} G$`;
-                        document.getElementById('telegram-reward-input').value = 
-                            parseFloat(data.rewards.telegram_task.amount);
-                        if (data.rewards.telegram_task.last_updated_at) {
-                            document.getElementById('telegram-last-updated').textContent = 
-                                `Last updated: ${new Date(data.rewards.telegram_task.last_updated_at).toLocaleString()}`;
-                        }
-                    }
-
-                    if (data.rewards.twitter_task) {
-                        document.getElementById('current-twitter-reward').textContent = 
-                            `${parseFloat(data.rewards.twitter_task.amount).toLocaleString()} G$`;
-                        document.getElementById('twitter-reward-input').value = 
-                            parseFloat(data.rewards.twitter_task.amount);
-                        if (data.rewards.twitter_task.last_updated_at) {
-                            document.getElementById('twitter-last-updated').textContent = 
-                                `Last updated: ${new Date(data.rewards.twitter_task.last_updated_at).toLocaleString()}`;
-                        }
-                    }
-
-                    if (data.rewards.facebook_task) {
-                        document.getElementById('current-facebook-reward').textContent = 
-                            `${parseFloat(data.rewards.facebook_task.amount).toLocaleString()} G$`;
-                        document.getElementById('facebook-reward-input').value = 
-                            parseFloat(data.rewards.facebook_task.amount);
-                        if (data.rewards.facebook_task.last_updated_at) {
-                            document.getElementById('facebook-last-updated').textContent = 
-                                `Last updated: ${new Date(data.rewards.facebook_task.last_updated_at).toLocaleString()}`;
-                        }
-                    }
-
-                    statusDiv.style.display = 'none';
-                    controlsDiv.style.display = 'block';
-                } else {
-                    statusDiv.innerHTML = '<p style="color: #ef4444;">Failed to load reward configuration</p>';
-                }
-            } catch (error) {
-                console.error('Error loading reward config:', error);
-                document.getElementById('reward-config-status').innerHTML = 
-                    '<p style="color: #ef4444;">Error loading configuration</p>';
-            }
-        }
-
-        async function loadWalletMaintenanceStatus() {
-            try {
-                const response = await fetch('/api/admin/maintenance-status?feature=wallet_connection');
-                const data = await response.json();
-                
-                if (data.success) {
-                    const badge = document.getElementById('wallet-maintenance-status-badge');
-                    const btn = document.getElementById('toggle-wallet-maintenance-btn');
-                    const msgInput = document.getElementById('wallet-maintenance-message');
-                    
-                    if (data.is_maintenance) {
-                        badge.textContent = 'Maintenance ON';
-                        badge.className = 'badge bg-danger text-white';
-                        btn.textContent = 'Disable Maintenance';
-                        btn.classList.remove('danger');
-                        btn.classList.add('success');
-                    } else {
-                        badge.textContent = 'Maintenance OFF';
-                        badge.className = 'badge bg-success text-white';
-                        btn.textContent = 'Enable Maintenance';
-                        btn.classList.remove('success');
-                        btn.classList.add('danger');
-                    }
-                    
-                    msgInput.value = data.message || '';
-                    
-                    btn.onclick = () => toggleWalletMaintenance(!data.is_maintenance);
-                }
-            } catch (error) {
-                console.error('Error loading wallet maintenance status:', error);
-            }
-        }
-
-        async function toggleWalletMaintenance(enable) {
-            if (!confirm(`Are you sure you want to ${enable ? 'ENABLE' : 'DISABLE'} maintenance mode for wallet connections?`)) {
-                return;
-            }
-            
-            try {
-                const response = await fetch('/api/admin/maintenance-status', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        feature_name: 'wallet_connection',
-                        is_maintenance: enable,
-                        message: document.getElementById('wallet-maintenance-message').value
-                    })
-                });
-                
-                const data = await response.json();
-                if (data.success) {
-                    alert(data.message);
-                    await loadWalletMaintenanceStatus();
-                } else {
-                    alert('Error: ' + data.error);
-                }
-            } catch (error) {
-                console.error('Error toggling wallet maintenance:', error);
-                alert('Failed to update maintenance status');
-            }
-        }
-
-        async function updateWalletMaintenanceMessage() {
-            const message = document.getElementById('wallet-maintenance-message').value;
-            const isMaintenance = document.getElementById('wallet-maintenance-status-badge').textContent.includes('ON');
-            try {
-                const response = await fetch('/api/admin/maintenance-status', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        feature_name: 'wallet_connection',
-                        is_maintenance: isMaintenance,
-                        message: message
-                    })
-                });
-                
-                const data = await response.json();
-                if (data.success) {
-                    alert('Maintenance message updated successfully');
-                } else {
-                    alert('Error: ' + data.error);
-                }
-            } catch (error) {
-                console.error('Error updating maintenance message:', error);
-                alert('Failed to update message');
-            }
-        }
-
         async function updateRewardConfig(taskType) {
             try {
                 let inputId, displayId, taskName;
@@ -4547,16 +3993,6 @@ OR manually enter HTML content here...
                 alert('Failed to update reward configuration');
             }
         }
-
-        // Initialize admin dashboard
-        window.addEventListener('load', async () => {
-            try {
-                await loadRewardConfig();
-                await loadWalletMaintenanceStatus();
-            } catch (error) {
-                console.error('Error during initial load:', error);
-            }
-        });
     </script>
 </body>
 </html>
